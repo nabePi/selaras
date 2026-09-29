@@ -27,8 +27,14 @@ Web app mobile-first (PWA) untuk **[selaras.life](https://selaras.life)**.
 | `/journal` | Member | Kalender bulanan, riwayat refleksi |
 | `/journal/tulis` | Member | Form refleksi harian (lampiran, privasi, draf) |
 | `/profil` | Member | Profil, kurikulum, evaluasi pre/post test, pengaturan PWA |
+| `/admin` | Admin | Ikhtisar dashboard: perlu perhatian, kelas berjalan, prompt hari ini, insight singkat |
+| `/admin/peserta` | Admin | Aktivasi & data peserta: filter, pencarian, panel audit, ekspor CSV, tambah manual |
+| `/admin/prompt` | Admin | Kelola prompt & hadis harian: editor, simulator ponsel, jadwal, pustaka hadis |
+| `/admin/kelas` | Admin | Manajemen kelas & sesi kurikulum, bank soal pre/post |
+| `/admin/insight` | Admin | Agregat insight emosional & antrean catatan coach |
+| `/admin/panduan` | Admin | Panduan & SOP pendampingan |
 
-Halaman member diberi `noindex`.
+Halaman member dan admin diberi `noindex`.
 
 ## Menjalankan
 
@@ -54,6 +60,7 @@ src/
 ├── app/
 │   ├── (public)/      # /, /program, /cerita — header + tab bawah publik
 │   ├── (auth)/        # /masuk, /daftar
+│   ├── admin/         # konsol admin & coach (sidebar + header sendiri)
 │   ├── (app)/
 │   │   ├── (tabs)/    # /home, /journal, /profil — dengan tab bawah
 │   │   └── (focus)/   # /journal/tulis — halaman fokus tanpa tab
@@ -61,10 +68,12 @@ src/
 │   ├── layout.tsx     # root layout, font, ToastProvider
 │   └── manifest.ts    # manifest PWA
 ├── components/        # komponen UI; yang interaktif ditandai "use client"
-│   └── auth/          # field, form masuk/daftar, dialog lupa sandi
+│   ├── auth/          # field, form masuk/daftar, dialog lupa sandi
+│   └── admin/         # shell admin, pengelola peserta/prompt/kelas/insight
 ├── data/              # konten statis sementara (programs, stories, member)
 └── lib/
     ├── auth.ts        # SIMULASI signIn/register/reset — ganti dengan API
+    ├── admin-actions.ts # SIMULASI aksi admin (aktivasi, nudge, publikasi, dll.) — ganti dengan API
     ├── validation.ts  # validasi email, WhatsApp, kekuatan sandi
     └── stored-value.ts# localStorage sebagai external store (draf, pengingat)
 public/
@@ -91,6 +100,7 @@ Belum tersambung ke backend:
   halaman member **belum diproteksi**. Ganti `signIn`, `registerAccount`, dan `requestPasswordReset`
   dengan panggilan API, form sudah menangani hasil gagal dan keadaan loading.
 - **Data member:** `src/data/member.ts` berisi data contoh (tanggal, streak, riwayat, dll.).
+- **Konsol admin:** semua aksi (aktivasi, nudge WhatsApp, publikasi prompt, simpan kurikulum, dll.) lewat `src/lib/admin-actions.ts` dan hanya mengubah state di memori halaman; belum ada yang tersimpan atau terkirim. Data contoh ada di `src/data/admin-*.ts`. `/admin` **belum diproteksi** (tidak ada cek peran).
 - **Kirim jurnal:** "Simpan & Kirim Jurnal" belum mengirim ke server. Draf teks tersimpan di
   `localStorage`.
 - **Belum ada fiturnya:** Magic Link WhatsApp, masuk dengan Google, notifikasi, export PDF, tautan Zoom,
