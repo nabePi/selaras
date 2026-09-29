@@ -1,0 +1,32 @@
+# Dependensi & hasil build (di-generate di dalam image)
+node_modules
+.next
+out
+build
+*.tsbuildinfo
+next-env.d.ts
+
+# Git & editor
+.git
+.gitignore
+.vscode
+.idea
+
+# Rahasia & env lokal (di Dokploy isi lewat tab Environment)
+.env*
+
+# Log
+npm-debug.log*
+
+# Aset desain & dokumen yang tidak dipakai saat runtime
+stitch_selaras_journaling_pwa
+selaras_user_login
+selaras_masuk_daftar
+README.md
+AGENTS.md
+CLAUDE.md
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore

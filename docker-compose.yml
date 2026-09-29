@@ -1,0 +1,22 @@
+# Untuk Dokploy (Compose Type: Docker Compose).
+# Domain diatur di tab "Domains" Dokploy: Service = web, Port = 3000, Host = selaras.life,
+# HTTPS aktif (Let's Encrypt). Jangan publish `ports:` agar tidak bentrok dengan Traefik.
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      NODE_ENV: production
+      # Variabel rahasia/konfigurasi lain (DB, secret sesi, dll.) isi lewat tab Environment Dokploy,
+      # lalu daftarkan di sini, mis.:
+      # DATABASE_URL: ${DATABASE_URL}
+    networks:
+      - dokploy-network
+
+networks:
+  dokploy-network:
+    external: true

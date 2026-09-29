@@ -1,0 +1,209 @@
+@import "tailwindcss";
+
+/* Serene Harmony design tokens (lihat stitch_selaras_journaling_pwa/serene_harmony/DESIGN.md) */
+@theme {
+  --color-surface: #fff8f5;
+  --color-surface-dim: #eed5c4;
+  --color-surface-bright: #fff8f5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #fff1e9;
+  --color-surface-container: #ffeadc;
+  --color-surface-container-high: #fde4d2;
+  --color-surface-container-highest: #f7decc;
+  --color-on-surface: #26190e;
+  --color-on-surface-variant: #444841;
+  --color-inverse-surface: #3c2d22;
+  --color-inverse-on-surface: #ffede2;
+  --color-outline: #747870;
+  --color-outline-variant: #c4c8be;
+  --color-surface-tint: #51644a;
+
+  --color-primary: #4e6148;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #667a5f;
+  --color-on-primary-container: #f8fff0;
+  --color-inverse-primary: #b7cdad;
+  --color-primary-fixed: #d3e9c8;
+  --color-primary-fixed-dim: #b7cdad;
+
+  --color-secondary: #7c5450;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #ffcbc5;
+  --color-on-secondary-container: #7b534f;
+  --color-secondary-fixed: #ffdad5;
+  --color-secondary-fixed-dim: #edbab4;
+
+  --color-tertiary: #715644;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #8c6f5b;
+  --color-on-tertiary-container: #fffbff;
+  --color-on-tertiary-fixed-variant: #5a4230;
+
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+
+  --color-canvas-cream: #faf7f3;
+  --color-canvas-ivory: #f7f1ea;
+  --color-canvas-sand: #dccebf;
+  --color-sage-tint: #e8efe5;
+  --color-sage-medium: #a7b89f;
+  --color-accent-coral: #e8978d;
+  --color-accent-sunray: #f3d7a4;
+  --color-accent-lavender: #c9b3d9;
+  --color-accent-mint: #cfe4d6;
+  --color-sky-calm: #afcde3;
+  --color-text-muted: #8a796c;
+  --color-border-subtle: #e8dfd5;
+
+  --spacing-margin: 1.25rem;
+
+  --font-serif: var(--font-noto-serif), ui-serif, Georgia, serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Typography scale. Setiap style membawa font family, ukuran, bobot, dan line-height. */
+@layer components {
+  .t-display {
+    font-family: var(--font-serif);
+    font-size: 36px;
+    line-height: 46px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .t-headline-lg {
+    font-family: var(--font-serif);
+    font-size: 30px;
+    line-height: 38px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+  .t-headline-lg-mobile {
+    font-family: var(--font-serif);
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .t-headline-md {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    line-height: 30px;
+    font-weight: 500;
+  }
+  .t-headline-sm {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    line-height: 26px;
+    font-weight: 600;
+  }
+  .t-quote {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 28px;
+    font-weight: 400;
+  }
+  .t-title-lg {
+    font-family: var(--font-sans);
+    font-size: 18px;
+    line-height: 26px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .t-title-md {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+  .t-title-sm {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+  }
+  .t-body-lg {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 26px;
+    font-weight: 400;
+  }
+  .t-body-md {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 22px;
+    font-weight: 400;
+  }
+  .t-body-sm {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 400;
+  }
+  .t-label-md {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+  .t-label-sm {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+}
+
+@layer base {
+  html {
+    background: var(--color-canvas-ivory);
+  }
+  body {
+    background: var(--color-canvas-ivory);
+    color: var(--color-on-surface);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 22px;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  * {
+    scrollbar-width: none;
+  }
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  user-select: none;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ping,
+  .animate-pulse {
+    animation: none;
+  }
+}
