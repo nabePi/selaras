@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { SectionHeading } from "@/components/section-heading";
+import { VideoReel } from "@/components/video-reel";
 import { TEAM } from "@/data/team";
 
 export const metadata: Metadata = {
@@ -68,6 +69,20 @@ export default function HomePage() {
             <Icon name="arrow_forward" size={18} />
           </Link>
         </div>
+      </section>
+
+      {/* Video perkenalan */}
+      <section className="flex w-full flex-col gap-3">
+        <SectionHeading
+          eyebrow="Kenalan Dulu"
+          title="Selaras Life dalam satu video"
+          description="Ketuk untuk memutar."
+        />
+        <VideoReel
+          src="/videos/selaras-reels.mp4"
+          poster="/videos/selaras-reels-poster.jpg"
+          title="Selaras Life Reels"
+        />
       </section>
 
       {/* 2. Selaras Life */}
