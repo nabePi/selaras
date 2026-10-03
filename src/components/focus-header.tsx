@@ -8,9 +8,11 @@ type Props = {
   backHref: string;
   /** Judul di tengah (halaman masuk/daftar); default di kiri dekat tombol kembali. */
   centered?: boolean;
+  /** Sembunyikan logo di kanan header. */
+  hideLogo?: boolean;
 };
 
-export function FocusHeader({ title, backHref, centered = false }: Props) {
+export function FocusHeader({ title, backHref, centered = false, hideLogo = false }: Props) {
   return (
     <header className="pt-safe fixed top-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 bg-surface/85 shadow-[0_1px_12px_rgba(92,75,62,0.04)] backdrop-blur-xl">
       <div
@@ -36,13 +38,15 @@ export function FocusHeader({ title, backHref, centered = false }: Props) {
           </p>
         )}
         <div className={`flex items-center justify-end ${centered ? "" : "pr-3"}`}>
-          <Image
-            src="/images/logo-avatar.png"
-            alt=""
-            width={32}
-            height={32}
-            className="size-8 rounded-full object-cover ring-1 ring-border-subtle"
-          />
+          {!hideLogo && (
+            <Image
+              src="/images/logo-avatar.png"
+              alt=""
+              width={32}
+              height={32}
+              className="size-8 rounded-full object-cover ring-1 ring-border-subtle"
+            />
+          )}
         </div>
       </div>
     </header>

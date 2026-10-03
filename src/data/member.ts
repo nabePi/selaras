@@ -29,7 +29,7 @@ export const PENDING_REFLECTION = {
   teaserNote:
     "Catatan intim untuk merajut rasa syukur atas perhatian yang sering terlewatkan dalam rutinitas.",
   prompt:
-    "Apa satu hal kecil yang pasanganmu lakukan kemarin yang membuat hatimu merasa hangat dan dihargai?",
+    "Percakapan apa dengan suami minggu ini yang membuat saya merasa didengar (atau sebaliknya)?",
   promptNote: "Tuliskan dengan jujur dan tanpa filter. Setiap rasa berharga untuk diselaraskan.",
 };
 

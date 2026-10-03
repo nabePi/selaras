@@ -1,28 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { FocusHeader } from "@/components/focus-header";
 import { Icon } from "@/components/icon";
 import { ReflectionForm } from "@/components/reflection-form";
 import { PENDING_REFLECTION as P } from "@/data/member";
 
-export const metadata: Metadata = { title: "Tulis Refleksi" };
+export const metadata: Metadata = { title: "Tulis Jurnal" };
 
 export default function TulisJurnalPage() {
   const progress = ((P.day / P.totalDays) * 100).toFixed(1);
 
   return (
     <>
-      <FocusHeader title="Tulis Refleksi" backHref="/home" />
+      <FocusHeader title="Tulis Jurnal" backHref="/home" hideLogo />
       <div className="flex w-full flex-col pb-10">
         <div className="mb-4 flex flex-col gap-2 pt-2">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/home"
-              className="t-label-md inline-flex items-center gap-1.5 py-1 text-tertiary transition-colors hover:text-on-surface"
-            >
-              <Icon name="west" size={18} />
-              Kembali ke Beranda
-            </Link>
+          <div className="flex items-center justify-end">
             <span className="t-label-sm inline-flex items-center gap-1 rounded-full bg-secondary-container px-2.5 py-1 text-on-secondary-container">
               <span className="size-1.5 animate-pulse rounded-full bg-accent-coral" />
               Tertunda
@@ -57,7 +49,7 @@ export default function TulisJurnalPage() {
           <div className="relative z-10 flex flex-col gap-2">
             <span className="t-label-sm inline-flex items-center gap-1.5 self-start rounded-full bg-sage-tint px-3 py-1 text-primary">
               <Icon name="spa" size={15} filled />
-              Prompt Kurasi Coach Afifah &amp; Tim
+              Prompt Kurasi Coach
             </span>
             <h2 className="t-headline-md leading-snug text-on-surface">{P.prompt}</h2>
             <div className="flex items-start gap-2 pt-1">

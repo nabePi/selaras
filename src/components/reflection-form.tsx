@@ -9,9 +9,18 @@ import { useToast } from "./toast-provider";
 
 const MB = 1024 * 1024;
 const MAX_IMAGE = 5 * MB;
-const MAX_AUDIO = 100 * MB;
+const MAX_MEDIA = 100 * MB;
+const MAX_FILES = 10;
 
-type Attachment = { name: string; size: number; kind: "image" | "audio"; url: string };
+type Kind = "image" | "video" | "audio";
+type Attachment = { id: string; name: string; size: number; kind: Kind; url: string };
+
+function kindOf(file: File): Kind | null {
+  if (file.type.startsWith("image/")) return "image";
+  if (file.type.startsWith("video/")) return "video";
+  if (file.type.startsWith("audio/")) return "audio";
+  return null;
+}
 
 function formatSize(bytes: number) {
   return `${(bytes / MB).toFixed(1)} MB`;
@@ -31,18 +40,18 @@ export function ReflectionForm({ draftKey }: { draftKey: string }) {
   const [edited, setEdited] = useState<string | null>(null);
   const text = edited ?? storedDraft ?? "";
   const [shared, setShared] = useState(true);
-  const [attachment, setAttachment] = useState<Attachment | null>(null);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [fileError, setFileError] = useState("");
   const [textError, setTextError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const attachmentUrl = useRef<string | null>(null);
+  const attachmentsRef = useRef<Attachment[]>([]);
   const redirectTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(
     () => () => {
-      if (attachmentUrl.current) URL.revokeObjectURL(attachmentUrl.current);
+      attachmentsRef.current.forEach((a) => URL.revokeObjectURL(a.url));
       clearTimeout(redirectTimer.current);
     },
     [],
@@ -56,24 +65,46 @@ export function ReflectionForm({ draftKey }: { draftKey: string }) {
         ? { text: `${words} kata · Ceritakan sedikit lebih dalam`, tone: "text-text-muted" }
         : { text: `${words} kata · Refleksi bermakna tercapai`, tone: "font-semibold text-primary" };
 
-  function setFile(file: File | null) {
-    if (attachmentUrl.current) URL.revokeObjectURL(attachmentUrl.current);
-    attachmentUrl.current = null;
-    setFileError("");
-    if (!file) return setAttachment(null);
+  function updateAttachments(next: Attachment[]) {
+    attachmentsRef.current = next;
+    setAttachments(next);
+  }
 
-    const kind = file.type.startsWith("image/") ? "image" : "audio";
-    if (file.size > (kind === "image" ? MAX_IMAGE : MAX_AUDIO)) {
-      setAttachment(null);
-      return setFileError(
-        kind === "image"
-          ? "Foto melebihi batas 5 MB. Pilih foto yang lebih kecil."
-          : "Rekaman melebihi batas 100 MB.",
-      );
+  function addFiles(files: File[]) {
+    const next = [...attachmentsRef.current];
+    const errors: string[] = [];
+    for (const file of files) {
+      const kind = kindOf(file);
+      if (!kind) {
+        errors.push(`${file.name}: format tidak didukung.`);
+      } else if (next.length >= MAX_FILES) {
+        errors.push(`Maksimal ${MAX_FILES} lampiran.`);
+        break;
+      } else if (file.size > (kind === "image" ? MAX_IMAGE : MAX_MEDIA)) {
+        errors.push(
+          kind === "image"
+            ? `${file.name}: foto melebihi batas 5 MB.`
+            : `${file.name}: melebihi batas 100 MB.`,
+        );
+      } else {
+        next.push({
+          id: crypto.randomUUID(),
+          name: file.name,
+          size: file.size,
+          kind,
+          url: URL.createObjectURL(file),
+        });
+      }
     }
-    const url = URL.createObjectURL(file);
-    attachmentUrl.current = url;
-    setAttachment({ name: file.name, size: file.size, kind, url });
+    setFileError(errors.join(" "));
+    updateAttachments(next);
+  }
+
+  function removeAttachment(id: string) {
+    const target = attachmentsRef.current.find((a) => a.id === id);
+    if (target) URL.revokeObjectURL(target.url);
+    setFileError("");
+    updateAttachments(attachmentsRef.current.filter((a) => a.id !== id));
   }
 
   function saveDraft() {
@@ -148,11 +179,14 @@ export function ReflectionForm({ draftKey }: { draftKey: string }) {
       <div className="mb-4 flex flex-col gap-1">
         <div className="flex items-center justify-between px-1">
           <span className="t-title-sm text-on-surface">Lampiran Kenangan (Opsional)</span>
-          <span className="t-label-sm font-normal text-text-muted">Maks. 5MB / 100MB</span>
+          <span className="t-label-sm font-normal text-text-muted">Foto 5MB · Video/Suara 100MB</span>
         </div>
         <div className="flex flex-col gap-2 rounded-2xl bg-surface-container-low p-3.5">
-          {attachment && (
-            <div className="flex items-center justify-between rounded-xl bg-surface-container-lowest p-2.5 shadow-sm">
+          {attachments.map((attachment) => (
+            <div
+              key={attachment.id}
+              className="flex items-center justify-between rounded-xl bg-surface-container-lowest p-2.5 shadow-sm"
+            >
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-container">
                   {attachment.kind === "image" ? (
@@ -162,6 +196,13 @@ export function ReflectionForm({ draftKey }: { draftKey: string }) {
                       alt="Pratinjau lampiran"
                       width={56}
                       height={56}
+                      className="size-full object-cover"
+                    />
+                  ) : attachment.kind === "video" ? (
+                    <video
+                      src={`${attachment.url}#t=0.1`}
+                      muted
+                      preload="metadata"
                       className="size-full object-cover"
                     />
                   ) : (
@@ -177,27 +218,28 @@ export function ReflectionForm({ draftKey }: { draftKey: string }) {
               </div>
               <button
                 type="button"
-                aria-label="Hapus lampiran"
-                onClick={() => setFile(null)}
+                aria-label={`Hapus lampiran ${attachment.name}`}
+                onClick={() => removeAttachment(attachment.id)}
                 className="flex size-8 shrink-0 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-error-container/40 hover:text-error"
               >
                 <Icon name="close" size={18} />
               </button>
             </div>
-          )}
+          ))}
 
           <label className="t-label-md flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-surface-container-lowest/70 px-4 py-3 font-medium text-on-surface transition-colors focus-within:outline-2 focus-within:outline-primary hover:bg-surface-container-lowest">
             <input
               type="file"
-              accept="image/*,audio/*"
+              multiple
+              accept="image/*,video/*,audio/*"
               className="sr-only"
               onChange={(e) => {
-                setFile(e.target.files?.[0] ?? null);
+                addFiles(Array.from(e.target.files ?? []));
                 e.target.value = "";
               }}
             />
             <Icon name="add_photo_alternate" size={20} className="text-primary" />
-            <span>Tambah foto atau cuplikan suara</span>
+            <span>Tambah foto, video, atau suara</span>
           </label>
 
           {fileError && (
