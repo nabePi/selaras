@@ -19,7 +19,7 @@ export function SiteHeader() {
 
         <Link
           href="/masuk"
-          className="t-title-sm flex min-h-11 items-center justify-center rounded-full px-3.5 text-primary transition-colors hover:text-primary-container"
+          className="t-title-sm flex min-h-10 items-center justify-center rounded-full bg-sage-tint px-5 text-primary transition-colors hover:bg-primary-fixed active:scale-[0.98]"
         >
           Masuk
         </Link>
