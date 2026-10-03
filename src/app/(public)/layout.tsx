@@ -6,7 +6,7 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
   return (
     <PhoneShell>
       <SiteHeader />
-      <main className="flex w-full flex-1 flex-col px-margin pt-16 pb-44">
+      <main className="flex w-full flex-1 flex-col px-margin pt-16 pb-28">
         {children}
       </main>
       <BottomNav />

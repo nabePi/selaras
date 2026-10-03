@@ -19,26 +19,7 @@ export function BottomNav() {
       className="pb-safe fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 bg-surface/90 shadow-[0_-4px_20px_rgba(92,75,62,0.06)] backdrop-blur-xl"
     >
       <div className="p-3">
-        <div className="flex flex-col gap-1.5">
-          <Link
-            href="/daftar"
-            className="t-title-sm flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-center text-on-primary shadow-[0_4px_12px_rgba(78,97,72,0.2)] transition-all hover:bg-primary-container active:scale-[0.99]"
-          >
-            <span>Mulai Perjalanan</span>
-            <Icon name="arrow_forward" size={18} />
-          </Link>
-          <div className="flex items-center justify-center gap-1 py-0.5">
-            <span className="t-body-sm text-text-muted">Sudah punya akun?</span>
-            <Link
-              href="/masuk"
-              className="t-title-sm px-1 py-1 text-primary hover:underline"
-            >
-              Masuk
-            </Link>
-          </div>
-        </div>
-
-        <ul className="mt-1 grid grid-cols-3 gap-1 border-t border-border-subtle/50 pt-2">
+        <ul className="grid grid-cols-3 gap-1">
           {TABS.map((tab) => {
             const active =
               tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
