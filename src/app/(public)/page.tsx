@@ -1,60 +1,31 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { AudioPreview } from "@/components/audio-preview";
-import { FaqAccordion } from "@/components/faq-accordion";
 import { Icon } from "@/components/icon";
-import { SampleReflection } from "@/components/sample-reflection";
 import { SectionHeading } from "@/components/section-heading";
+import { TEAM } from "@/data/team";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const PILLARS = [
-  {
-    icon: "timer",
-    tone: "bg-sage-tint text-primary",
-    title: "3 Menit Terpandu",
-    body: "Prompt bermakna yang dirancang psikolog keluarga muslim. Hilangkan rasa bingung mau menulis apa di sela kesibukan harian.",
-  },
-  {
-    icon: "all_inclusive",
-    tone: "bg-surface-container-high text-tertiary",
-    title: "Ritme Gating Berurutan",
-    body: "Materi dan lembar refleksi terbuka hari demi hari secara berirama, menjaga Anda dan pasangan tetap konsisten tanpa kewalahan.",
-  },
-  {
-    icon: "switch_left",
-    tone: "bg-secondary-container/60 text-secondary",
-    title: "Privasi Aman & Terjaga",
-    body: "Kendali penuh ada di tangan Anda. Pilih simpan sebagai catatan personal, atau bagikan secara privat ke coach pendamping Anda.",
-  },
+const LIFE_SERVICES = [
+  { icon: "school", text: "Kelas tumbuh dalam iman, pemberdayaan diri, dan merawat keluarga" },
+  { icon: "forum", text: "Konseling privat: pertumbuhan diri, pernikahan, dan keluarga" },
 ];
 
-const COHORT_HIGHLIGHTS = [
-  { icon: "groups", title: "3 Sesi Live", caption: "Kelas Interaktif" },
-  { icon: "edit_calendar", title: "14 Hari Jurnal", caption: "Refleksi Berurutan" },
-  { icon: "analytics", title: "Relational Test", caption: "Pre & Post Assessment" },
-  { icon: "volunteer_activism", title: "1-on-1 Feedback", caption: "Respons Jurnal Coach" },
+const LAKTASI_SERVICES = [
+  { icon: "child_friendly", text: "Kelas edukasi kehamilan, persalinan, dan menyusui" },
+  { icon: "self_improvement", text: "Kelas olahraga prenatal & postnatal" },
+  { icon: "volunteer_activism", text: "Konseling menyusui privat & pijat laktasi" },
 ];
 
-const FAQ = [
-  {
-    question: "Bagaimana jika pasangan saya belum bersedia menulis bersama?",
-    answer:
-      "Sangat tidak apa-apa. Selaras dirancang agar kebaikan bisa dimulai dari satu pihak. Banyak pasangan alumni yang terinspirasi bergabung setelah melihat perubahan ketenangan dan kelembutan dari pasangannya yang lebih dulu berproses.",
-  },
-  {
-    question: "Apakah ada versi gratis yang bisa dicoba tanpa komitmen?",
-    answer:
-      "Ya! Anda dapat mendaftar akun gratis untuk mengakses jurnal refleksi harian gratis selama 7 hari pertama, materi hikmah harian, dan ringkasan mini hadis keluarga tanpa perlu kartu kredit.",
-  },
-  {
-    question: "Bagaimana privasi isi jurnal kami dijaga?",
-    answer:
-      "Catatan harian Anda terenkripsi aman. Anda memiliki sakelar privasi di setiap lembar untuk menentukan apakah catatan itu hanya untuk mata Anda sendiri, dibagi ke pasangan, atau diajukan untuk bimbingan konselor.",
-  },
+const MOMENTS_SERVICES = ["Birth", "Family", "Event", "Creative Branding", "Corporate"];
+
+const PERAN = [
+  { title: "Rumah", icon: "home" },
+  { title: "Rahim", icon: "favorite" },
+  { title: "Ruh", icon: "spa" },
 ];
 
 export default function HomePage() {
@@ -67,124 +38,232 @@ export default function HomePage() {
         <div className="relative z-10 flex flex-col gap-3">
           <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-sage-tint px-3 py-1 text-primary">
             <Icon name="eco" size={16} />
-            <span className="t-label-sm">
-              Faith in Every Step · Growth in Every Season
-            </span>
+            <span className="t-label-sm">Selaras Life</span>
           </div>
           <h1 className="t-headline-lg-mobile mt-1 tracking-tight text-on-surface">
-            Tumbuh Bersama dalam{" "}
-            <span className="font-serif text-primary italic">Iman</span> &amp;
-            Ketenangan Jiwa
+            Your companion for{" "}
+            <span className="font-serif text-primary italic">every season</span>{" "}
+            of life
           </h1>
           <p className="t-body-md leading-relaxed text-text-muted">
-            Ruang refleksi harian &amp; pendampingan pernikahan muda terpandu.
-            Hadir mendampingi kebiasaan baik pasutri muslim cukup 3 menit
-            sehari.
+            Gerakan dakwah dan sosial yang membersamai keluarga muslim kembali
+            kepada fitrah, mengalirkan hidup selaras wahyu, dari rumah tangga,
+            masa hamil dan menyusui, hingga momen-momen yang layak dikenang.
           </p>
-
-          <div className="relative mt-1 h-44 w-full overflow-hidden rounded-2xl shadow-inner">
-            <Image
-              src="/images/hero-journal.jpg"
-              alt="Jurnal terbuka di samping dua cangkir teh dan ranting zaitun di meja kayu yang hangat"
-              fill
-              priority
-              sizes="(max-width: 480px) 100vw, 432px"
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-on-surface/40 via-transparent to-transparent" />
-            <div className="absolute right-3 bottom-3 left-3 flex items-center justify-between gap-2 text-on-secondary">
-              <span className="t-body-sm font-serif italic">
-                “Ketenangan hadir dari kebiasaan kecil yang dirawat bersama.”
-              </span>
-              <span className="t-label-sm shrink-0 rounded-full bg-surface/80 px-2 py-0.5 text-tertiary backdrop-blur-md">
-                3 Menit/Hari
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-2 flex flex-col gap-2.5">
-            <Link
-              href="/daftar"
-              className="t-title-sm flex min-h-[46px] w-full items-center justify-center gap-2 rounded-full bg-primary px-5 text-on-primary shadow-[0_4px_14px_rgba(78,97,72,0.25)] transition-all active:scale-[0.98]"
-            >
-              <span>Daftar &amp; Mulai Jurnal</span>
-              <Icon name="favorite" size={18} />
-            </Link>
-            <a
-              href="#interactive-sample"
-              className="t-title-sm flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-surface-container-low px-5 text-tertiary transition-colors active:bg-surface-container"
-            >
-              <span>Coba Contoh Refleksi Hari Ini</span>
-              <Icon name="arrow_downward" size={18} />
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* 2. Hikmah & Hadis Hari Ini */}
-      <section className="relative w-full overflow-hidden rounded-3xl bg-surface-container-low p-5 shadow-sm">
-        <div className="flex items-center justify-between pb-3">
-          <div className="flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-full bg-secondary-container/60 text-secondary">
-              <Icon name="menu_book" size={16} />
-            </span>
-            <span className="t-label-md text-text-muted">
-              Hikmah &amp; Hadis Hari Ini
-            </span>
-          </div>
-          <span className="t-label-sm rounded-full bg-secondary-fixed/50 px-2.5 py-0.5 text-secondary">
-            Terbuka Publik
-          </span>
-        </div>
-        <blockquote className="t-quote relative my-2 pl-3 text-on-surface">
-          <span
-            aria-hidden="true"
-            className="absolute -top-2 -left-1 font-serif text-3xl text-secondary-container select-none"
+          <ul className="mt-1 flex flex-wrap gap-2">
+            {["Selaras Life", "Selaras Laktasi", "Selaras Moments"].map((n) => (
+              <li
+                key={n}
+                className="t-label-sm rounded-full bg-surface-container-lowest px-3 py-1 text-on-surface-variant shadow-sm"
+              >
+                {n}
+              </li>
+            ))}
+          </ul>
+          <Link
+            href="/program"
+            className="t-title-sm mt-2 flex min-h-[46px] w-full items-center justify-center gap-2 rounded-full bg-primary px-5 text-on-primary shadow-[0_4px_14px_rgba(78,97,72,0.25)] transition-all active:scale-[0.98]"
           >
-            “
-          </span>
-          <p className="relative z-10 italic">
-            Sebaik-baik kalian adalah yang paling baik terhadap keluarganya, dan
-            aku adalah yang paling baik di antara kalian terhadap keluargaku.
-          </p>
-          <footer className="t-body-sm mt-2 font-medium text-tertiary not-italic">
-            — HR. Tirmidzi (No. 3895)
-          </footer>
-        </blockquote>
-        <div className="mt-4 flex flex-col gap-2.5 pt-3">
-          <p className="t-body-sm text-text-muted">
-            <span className="t-title-sm text-on-surface">
-              Pemantik Renungan:
-            </span>{" "}
-            Sudahkah sapaan pertama kita pagi ini melembutkan suasana hati
-            pasangan?
-          </p>
-          <AudioPreview />
+            <span>Lihat Program Selaras</span>
+            <Icon name="arrow_forward" size={18} />
+          </Link>
         </div>
       </section>
 
-      {/* 3. Tiga pilar */}
+      {/* 2. Selaras Life */}
+      <section className="flex w-full flex-col gap-4 rounded-3xl bg-surface-container-low p-5 shadow-sm">
+        <Image
+          src="/images/logo-header.png"
+          alt="Selaras Life"
+          width={720}
+          height={323}
+          sizes="160px"
+          className="h-16 w-auto self-start"
+        />
+        <div className="flex flex-col gap-3">
+          <h2 className="t-headline-sm text-on-surface">
+            Membangun keluarga yang kokoh, selaras dengan wahyu
+          </h2>
+          <p className="t-body-md leading-relaxed text-text-muted">
+            Di tengah derasnya arus perang pemikiran, umat kehilangan kompas.
+            Selaras Life hadir membersamai manusia kembali kepada fitrah dengan
+            membangun cara pandang hidup (worldview) yang lurus.
+          </p>
+          <p className="t-body-md leading-relaxed text-text-muted">
+            Kami meyakini peradaban dibangun di dalam rumah. Keluarga adalah
+            institusi pertama pembentuk manusia, tempat nilai diwariskan, aqidah
+            ditanamkan, dan cinta kepada Rabb dikuatkan. Bukan sekadar kontrak
+            sosial, keluarga adalah poros peradaban, tempat lahirnya pemimpin,
+            pendidik, dan pejuang umat.
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-canvas-cream p-4">
+          <span className="t-label-sm tracking-wider text-secondary uppercase">
+            Menghidupkan kembali peran
+          </span>
+          <ul className="mt-2 grid grid-cols-3 gap-2">
+            {PERAN.map((p) => (
+              <li
+                key={p.title}
+                className="flex flex-col items-center gap-1 rounded-xl bg-sage-tint py-3 text-primary"
+              >
+                <Icon name={p.icon} size={22} filled />
+                <span className="t-title-sm">{p.title}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <ServiceList items={LIFE_SERVICES} />
+        <BrandCta
+          name="Selaras Life"
+          handle="selaras.life"
+          buttonClassName="bg-primary text-on-primary"
+          linkClassName="text-text-muted"
+        />
+      </section>
+
+      {/* 3. Selaras Laktasi */}
+      <section className="flex w-full flex-col gap-4 rounded-3xl bg-canvas-cream p-5 shadow-sm">
+        <Image
+          src="/images/logo-laktasi.png"
+          alt="Selaras Laktasi"
+          width={600}
+          height={521}
+          sizes="144px"
+          className="h-28 w-auto self-start"
+        />
+        <div className="flex flex-col gap-3">
+          <h2 className="t-headline-sm text-on-surface">
+            Hamil, melahirkan, menyusui: perjalanan suci yang tak ditempuh sendiri
+          </h2>
+          <p className="t-body-md leading-relaxed text-text-muted">
+            Kehamilan, persalinan, dan menyusui bukan sekadar proses biologis,
+            tetapi ladang ibadah yang sarat makna. Ayah hadir sebagai qawwam,
+            pemimpin dan pendamping setia dengan ilmu, kasih sayang, dan
+            tanggung jawab.
+          </p>
+          <p className="t-body-md leading-relaxed text-text-muted">
+            Selaras Laktasi membersamai keduanya dengan edukasi, pendampingan,
+            dan layanan profesional berbasis iman dan fitrah, agar setiap tetes
+            ASI menjadi warisan cinta dan tauhid menuju generasi izzah.
+          </p>
+        </div>
+
+        <ServiceList items={LAKTASI_SERVICES} />
+
+        <div className="flex flex-col gap-3">
+          <Verse
+            text="Ibunya mengandungnya dengan susah payah dan melahirkannya dengan susah payah pula..."
+            source="QS. Al-Ahqaf: 15"
+          />
+          <Verse
+            text="Para ibu hendaklah menyusukan anak-anaknya selama dua tahun penuh, yaitu bagi yang ingin menyempurnakan penyusuan."
+            source="QS. Al-Baqarah: 233"
+          />
+        </div>
+        <BrandCta
+          name="Selaras Laktasi"
+          handle="selaraslaktasi"
+          buttonClassName="bg-secondary text-on-secondary"
+          linkClassName="text-text-muted"
+        />
+      </section>
+
+      {/* 4. Selaras Moments */}
+      <section className="flex w-full flex-col gap-4 rounded-3xl bg-tertiary p-5 text-on-tertiary shadow-sm">
+        <Image
+          src="/images/logo-moments.png"
+          alt="Selaras Moments: Capturing yang story into legacy"
+          width={800}
+          height={414}
+          sizes="224px"
+          className="h-auto w-56 self-start"
+        />
+        <div className="flex flex-col gap-3">
+          <h2 className="t-headline-sm text-on-tertiary">
+            Dokumentasi sebagai penjaga nilai dan pengingat cinta kepada Allah
+          </h2>
+          <p className="t-body-md leading-relaxed text-on-tertiary/85">
+            Begitu banyak peristiwa keluarga berlalu tanpa makna dan jejak.
+            Padahal setiap momen adalah kesempatan menguatkan iman, memperdalam
+            cinta, dan menanam nilai. Bagi kami, dokumentasi adalah media
+            spiritual untuk merawat fitrah dan menjaga warisan iman.
+          </p>
+        </div>
+
+        <figure className="rounded-2xl bg-on-tertiary/10 p-4">
+          <blockquote className="t-quote italic">
+            “…dan (Yusuf) pun berkehendak padanya, jika tidak karena dia melihat
+            tanda (burhan) dari Rabb-nya.”
+          </blockquote>
+          <figcaption className="t-body-sm mt-1 text-on-tertiary/80">
+            QS. Yusuf: 24
+          </figcaption>
+          <p className="t-body-sm mt-3 leading-relaxed text-on-tertiary/85">
+            Para ulama menafsirkan burhan itu sebagai bayangan wajah sang ayah,
+            Nabi Ya’qub: memori spiritual yang menjaga jiwa kala fitnah
+            menyergap. Selaras Moments mengabadikan nasihat ibu, tatapan teduh
+            ayah, dan doa-doa yang kelak menguatkan anak kembali kepada
+            Rabb-nya, juga menguatkan cinta suami dan istri.
+          </p>
+        </figure>
+
+        <div>
+          <span className="t-label-sm tracking-wider text-on-tertiary/80 uppercase">
+            Layanan foto &amp; video
+          </span>
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {MOMENTS_SERVICES.map((s) => (
+              <li
+                key={s}
+                className="t-label-md rounded-full bg-on-tertiary/15 px-3 py-1"
+              >
+                {s}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <BrandCta
+          name="Selaras Moments"
+          handle="selarasmoments"
+          buttonClassName="bg-canvas-cream text-tertiary"
+          linkClassName="text-on-tertiary/80"
+        />
+      </section>
+
+      {/* 5. Tim */}
       <section className="flex w-full flex-col gap-3">
         <SectionHeading
-          eyebrow="Filosofi Pendampingan"
-          title="Mengapa Mulai Journaling di Selaras?"
-          description="Membangun kebiasaan hening dan komunikasi terarah tanpa beban digital."
+          eyebrow="Tim Selaras"
+          title="Orang-orang di balik Selaras"
+          description="Para konselor, edukator, dan praktisi yang siap membersamai perjalananmu."
         />
-        <ul className="mt-1 grid grid-cols-1 gap-3">
-          {PILLARS.map((p) => (
+        <ul className="mt-1 flex flex-col gap-3">
+          {TEAM.map((m) => (
             <li
-              key={p.title}
-              className="flex w-full items-start gap-3.5 rounded-2xl bg-canvas-cream p-4 shadow-sm"
+              key={m.slug}
+              className="flex w-full gap-4 rounded-2xl bg-surface-container-low p-3 shadow-sm"
             >
-              <span
-                className={`mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-2xl ${p.tone}`}
-              >
-                <Icon name={p.icon} size={22} />
-              </span>
-              <div className="flex min-w-0 flex-col">
-                <h3 className="t-title-md text-on-surface">{p.title}</h3>
-                <p className="t-body-sm mt-1 leading-relaxed text-text-muted">
-                  {p.body}
+              <Image
+                src={m.photo}
+                alt={m.name}
+                width={640}
+                height={800}
+                sizes="128px"
+                className="aspect-[4/5] w-32 shrink-0 rounded-xl bg-canvas-sand object-cover"
+              />
+              <div className="flex min-w-0 flex-col justify-center gap-1">
+                <h3 className="t-title-md text-on-surface">
+                  {m.name}
+                  {m.nickname && (
+                    <span className="font-normal text-text-muted"> ({m.nickname})</span>
+                  )}
+                </h3>
+                <span className="t-label-md text-primary">{m.role}</span>
+                <p className="t-body-sm leading-relaxed text-text-muted">
+                  {m.credentials}
                 </p>
               </div>
             </li>
@@ -192,342 +271,95 @@ export default function HomePage() {
         </ul>
       </section>
 
-      {/* 4. Cohort aktif */}
-      <section className="relative w-full overflow-hidden rounded-3xl bg-surface-container p-5 shadow-sm">
-        <div className="pointer-events-none absolute top-0 right-0 size-32 rounded-full bg-accent-sunray/20 blur-xl" />
-        <div className="relative z-10 flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <span className="t-label-sm rounded-full bg-primary px-3 py-0.5 font-semibold tracking-wide text-on-primary">
-              Cohort 4 Dibuka
-            </span>
-            <span className="t-body-sm flex items-center gap-1 font-medium text-secondary">
-              <span className="size-2 animate-ping rounded-full bg-accent-coral" />
-              Sisa 12 Kursi Pasangan
-            </span>
-          </div>
-          <div>
-            <h2 className="t-headline-sm font-semibold text-on-surface">
-              Young Marriage Foundations
-            </h2>
-            <p className="t-body-sm mt-0.5 text-text-muted">
-              Program pendampingan intensif 14 hari menavigasi adaptasi
-              tahun-tahun awal pernikahan.
-            </p>
-          </div>
-          <ul className="my-1 grid grid-cols-2 gap-2">
-            {COHORT_HIGHLIGHTS.map((h) => (
-              <li
-                key={h.title}
-                className="flex items-center gap-2 rounded-xl bg-surface-container-low p-2.5"
-              >
-                <Icon name={h.icon} size={20} className="text-primary" />
-                <div className="flex flex-col">
-                  <span className="t-title-sm text-on-surface">{h.title}</span>
-                  <span className="t-label-sm text-text-muted">{h.caption}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-1 flex items-center gap-3 rounded-2xl bg-surface-container-lowest/80 p-3">
-            <Image
-              src="/images/coach-afifah.jpg"
-              alt="Coach Afifah, M.Psi"
-              width={48}
-              height={48}
-              className="size-12 shrink-0 rounded-full bg-canvas-sand object-cover"
-            />
-            <div className="flex flex-col">
-              <span className="t-title-sm text-on-surface">
-                Coach Afifah, M.Psi
-              </span>
-              <span className="t-body-sm text-text-muted">
-                Psikolog Keluarga &amp; Tim Konselor Selaras
-              </span>
-            </div>
-          </div>
-          <Link
-            href="/program"
-            className="t-title-sm mt-1 flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-primary text-on-primary shadow-sm transition-all hover:bg-primary-container"
-          >
-            <span>Lihat Detail Kurikulum &amp; Daftar</span>
-            <Icon name="arrow_forward" size={18} />
-          </Link>
-        </div>
-      </section>
-
-      {/* 5. Simulasi refleksi */}
-      <section
-        id="interactive-sample"
-        className="flex w-full scroll-mt-20 flex-col gap-3 rounded-3xl bg-canvas-cream p-5 shadow-sm"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-primary">
-            <Icon name="stylus_note" size={20} />
-            <span className="t-label-md font-semibold">
-              Simulasi Refleksi 3 Menit
-            </span>
-          </div>
-          <span className="t-label-sm rounded-full bg-accent-mint/60 px-2 py-0.5 text-on-surface-variant">
-            Hari 1 dari 14
-          </span>
-        </div>
-        <div>
-          <h2 className="t-headline-sm text-on-surface">
-            “Apa satu hal kecil yang pasanganmu lakukan kemarin yang membuat
-            hatimu merasa dihargai?”
-          </h2>
-          <p className="t-body-sm mt-1 text-text-muted">
-            Cobalah ketik satu kalimat saja di bawah ini untuk merasakan
-            tenangnya menjeda pikiran:
-          </p>
-        </div>
-        <SampleReflection />
-      </section>
-
-      {/* 6. Testimoni */}
-      <section className="flex w-full flex-col gap-3">
-        <SectionHeading
-          eyebrow="Suara Pasutri"
-          eyebrowClassName="text-secondary"
-          title="Tumbuh Bersama Alumni Cohort"
-        />
-        <figure className="relative flex w-full flex-col gap-3 rounded-3xl bg-canvas-ivory p-5 shadow-sm">
-          <figcaption className="flex items-center gap-3">
-            <Image
-              src="/images/couple-dimas-larasati.jpg"
-              alt="Dimas dan Larasati"
-              width={48}
-              height={48}
-              className="size-12 shrink-0 rounded-full bg-secondary-fixed object-cover"
-            />
-            <div className="flex flex-col">
-              <span className="t-title-sm text-on-surface">
-                Dimas (29) &amp; Larasati (27)
-              </span>
-              <span className="t-body-sm text-text-muted">
-                Menikah 1,5 Tahun · Alumni Cohort 3
-              </span>
-            </div>
-          </figcaption>
-          <blockquote className="t-quote leading-relaxed text-on-surface italic">
-            “Awalnya kami canggung ngobrol mendalam karena sama-sama lelah
-            pulang kerja. Jurnal Selaras memberi kami ritual{" "}
-            <span className="font-semibold text-secondary not-italic">
-              pillow talk 10 menit tanpa gadget
-            </span>
-            . Rasanya jauh lebih terhubung dan damai.”
-          </blockquote>
-          <div className="flex items-center justify-between pt-2 text-text-muted">
-            <div
-              role="img"
-              aria-label="Penilaian 5 dari 5 bintang"
-              className="flex items-center gap-1 text-accent-coral"
-            >
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Icon key={i} name="star" size={18} filled />
-              ))}
-            </div>
-            <span className="t-label-sm rounded-full bg-surface-container-high px-2.5 py-0.5 text-on-surface-variant">
-              Terverifikasi Anggota
-            </span>
-          </div>
-        </figure>
-      </section>
-
-      {/* 7. FAQ */}
-      <section className="flex w-full flex-col gap-3">
-        <SectionHeading
-          eyebrow="Pertanyaan Sering Diajukan"
-          title="Jawaban untuk Keraguan Anda"
-        />
-        <FaqAccordion items={FAQ} />
-      </section>
-
-      {/* 8. Ekosistem Selaras */}
-      <section className="flex w-full flex-col gap-4 rounded-3xl border border-border-subtle/50 bg-surface-container-low p-5 shadow-sm">
-        <div className="flex flex-col px-1">
-          <div className="mb-1 inline-flex items-center gap-1.5 self-start rounded-full bg-sage-tint px-2.5 py-0.5 text-primary">
-            <Icon name="diversity_1" size={16} />
-            <span className="t-label-sm font-semibold tracking-wider uppercase">
-              Keluarga Selaras
-            </span>
-          </div>
-          <h2 className="t-headline-sm text-on-surface">
-            Satu Ekosistem untuk Setiap Fase Kehidupan Keluarga
-          </h2>
-          <p className="t-body-sm mt-1 leading-relaxed text-text-muted">
-            Mendampingi perjalanan pasutri muslim dari fondasi awal pernikahan,
-            masa menyusui penuh cinta, hingga merekam setiap momen tumbuh
-            kembang si kecil.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3">
-          <EcosystemCard
-            icon="spa"
-            iconTone="bg-sage-tint text-primary"
-            name="Selaras Life"
-            tagline="Pondasi Pernikahan"
-            taglineTone="text-primary"
-            body="Pondasi keintiman & relasi pasutri sakinah lewat refleksi terpandu harian 3 menit dan program pendampingan intensif."
-            badge={
-              <span className="t-label-sm rounded-full bg-sage-tint px-2 py-0.5 text-primary">
-                Aktif di sini
-              </span>
-            }
-          />
-          <EcosystemCard
-            icon="child_care"
-            iconTone="bg-secondary-container/60 text-secondary"
-            name="Selaras Laktasi"
-            tagline="Perjalanan MengASIhi"
-            taglineTone="text-secondary"
-            body="Perjalanan mengASIhi dengan tenang dan dukungan suportif pasutri menyusui bersama edukasi praktis konselor laktasi."
-            badge={
-              <InstagramLink
-                handle="selaraslaktasi"
-                className="bg-secondary-fixed/50 text-secondary"
-              />
-            }
-          />
-          <EcosystemCard
-            icon="photo_camera"
-            iconTone="bg-surface-container-high text-tertiary"
-            name="Selaras Moments"
-            tagline="Memori Buah Hati"
-            taglineTone="text-tertiary"
-            body="Mengabadikan setiap detik berharga kehamilan, persalinan lembut, hingga milestones tumbuh kembang buah hati."
-            badge={
-              <InstagramLink
-                handle="selarasmoments"
-                className="bg-surface-container text-tertiary"
-              />
-            }
-          />
-        </div>
-
-        <div className="mt-1 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-canvas-cream p-3">
-          <div className="flex items-center gap-2">
-            <Icon name="hub" size={18} className="text-primary" />
-            <span className="t-label-sm font-medium text-on-surface">
-              Ikuti Kanal Resmi Ekosistem
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <InstagramLink
-              handle="selaraslaktasi"
-              plain
-              className="bg-secondary-fixed/50 text-secondary hover:bg-secondary-container"
-            />
-            <InstagramLink
-              handle="selarasmoments"
-              plain
-              className="bg-sage-tint text-primary hover:bg-primary/20"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* 9. CTA penutup */}
+      {/* 6. CTA ke Program */}
       <section className="relative flex w-full flex-col gap-3 overflow-hidden rounded-3xl bg-secondary p-6 text-on-secondary shadow-md">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-6 -bottom-6 size-32 opacity-15"
-        >
-          <svg className="size-full fill-current" viewBox="0 0 100 100">
-            <path d="M50 0 C70 30 90 40 100 70 C70 90 40 70 0 50 C20 40 40 20 50 0 Z" />
-          </svg>
-        </div>
         <div className="relative z-10 flex flex-col gap-2">
           <span className="t-label-sm tracking-wider text-secondary-container uppercase">
-            Langkah Awal Bersama
+            Kenali Lebih Dekat
           </span>
           <h2 className="t-headline-md font-medium text-on-secondary">
-            Siap Menghadirkan Rumah Tangga yang Sakinah &amp; Selaras?
+            Temukan program yang sesuai dengan fase hidupmu
           </h2>
           <p className="t-body-md leading-relaxed text-secondary-fixed/90">
-            Mulailah dari satu jeda kecil hari ini. Tanpa tuntutan kesempurnaan,
-            hanya kesediaan untuk hadir dengan hati yang utuh.
+            Kelas, konseling, pendampingan menyusui, hingga dokumentasi momen
+            keluarga. Semuanya ada di halaman program.
           </p>
-          <div className="mt-2 flex flex-col gap-2">
-            <Link
-              href="/daftar"
-              className="t-title-sm flex min-h-[46px] w-full items-center justify-center gap-2 rounded-full bg-canvas-cream px-6 text-secondary shadow-sm transition-transform hover:bg-canvas-ivory active:scale-[0.98]"
-            >
-              <span>Buat Akun Gratis Sekarang</span>
-              <Icon name="arrow_forward" size={18} />
-            </Link>
-            <div className="flex items-center justify-center gap-2 pt-1 text-secondary-fixed/80">
-              <Icon name="verified_user" size={16} />
-              <span className="t-label-sm">Bebas Iklan · Ruang Hening Islami</span>
-            </div>
-          </div>
+          <Link
+            href="/program"
+            className="t-title-sm mt-2 flex min-h-[46px] w-full items-center justify-center gap-2 rounded-full bg-canvas-cream px-6 text-secondary shadow-sm transition-transform hover:bg-canvas-ivory active:scale-[0.98]"
+          >
+            <span>Jelajahi Program Selaras</span>
+            <Icon name="arrow_forward" size={18} />
+          </Link>
         </div>
       </section>
     </div>
   );
 }
 
-function InstagramLink({
-  handle,
-  className,
-  plain = false,
-}: {
-  handle: string;
-  className: string;
-  plain?: boolean;
-}) {
+function ServiceList({ items }: { items: { icon: string; text: string }[] }) {
   return (
-    <a
-      href={`https://instagram.com/${handle}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`t-label-sm flex items-center gap-1 rounded-full transition-colors hover:underline ${
-        plain ? "px-2 py-0.5" : "px-2.5 py-1"
-      } ${className}`}
-    >
-      {!plain && <Icon name="link" size={14} />}
-      <span>@{handle}</span>
-    </a>
+    <div>
+      <span className="t-label-sm tracking-wider text-text-muted uppercase">
+        Layanan
+      </span>
+      <ul className="mt-2 flex flex-col gap-2">
+        {items.map((s) => (
+          <li
+            key={s.text}
+            className="flex items-center gap-3 rounded-xl bg-surface-container-lowest p-3 shadow-sm"
+          >
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-sage-tint text-primary">
+              <Icon name={s.icon} size={20} />
+            </span>
+            <span className="t-body-sm text-on-surface">{s.text}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
-function EcosystemCard({
-  icon,
-  iconTone,
+function Verse({ text, source }: { text: string; source: string }) {
+  return (
+    <figure className="rounded-2xl bg-sage-tint p-4">
+      <blockquote className="t-quote text-on-surface italic">“{text}”</blockquote>
+      <figcaption className="t-body-sm mt-1 font-medium text-primary">
+        {source}
+      </figcaption>
+    </figure>
+  );
+}
+
+function BrandCta({
   name,
-  tagline,
-  taglineTone,
-  body,
-  badge,
+  handle,
+  buttonClassName,
+  linkClassName,
 }: {
-  icon: string;
-  iconTone: string;
   name: string;
-  tagline: string;
-  taglineTone: string;
-  body: string;
-  badge: React.ReactNode;
+  handle: string;
+  buttonClassName: string;
+  linkClassName: string;
 }) {
   return (
-    <div className="flex w-full flex-col gap-2.5 rounded-2xl border border-border-subtle/50 bg-canvas-ivory p-4 shadow-sm">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span
-            className={`flex size-9 shrink-0 items-center justify-center rounded-full ${iconTone}`}
-          >
-            <Icon name={icon} size={20} />
-          </span>
-          <div>
-            <h3 className="t-title-md text-on-surface">{name}</h3>
-            <span className={`t-label-sm font-medium ${taglineTone}`}>
-              {tagline}
-            </span>
-          </div>
-        </div>
-        {badge}
-      </div>
-      <p className="t-body-sm leading-relaxed text-text-muted">{body}</p>
+    <div className="flex flex-col items-center gap-1">
+      <Link
+        href="/program"
+        className={`t-title-sm flex min-h-[46px] w-full items-center justify-center gap-2 rounded-full px-5 shadow-sm transition-all active:scale-[0.98] ${buttonClassName}`}
+      >
+        <span>Lihat Program {name}</span>
+        <Icon name="arrow_forward" size={18} />
+      </Link>
+      <a
+        href={`https://www.instagram.com/${handle}/`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`t-body-sm flex min-h-11 items-center gap-1.5 hover:underline ${linkClassName}`}
+      >
+        <Icon name="link" size={16} />
+        <span>Ikuti @{handle} di Instagram</span>
+      </a>
     </div>
   );
 }

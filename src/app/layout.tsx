@@ -21,11 +21,11 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL("https://selaras.life"),
   title: {
-    default: "Selaras Life — Tumbuh Bersama dalam Iman & Ketenangan Jiwa",
+    default: "Selaras Life — Your companion for every season of life",
     template: "%s · Selaras Life",
   },
   description:
-    "Ruang refleksi harian & pendampingan pernikahan muda terpandu untuk pasutri muslim. Cukup 3 menit sehari.",
+    "Your companion for every season of life. Kelas dan konseling keluarga (Selaras Life), pendampingan kehamilan hingga menyusui (Selaras Laktasi), dan dokumentasi momen keluarga (Selaras Moments).",
   applicationName: "Selaras Life",
   openGraph: {
     type: "website",

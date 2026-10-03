@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Selaras Life",
     short_name: "Selaras",
     description:
-      "Ruang refleksi harian & pendampingan pernikahan muda terpandu untuk pasutri muslim.",
+      "Your companion for every season of life. Kelas, konseling, pendampingan menyusui, dan dokumentasi momen keluarga.",
     lang: "id",
     start_url: "/",
     scope: "/",
