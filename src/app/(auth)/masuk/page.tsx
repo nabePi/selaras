@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { LoginForm } from "@/components/auth/login-form";
-import { ComingSoonButton } from "@/components/coming-soon-button";
 import { FocusHeader } from "@/components/focus-header";
 import { Icon } from "@/components/icon";
+import { buildWhatsappLink } from "@/data/programs";
 
 export const metadata: Metadata = {
   title: "Masuk",
@@ -16,19 +16,12 @@ export const metadata: Metadata = {
 export default function MasukPage() {
   return (
     <>
-      <FocusHeader centered title="Masuk" backHref="/" />
+      <FocusHeader centered title="Masuk" backHref="/" hideLogo />
       <div className="flex w-full flex-col pb-10">
-        <div className="flex w-full items-center justify-center py-2">
-          <div className="t-label-sm inline-flex items-center gap-2 rounded-full bg-sage-tint px-3 py-1 font-normal text-on-surface-variant shadow-sm">
-            <Icon name="spa" size={15} filled className="text-primary" />
-            <span>Ruang Teduh • Tumbuh Berdua dalam Ridha-Nya</span>
-          </div>
-        </div>
-
         <div className="mt-3 mb-6 flex flex-col items-center px-1 text-center">
           <div className="relative mb-3 flex size-20 items-center justify-center rounded-2xl bg-canvas-ivory p-2 shadow-sm">
             <Image
-              src="/images/logo-avatar.png"
+              src="/images/logo-mark.png"
               alt="Logo Selaras Life"
               width={64}
               height={64}
@@ -49,20 +42,7 @@ export default function MasukPage() {
 
         <LoginForm />
 
-        <aside className="mt-6 flex items-start gap-3 rounded-3xl bg-surface-container-high/60 p-4 shadow-sm">
-          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary-fixed-dim/60 text-secondary">
-            <Icon name="verified_user" size={18} />
-          </span>
-          <div className="flex flex-col">
-            <h2 className="t-title-sm font-semibold text-secondary">Peserta Cohort Aktif?</h2>
-            <p className="t-body-sm mt-0.5 leading-relaxed text-on-surface-variant">
-              Pastikan masuk menggunakan nomor WhatsApp atau email yang didaftarkan saat aktivasi
-              program agar progres jurnal &amp; refleksi harian tersinkronisasi otomatis.
-            </p>
-          </div>
-        </aside>
-
-        <figure className="mt-5 flex items-center gap-3.5 rounded-3xl bg-canvas-ivory p-4 shadow-sm">
+        <figure className="mt-6 flex items-center gap-3.5 rounded-3xl bg-canvas-ivory p-4 shadow-sm">
           <Image
             src="/images/auth-habit.jpg"
             alt="Cahaya pagi menyinari dua cangkir teh dan jurnal di atas meja kayu"
@@ -88,13 +68,17 @@ export default function MasukPage() {
               Daftar Sekarang
             </Link>
           </div>
-          <ComingSoonButton
-            feature="Layanan Coach via WhatsApp"
+          <Link
+            href={buildWhatsappLink(
+              "Halo Selaras Life, saya butuh bantuan untuk masuk ke akun saya.",
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
             className="t-label-md inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-text-muted transition-colors hover:text-on-surface"
           >
             <Icon name="support_agent" size={15} className="text-tertiary" />
-            <span>Butuh bantuan coach? Hubungi Tim Selaras</span>
-          </ComingSoonButton>
+            <span>Butuh bantuan? Hubungi Tim Selaras</span>
+          </Link>
         </div>
       </div>
     </>

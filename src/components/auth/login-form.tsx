@@ -3,12 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { signIn } from "@/lib/auth";
-import { ComingSoonButton } from "../coming-soon-button";
 import { Icon } from "../icon";
 import { useToast } from "../toast-provider";
 import { Field } from "./field";
 import { ForgotPasswordDialog } from "./forgot-password-dialog";
-import { GoogleIcon } from "./google-icon";
 import { PasswordField } from "./password-field";
 
 type Errors = { identifier?: string; password?: string; form?: string };
@@ -119,32 +117,6 @@ export function LoginForm() {
           {!submitting && <Icon name="arrow_forward" size={19} />}
         </button>
       </form>
-
-      <div className="relative my-5 flex items-center justify-center">
-        <div className="h-px w-full bg-canvas-sand/60" />
-        <span className="t-label-sm absolute bg-surface px-3 tracking-wider text-text-muted uppercase">
-          atau opsi cepat
-        </span>
-      </div>
-
-      <div className="flex flex-col gap-2.5">
-        <ComingSoonButton
-          feature="Magic Link WhatsApp"
-          className="t-title-sm flex w-full items-center justify-center gap-2.5 rounded-full bg-sage-tint px-4 py-3 text-on-surface shadow-xs transition-all hover:bg-primary-fixed-dim/40 active:scale-[0.98]"
-        >
-          <span className="flex size-5 items-center justify-center rounded-full bg-primary text-on-primary">
-            <Icon name="chat" size={14} />
-          </span>
-          <span>Masuk dengan Magic Link WhatsApp</span>
-        </ComingSoonButton>
-        <ComingSoonButton
-          feature="Masuk dengan Google"
-          className="t-title-sm flex w-full items-center justify-center gap-2.5 rounded-full bg-canvas-ivory px-4 py-3 text-on-surface shadow-xs transition-all hover:bg-canvas-sand/40 active:scale-[0.98]"
-        >
-          <GoogleIcon />
-          <span>Lanjutkan dengan Google</span>
-        </ComingSoonButton>
-      </div>
 
       <ForgotPasswordDialog
         open={forgotOpen}
