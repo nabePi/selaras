@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ComingSoonButton } from "@/components/coming-soon-button";
 import { EntryAudio } from "@/components/entry-audio";
 import { Icon } from "@/components/icon";
-import { JournalTabs } from "@/components/journal-tabs";
 import { MonthCalendar } from "@/components/month-calendar";
 import {
   JOURNAL_ENTRIES,
@@ -16,75 +15,42 @@ export const metadata: Metadata = { title: "Journal" };
 
 export default function JournalPage() {
   return (
-    <JournalTabs
-      banners={<Banners />}
-      calendar={<MonthCalendar />}
-      pending={<PendingCard />}
-      feed={<Feed />}
-    />
+    <div className="flex w-full flex-col gap-4">
+      <div className="mt-1 flex items-center gap-2">
+        <Icon name="auto_stories" size={20} className="text-primary" />
+        <h1 className="t-headline-sm text-on-surface">Jurnal Refleksi</h1>
+      </div>
+      <WriteCard />
+      <MonthCalendar />
+      <Feed />
+    </div>
   );
 }
 
-function Banners() {
+function WriteCard() {
   return (
-    <>
-      <div className="flex w-full items-start gap-2 rounded-2xl bg-surface-container-low p-4 shadow-sm">
-        <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary-container text-on-secondary-container">
-          <Icon name="event_repeat" size={18} />
-        </span>
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <div className="flex items-center gap-2">
-            <span className="t-title-sm text-on-surface">Siklus Kelas: Sesi 2 Selesai</span>
-            <span className="size-2 animate-pulse rounded-full bg-accent-coral" />
-          </div>
-          <p className="t-body-sm text-on-surface-variant">
-            Tersisa 2 hari refleksi sebelum{" "}
-            <strong className="text-tertiary">Sesi 3</strong> (Webinar Sabtu, 3 Okt
-            2026, 19:30 WIB).
-          </p>
-        </div>
-      </div>
-
-      <div className="flex w-full items-center justify-between gap-2 rounded-2xl bg-primary-container/15 p-4 shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary">
-            <Icon name="insights" size={20} />
+    <div className="flex flex-col gap-4 rounded-4xl bg-surface-container-low p-5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <span className="size-2.5 animate-pulse rounded-full bg-accent-coral" />
+          <span className="t-label-sm font-semibold tracking-wider text-secondary uppercase">
+            Sesi {P.session} • Hari ke-{P.day} (Tertunda)
           </span>
-          <div className="flex flex-col">
-            <span className="t-title-sm text-on-surface">Laporan Pertumbuhan</span>
-            <span className="t-body-sm text-text-muted">Komparasi Pre vs Post Session</span>
-          </div>
         </div>
-        <Link
-          href="/profil#evaluasi"
-          className="t-title-sm rounded-full bg-primary px-4 py-1.5 text-on-primary shadow-sm transition-all hover:opacity-90 active:scale-95"
-        >
-          Lihat
-        </Link>
+        <span className="t-label-sm rounded-full bg-surface-container-highest px-2.5 py-0.5 font-medium text-tertiary">
+          ~{P.minutes} Menit
+        </span>
       </div>
-    </>
-  );
-}
-
-function PendingCard() {
-  return (
-    <div className="flex w-full items-center justify-between gap-2 rounded-2xl bg-surface-container p-4 shadow-sm">
-      <div className="flex min-w-0 flex-col">
-        <span className="t-label-sm font-semibold text-secondary uppercase">
-          Tugas Refleksi Tertunda
-        </span>
-        <span className="t-title-sm truncate text-on-surface">
-          Hari ke-{P.day} (27 Sep 2026)
-        </span>
-        <span className="t-body-sm text-text-muted">
-          Isi untuk membuka jurnal hari ini
-        </span>
+      <div className="flex flex-col gap-2">
+        <h2 className="t-headline-sm leading-snug text-on-surface">{P.teaser}</h2>
+        <p className="t-body-sm text-text-muted">{P.teaserNote}</p>
       </div>
       <Link
         href="/journal/tulis"
-        className="t-title-sm rounded-full bg-secondary px-4 py-2 whitespace-nowrap text-on-secondary shadow-sm transition-all hover:opacity-95 active:scale-95"
+        className="t-title-sm flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 tracking-wide text-on-primary shadow-md transition-all hover:bg-primary-container active:scale-[0.99]"
       >
-        Lunasi Sekarang
+        <span>Tulis Jurnal Sekarang</span>
+        <Icon name="arrow_forward" size={18} />
       </Link>
     </div>
   );

@@ -2,14 +2,23 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { CALENDAR_START, CALENDAR_STATUS, type DayStatus } from "@/data/member";
+import {
+  CALENDAR_START,
+  CALENDAR_STATUS,
+  JOURNAL_ENTRIES,
+  type DayStatus,
+  type JournalEntry,
+} from "@/data/member";
 import { Icon } from "./icon";
+import { JournalEntryDialog } from "./journal-entry-dialog";
 
 const MONTHS = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
   "Juli", "Agustus", "September", "Oktober", "November", "Desember",
 ];
 const WEEKDAYS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+
+const ENTRY_BY_DATE = new Map(JOURNAL_ENTRIES.map((e) => [e.date, e]));
 
 type Cell = { iso: string; day: number; inMonth: boolean };
 
@@ -36,7 +45,15 @@ function buildCells(year: number, month: number): Cell[] {
 
 const CELL = "flex h-10 flex-col items-center justify-center rounded-xl";
 
-function DayCell({ cell, status }: { cell: Cell; status?: DayStatus }) {
+function DayCell({
+  cell,
+  status,
+  onOpen,
+}: {
+  cell: Cell;
+  status?: DayStatus;
+  onOpen?: () => void;
+}) {
   const date = `${cell.day} ${MONTHS[Number(cell.iso.slice(5, 7)) - 1]}`;
 
   if (!cell.inMonth || !status) {
@@ -47,6 +64,19 @@ function DayCell({ cell, status }: { cell: Cell; status?: DayStatus }) {
 
   switch (status) {
     case "done":
+      if (onOpen) {
+        return (
+          <button
+            type="button"
+            onClick={onOpen}
+            aria-label={`${date}, sudah diisi. Lihat jurnal`}
+            className={`${CELL} t-title-sm bg-sage-tint text-primary transition-transform active:scale-95`}
+          >
+            <span>{cell.day}</span>
+            <Icon name="check" size={11} />
+          </button>
+        );
+      }
       return (
         <span
           aria-label={`${date}, sudah diisi`}
@@ -91,6 +121,7 @@ function DayCell({ cell, status }: { cell: Cell; status?: DayStatus }) {
 
 export function MonthCalendar() {
   const [view, setView] = useState(CALENDAR_START);
+  const [selected, setSelected] = useState<JournalEntry | null>(null);
 
   function shift(delta: number) {
     setView(({ year, month }) => {
@@ -142,9 +173,17 @@ export function MonthCalendar() {
       </div>
 
       <div className="grid grid-cols-7 gap-1.5 text-center">
-        {cells.map((c) => (
-          <DayCell key={c.iso} cell={c} status={CALENDAR_STATUS[c.iso]} />
-        ))}
+        {cells.map((c) => {
+          const entry = ENTRY_BY_DATE.get(c.iso);
+          return (
+            <DayCell
+              key={c.iso}
+              cell={c}
+              status={CALENDAR_STATUS[c.iso]}
+              onOpen={entry ? () => setSelected(entry) : undefined}
+            />
+          );
+        })}
       </div>
 
       <ul className="t-label-sm flex flex-wrap items-center justify-center gap-x-4 gap-y-1 rounded-xl bg-surface-container-low/50 p-2 pt-2 font-medium text-on-surface-variant">
@@ -161,6 +200,8 @@ export function MonthCalendar() {
           Belum Waktunya / Terkunci
         </li>
       </ul>
+
+      <JournalEntryDialog entry={selected} onClose={() => setSelected(null)} />
     </section>
   );
 }

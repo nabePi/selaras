@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { FocusHeader } from "@/components/focus-header";
 import { Icon } from "@/components/icon";
+import { MoodPrompt } from "@/components/mood-prompt";
 import { ReflectionForm } from "@/components/reflection-form";
 import { PENDING_REFLECTION as P } from "@/data/member";
 
@@ -43,6 +44,8 @@ export default function TulisJurnalPage() {
             </div>
           </div>
         </div>
+
+        <MoodPrompt />
 
         <section className="relative mb-4 overflow-hidden rounded-3xl bg-surface-container-low p-5 shadow-sm">
           <div className="pointer-events-none absolute -top-8 -right-8 size-28 rounded-full bg-surface-container-high opacity-60 blur-2xl" />

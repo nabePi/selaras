@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ComingSoonButton } from "@/components/coming-soon-button";
 import { Icon } from "@/components/icon";
 import { WisdomActions } from "@/components/wisdom-actions";
 import {
@@ -44,53 +43,10 @@ export default function HomePage() {
     <div className="flex w-full flex-col gap-6">
       {/* 1. Sapaan & streak */}
       <section className="mt-1 flex flex-col gap-1">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary-fixed text-primary">
-              <Icon name="eco" size={15} filled />
-            </span>
-            <span className="t-label-sm text-text-muted">{MEMBER.weekLabel}</span>
-          </div>
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-surface-container-high px-3 py-1 text-tertiary shadow-sm">
-            <span aria-hidden="true" className="text-sm">
-              🔥
-            </span>
-            <span className="t-label-sm tracking-wide">
-              {MEMBER.streakDays} Hari Beruntun
-            </span>
-          </div>
-        </div>
-
         <div className="mt-1">
           <h1 className="t-headline-lg-mobile text-on-surface">
             Assalamu’alaikum, {MEMBER.firstName} 🌿
           </h1>
-          <p className="t-body-md mt-0.5 text-text-muted">{MEMBER.todayLabel}</p>
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto pt-2">
-          <span
-            aria-current="true"
-            className="t-label-sm flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 tracking-wide text-on-primary shadow-xs"
-          >
-            <Icon name="favorite" size={15} />
-            Selaras Life
-            <span className="size-1.5 rounded-full bg-accent-sunray" />
-          </span>
-          <ComingSoonButton
-            feature="Selaras Laktasi (@selaraslaktasi)"
-            className="t-label-sm flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1.5 text-text-muted transition-colors hover:text-on-surface"
-          >
-            <Icon name="baby_changing_station" size={15} className="text-tertiary" />
-            Selaras Laktasi
-          </ComingSoonButton>
-          <ComingSoonButton
-            feature="Selaras Moments (@selarasmoments)"
-            className="t-label-sm flex shrink-0 items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1.5 text-text-muted transition-colors hover:text-on-surface"
-          >
-            <Icon name="photo_camera" size={15} className="text-tertiary" />
-            Selaras Moments
-          </ComingSoonButton>
         </div>
       </section>
 
@@ -129,17 +85,6 @@ export default function HomePage() {
 
       {/* 3. Refleksi tertunda */}
       <section className="flex flex-col gap-2">
-        <div className="flex items-start gap-2 rounded-2xl bg-secondary-container p-3.5 text-on-secondary-container shadow-sm">
-          <Icon name="warning" size={20} filled className="mt-0.5 shrink-0 text-secondary" />
-          <div className="flex flex-col">
-            <span className="t-title-sm">Gating Berurutan Aktif</span>
-            <p className="t-body-sm mt-0.5 text-on-secondary-container/90">
-              Ada 1 entry tertunda sebelum membuka topik hari ini. Mohon tuntaskan
-              refleksi Hari ke-{P.day} terlebih dahulu.
-            </p>
-          </div>
-        </div>
-
         <div className="flex flex-col gap-4 rounded-4xl bg-surface-container-low p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
@@ -208,131 +153,6 @@ export default function HomePage() {
           </p>
         </div>
       </section>
-
-      {/* 5. Ekosistem */}
-      <section className="mb-4 flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <h2 className="t-title-md text-on-surface">Ekosistem Harmoni Selaras</h2>
-            <span className="t-body-sm text-text-muted">
-              Integrasi perjalanan cinta, buah hati &amp; kenangan
-            </span>
-          </div>
-          <span className="rounded-full bg-sage-tint px-2.5 py-0.5 text-[10px] font-semibold text-primary">
-            Fase Aktif
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <Link
-            href="/program"
-            className="col-span-2 flex items-center justify-between rounded-2xl bg-sage-tint p-4 shadow-sm transition-colors hover:bg-primary-fixed"
-          >
-            <span className="flex items-center gap-2">
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-on-primary shadow-xs">
-                <Icon name="favorite" size={24} filled />
-              </span>
-              <span className="flex flex-col">
-                <span className="flex flex-wrap items-center gap-1.5">
-                  <span className="t-title-sm text-on-surface">
-                    Selaras Life: Young Marriage
-                  </span>
-                  <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-on-primary">
-                    Cohort Aktif
-                  </span>
-                </span>
-                <span className="t-body-sm mt-0.5 text-text-muted">
-                  Program Refleksi &amp; Komunikasi Pasutri 30 Hari
-                </span>
-              </span>
-            </span>
-            <Icon name="chevron_right" size={22} className="shrink-0 text-primary" />
-          </Link>
-
-          <ModuleTile
-            icon="baby_changing_station"
-            iconTone="bg-secondary-container text-secondary"
-            name="Selaras Laktasi"
-            caption="@selaraslaktasi • Nutrisi & ASI"
-            badge="Fase 2"
-            feature="Selaras Laktasi: Nutrisi Bayi & ASI"
-          />
-          <ModuleTile
-            icon="photo_camera"
-            iconTone="bg-surface-container-high text-tertiary"
-            name="Selaras Moments"
-            caption="@selarasmoments • Memori Sakral"
-            badge="Eksklusif"
-            feature="Selaras Moments: Album & Memori Sakral"
-          />
-          <ModuleTile
-            icon="shopping_bag"
-            iconTone="bg-surface-container-high text-tertiary"
-            name="Belanja RT"
-            caption="Sinergi Finansial Rumah Tangga"
-            locked
-            feature="Belanja RT & Sinergi Finansial"
-          />
-          <ModuleTile
-            icon="nightlight"
-            iconTone="bg-surface-container-high text-tertiary"
-            name="Doa & Dzikir"
-            caption="Pagi & Petang Berdua"
-            locked
-            feature="Doa & Dzikir Pasutri"
-          />
-        </div>
-      </section>
     </div>
-  );
-}
-
-function ModuleTile({
-  icon,
-  iconTone,
-  name,
-  caption,
-  badge,
-  locked = false,
-  feature,
-}: {
-  icon: string;
-  iconTone: string;
-  name: string;
-  caption: string;
-  badge?: string;
-  locked?: boolean;
-  feature: string;
-}) {
-  return (
-    <ComingSoonButton
-      feature={feature}
-      className="flex flex-col items-start gap-2 rounded-2xl bg-surface-container-low p-3.5 text-left shadow-xs transition-all hover:bg-surface-container active:scale-[0.98]"
-    >
-      <span className="flex w-full items-center justify-between">
-        <span
-          className={`flex size-9 items-center justify-center rounded-xl ${iconTone}`}
-        >
-          <Icon name={icon} size={19} />
-        </span>
-        {badge && (
-          <span className="rounded-full bg-surface-container-highest px-1.5 py-0.5 text-[9px] font-semibold text-tertiary uppercase">
-            {badge}
-          </span>
-        )}
-        {locked && (
-          <>
-            <Icon name="lock" size={16} className="text-text-muted" />
-            <span className="sr-only">Terkunci</span>
-          </>
-        )}
-      </span>
-      <span>
-        <span className="t-title-sm block text-on-surface">{name}</span>
-        <span className="text-[10px] leading-4 text-text-muted">
-          {caption}
-        </span>
-      </span>
-    </ComingSoonButton>
   );
 }

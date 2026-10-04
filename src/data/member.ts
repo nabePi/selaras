@@ -6,15 +6,9 @@
 export const MEMBER = {
   firstName: "Laras",
   fullName: "Larasati Kusuma",
-  partnerName: "Dimas Satria",
   avatar: "/images/profile-larasati.jpg",
-  cohort: "Cohort 3",
-  joinedLabel: "Terdaftar sejak 14 Sep 2026 · Minggu ke-3",
-  streakDays: 4,
-  reflectionDays: 14,
-  journalEntries: 12,
-  todayLabel: "Senin, 28 September 2026 · Rumah Tangga Berkah",
-  weekLabel: "Pekan ke-2 Cohort",
+  whatsapp: "0812 3456 7890",
+  email: "larasati.kusuma@email.com",
 };
 
 /** Refleksi harian yang tertunda dan harus dilunasi sebelum topik hari ini terbuka. */
@@ -75,10 +69,15 @@ export const CALENDAR_START = { year: 2026, month: 8 }; // September 2026 (0-bas
 
 export type JournalEntry = {
   id: string;
+  /** Tanggal ISO (yyyy-mm-dd), dipakai untuk mencocokkan dengan sel kalender. */
+  date: string;
   dayLabel: string;
   dateLabel: string;
   prompt: string;
+  /** Cuplikan singkat untuk kartu riwayat (ditampilkan line-clamp-2). */
   excerpt: string;
+  /** Isi lengkap, ditampilkan terpotong di popup kalender dan utuh di halaman detail. */
+  content: string;
   shared: boolean;
   versionLabel: string;
   photo?: { src: string; alt: string; caption: string };
@@ -88,11 +87,14 @@ export type JournalEntry = {
 export const JOURNAL_ENTRIES: JournalEntry[] = [
   {
     id: "hari-4",
+    date: "2026-09-26",
     dayLabel: "Hari ke-4",
     dateLabel: "26 Sep 2026",
     prompt: "Bagaimana caramu menyampaikan rasa lelah tanpa memicu salah paham?",
     excerpt:
       "Aku belajar memakai \"I-message\" bukan menuduh. Rasanya jauh lebih plong ketika bilang “Aku butuh hening sebentar ya sayang” daripada langsung terdiam dingin...",
+    content:
+      "Aku belajar memakai \"I-message\" bukan menuduh. Rasanya jauh lebih plong ketika bilang “Aku butuh hening sebentar ya sayang” daripada langsung terdiam dingin. Dulu aku sering memilih diam total karena takut kalau bicara malah jadi berantem, padahal diam itu justru bikin Mas Dimas bingung dan merasa disalahkan tanpa tahu sebabnya. Malam ini aku coba cara baru: duduk sebentar, tarik napas, lalu bilang apa yang aku rasakan tanpa menyalahkan dia. Responnya jauh lebih lembut dari yang kukira — dia malah memelukku dan bilang terima kasih sudah jujur. Rasanya ini pelajaran kecil yang besar maknanya: kejujuran yang disampaikan dengan lembut ternyata lebih menyatukan daripada kesunyian yang disalahartikan.",
     shared: true,
     versionLabel: "Versi 1 (26 Sep, 21:15 WIB)",
     photo: {
@@ -103,82 +105,71 @@ export const JOURNAL_ENTRIES: JournalEntry[] = [
   },
   {
     id: "hari-3",
+    date: "2026-09-25",
     dayLabel: "Hari ke-3",
     dateLabel: "25 Sep 2026",
     prompt: "Satu komitmen kecil yang ingin kamu jaga pekan ini bersama pasangan.",
     excerpt:
       "Menjadwalkan sepuluh menit tanpa gawai sebelum tidur malam. Kami saling menatap dan mengucap terima kasih atas satu hal kecil yang telah dilewati seharian tadi.",
+    content:
+      "Menjadwalkan sepuluh menit tanpa gawai sebelum tidur malam. Kami saling menatap dan mengucap terima kasih atas satu hal kecil yang telah dilewati seharian tadi. Awalnya terasa canggung, karena biasanya menit-menit terakhir sebelum tidur justru dihabiskan scroll media sosial masing-masing tanpa sadar. Tapi begitu ponsel diletakkan di luar kamar, percakapan jadi mengalir lebih dalam. Mas Dimas cerita soal harinya yang berat di kantor, dan aku cerita soal rasa cemas menghadapi deadline kerja. Ternyata saling mendengar tanpa distraksi itu menyembuhkan dengan caranya sendiri. Semoga kebiasaan kecil ini bisa terus dijaga, bukan cuma jadi tugas jurnal semata.",
     shared: false,
     versionLabel: "Versi 2 (25 Sep, 22:04 WIB)",
     audio: { title: "Refleksi Suara Malam", meta: "01:42 · Format M4A" },
   },
-];
-
-export const CURRICULUM = {
-  title: "Young Marriage Foundations",
-  progressLabel: "Sesi 2 / 3 Selesai",
-  sessions: [
-    {
-      id: "sesi-1",
-      status: "done" as const,
-      label: "SESI 1 · DARING",
-      date: "17 Sep 2026",
-      title: "Membangun Pondasi Niat & Komunikasi",
-      summary: "Mengurai ekspektasi tak terucap dan meluruskan niat ibadah bersama.",
-      actions: [
-        { icon: "play_circle", label: "Lihat Rekaman", tone: "text-primary" },
-        { icon: "article", label: "Rangkuman", tone: "text-tertiary" },
-      ],
-    },
-    {
-      id: "sesi-2",
-      status: "done" as const,
-      label: "SESI 2 · DARING",
-      date: "24 Sep 2026",
-      title: "Menavigasi Ekspektasi & Konflik Sehat",
-      summary: "Seni jeda emosional (emotional pause) dan teknik validasi perasaan.",
-      actions: [
-        { icon: "description", label: "Baca Rangkuman", tone: "text-tertiary" },
-      ],
-    },
-  ],
-  upcoming: {
-    label: "SESI 3 · MENDATANG",
-    date: "Sabtu, 3 Okt 2026",
-    title: "Merawat Cinta & Ibadah Bersama",
-    detail: "Pukul 19:30 - 21:00 WIB · Ruang Virtual Zoom",
+  {
+    id: "hari-2",
+    date: "2026-09-24",
+    dayLabel: "Hari ke-2",
+    dateLabel: "24 Sep 2026",
+    prompt: "Apa satu prasangka yang ingin kamu lepaskan terhadap pasanganmu minggu ini?",
+    excerpt:
+      "Aku sering menyangka diamnya Mas Dimas berarti dia marah, padahal ternyata dia cuma lelah dan butuh waktu sendiri...",
+    content:
+      "Aku sering menyangka diamnya Mas Dimas berarti dia marah, padahal ternyata dia cuma lelah dan butuh waktu sendiri untuk memulihkan energi. Prasangka ini sudah lama mengendap dan sering bikin aku baper duluan sebelum tanya langsung. Hari ini aku coba hal berbeda: alih-alih menyimpulkan sendiri, aku tanya baik-baik, \"Mas lagi capek ya? Mau ditemenin atau butuh sendirian dulu?\" Jawabannya sederhana — dia cuma butuh 15 menit untuk rebahan sebentar. Setelah itu dia balik jadi ceria seperti biasa. Aku sadar, banyak drama di kepalaku sebenarnya bisa selesai hanya dengan bertanya, bukan menebak-nebak sendiri.",
+    shared: false,
+    versionLabel: "Versi 1 (24 Sep, 21:40 WIB)",
   },
-};
-
-export const ASSESSMENT = {
-  description:
-    "Pemetaan 30 indikator kematangan relasional: Mindset (15 soal) & Kebiasaan Sehari-hari (15 soal).",
-  pillars: [
-    {
-      name: "Pilar Mindset Pasangan",
-      before: 68,
-      after: 85,
-      afterLabel: "Post",
-      note: "Kesiapan komunikasi empati & regulasi ekspektasi",
-      result: "85% Matang",
-      tone: "primary" as const,
-    },
-    {
-      name: "Pilar Kebiasaan (Habit)",
-      before: 62,
-      after: 82,
-      afterLabel: "Target",
-      note: "Rutinitas tilawah bareng, pillow talk, & apresiasi verbal",
-      result: "Progresif",
-      tone: "secondary" as const,
-    },
-  ],
-  coachNote:
-    "Mbak Laras menunjukkan kemajuan luar biasa dalam mendengarkan aktif tanpa buru-buru membantah. Terus rawat kebiasaan apresiasi kecil setiap malam sebelum tidur.",
-  coachName: "Coach Afifah, M.Psi",
-};
-
-export const REMINDER_TIMES = ["20:30", "21:00", "21:30", "22:00"];
+  {
+    id: "hari-1",
+    date: "2026-09-23",
+    dayLabel: "Hari ke-1",
+    dateLabel: "23 Sep 2026",
+    prompt: "Ceritakan momen hari ini yang membuatmu bersyukur punya pasangan seperti dia.",
+    excerpt:
+      "Pagi ini dia diam-diam menyiapkan sarapan sebelum aku bangun, padahal semalam dia pulang kerja paling larut...",
+    content:
+      "Pagi ini dia diam-diam menyiapkan sarapan sebelum aku bangun, padahal semalam dia pulang kerja paling larut dari biasanya. Aku terbangun dengan aroma telur dadar kesukaanku dan secangkir teh hangat di meja. Hal kecil seperti ini kadang luput aku syukuri karena sudah jadi rutinitas, padahal di baliknya ada niat dan pengorbanan waktu istirahatnya. Hari ini aku ingin mulai mencatat hal-hal kecil semacam ini sebagai pengingat bahwa cinta itu sering hadir lewat tindakan sederhana, bukan kata-kata besar.",
+    shared: true,
+    versionLabel: "Versi 1 (23 Sep, 20:55 WIB)",
+  },
+  {
+    id: "refleksi-22",
+    date: "2026-09-22",
+    dayLabel: "Refleksi Pribadi",
+    dateLabel: "22 Sep 2026",
+    prompt: "Apa harapanmu memasuki pekan pertama perjalanan refleksi ini?",
+    excerpt:
+      "Jujur aku agak skeptis di awal, berpikir jurnal harian ini cuma formalitas kelas. Tapi menuliskan perasaan ternyata...",
+    content:
+      "Jujur aku agak skeptis di awal, berpikir jurnal harian ini cuma formalitas kelas. Tapi menuliskan perasaan ternyata membuatku lebih sadar pola komunikasi yang selama ini kurang kusadari antara aku dan Mas Dimas. Harapanku sederhana: semoga lewat kebiasaan menulis ini, kami berdua bisa saling memahami tanpa harus menunggu konflik besar dulu baru bicara dari hati ke hati.",
+    shared: false,
+    versionLabel: "Versi 1 (22 Sep, 22:10 WIB)",
+  },
+  {
+    id: "refleksi-21",
+    date: "2026-09-21",
+    dayLabel: "Refleksi Pribadi",
+    dateLabel: "21 Sep 2026",
+    prompt: "Tuliskan satu hal yang ingin kamu perbaiki dalam cara berkomunikasi dengan pasangan.",
+    excerpt:
+      "Aku ingin berhenti memendam kekesalan kecil sampai menumpuk dan akhirnya meledak jadi pertengkaran besar...",
+    content:
+      "Aku ingin berhenti memendam kekesalan kecil sampai menumpuk dan akhirnya meledak jadi pertengkaran besar di waktu yang tidak tepat. Pola ini sudah berulang beberapa kali dan selalu menyisakan rasa bersalah karena hal kecil yang sebenarnya bisa dibicarakan baik-baik malah dibungkus emosi yang sudah menggunung. Semoga dengan journaling ini aku bisa lebih peka menyadari triggers-nya sejak dini.",
+    shared: false,
+    versionLabel: "Versi 1 (21 Sep, 21:05 WIB)",
+  },
+];
 
 /** Jumlah refleksi tertunda, ditampilkan sebagai badge di tab Journal. */
 export const PENDING_COUNT = 1;
