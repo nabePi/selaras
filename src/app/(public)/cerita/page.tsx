@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { ShareButton } from "@/components/share-button";
 import { StoryFeed } from "@/components/story-feed";
+import { buildWhatsappLink } from "@/data/programs";
+import { MENTOR_QUOTE } from "@/data/stories";
 
 export const metadata: Metadata = {
   title: "Cerita",
   description:
-    "Cerita jujur para pasutri muda alumni cohort Selaras Life dalam merawat dialog, menyembuhkan prasangka, dan menghidupkan cinta dalam kesibukan harian.",
+    "Kisah nyata yang dibagikan langsung di Instagram Selaras Life & Selaras Laktasi — tentang kehamilan, persalinan, dan perjalanan menjemput fitrah.",
   alternates: { canonical: "/cerita" },
 };
 
@@ -24,9 +25,9 @@ export default function CeritaPage() {
           Jejak Langkah Menemukan Ketenangan Rumah Tangga
         </h1>
         <p className="t-body-md leading-relaxed text-text-muted">
-          Cerita jujur para pasutri muda alumni cohort Selaras Life dalam
-          merawat dialog, menyembuhkan prasangka, dan menghidupkan cinta dalam
-          kesibukan harian.
+          Kisah nyata yang dibagikan langsung oleh keluarga di Instagram
+          Selaras Life &amp; Selaras Laktasi — tentang ikhtiar, ilmu, dan
+          penyerahan diri kepada Allah.
         </p>
       </header>
 
@@ -62,42 +63,37 @@ export default function CeritaPage() {
         </div>
       </section>
 
-      <section aria-label="Catatan Mentor" className="mb-6">
+      <section aria-label="Catatan Pendamping Persalinan" className="mb-6">
         <div className="flex flex-col gap-3 rounded-3xl bg-sage-tint p-5 shadow-[0_4px_16px_rgba(78,97,72,0.06)]">
           <div className="flex items-center gap-3">
-            <Image
-              src="/images/coach-afifah-story.jpg"
-              alt="Coach Afifah, M.Psi., Psikolog"
-              width={48}
-              height={48}
-              className="size-12 shrink-0 rounded-full bg-primary object-cover"
-            />
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary">
+              <Icon name="medical_services" size={22} />
+            </span>
             <div className="flex flex-col">
               <h2 className="t-title-md font-semibold text-on-surface">
-                Coach Afifah, M.Psi., Psikolog
+                {MENTOR_QUOTE.name}
               </h2>
               <span className="t-body-sm font-medium text-primary">
-                Lead Facilitator &amp; Marriage Counselor
+                {MENTOR_QUOTE.role}
               </span>
             </div>
           </div>
           <p className="t-body-md leading-relaxed text-on-surface-variant italic">
-            “Rumah tangga sakinah bukan berarti tanpa riak atau perbedaan
-            pendapat. Keindahan sakinah terletak pada kerendahan hati dua insan
-            untuk saling mendengar dan selalu kembali bersandar pada niat awal
-            beribadah.”
+            “{MENTOR_QUOTE.quote}”
           </p>
           <div className="flex items-center justify-between gap-2 pt-1">
             <span className="t-label-sm text-text-muted">
-              Dari sesi kurikulum Modul 2: Seni Memahami
+              Dikutip dari kisah Hira &amp; Lutfi di Instagram
             </span>
-            <button
-              type="button"
+            <Link
+              href={MENTOR_QUOTE.source}
+              target="_blank"
+              rel="noopener noreferrer"
               className="t-title-sm inline-flex shrink-0 items-center gap-1 text-primary hover:underline"
             >
-              <span>Tanya Coach</span>
-              <Icon name="chat_bubble_outline" size={16} />
-            </button>
+              <span>Lihat Sumber</span>
+              <Icon name="arrow_forward" size={16} />
+            </Link>
           </div>
         </div>
       </section>
@@ -121,14 +117,18 @@ export default function CeritaPage() {
               href="/program"
               className="t-title-sm flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-center text-on-primary shadow-md transition-all hover:bg-primary-container active:scale-[0.98]"
             >
-              <span>Daftar Cohort Mendatang (Batch 4)</span>
+              <span>Jelajahi Program Selaras</span>
               <Icon name="calendar_today" size={18} />
             </Link>
             <Link
-              href="/daftar"
+              href={buildWhatsappLink(
+                "Halo Selaras Life, saya ingin tanya-tanya seputar program Selaras.",
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
               className="t-title-sm rounded-full bg-surface-container px-4 py-2.5 text-center text-on-surface transition-colors hover:bg-surface-container-highest"
             >
-              Mulai Jurnal Mandiri 7 Hari Gratis
+              Tanya via WhatsApp
             </Link>
           </div>
         </div>
