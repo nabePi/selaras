@@ -24,7 +24,6 @@ export async function signIn(input: SignInInput): Promise<AuthResult> {
 }
 
 export type RegisterInput = {
-  stage: "young" | "prep";
   fullName: string;
   /** Nomor WhatsApp nasional tanpa awalan, mis. "81234567890" */
   whatsapp: string;

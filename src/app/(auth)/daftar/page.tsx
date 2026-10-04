@@ -15,22 +15,21 @@ export const metadata: Metadata = {
 export default function DaftarPage() {
   return (
     <>
-      <FocusHeader centered title="Buat Akun" backHref="/" />
+      <FocusHeader centered title="Buat Akun" backHref="/" hideLogo />
       <div className="flex w-full flex-col pb-10">
         <div className="mt-2 mb-6 flex flex-col items-center text-center">
-          <div className="mb-3 flex size-20 items-center justify-center rounded-full bg-canvas-ivory p-2 shadow-sm">
+          <div className="relative mb-3 flex size-20 items-center justify-center rounded-2xl bg-canvas-ivory p-2 shadow-sm">
             <Image
-              src="/images/logo-avatar.png"
-              alt="Selaras Life"
+              src="/images/logo-mark.png"
+              alt="Logo Selaras Life"
               width={64}
               height={64}
               priority
               className="size-full object-contain"
             />
-          </div>
-          <div className="t-label-sm mb-2 inline-flex items-center gap-1.5 rounded-full bg-secondary-container/40 px-3 py-1 tracking-wider text-on-secondary-container uppercase">
-            <Icon name="spa" size={14} />
-            <span>Langkah Menuju Ketenangan</span>
+            <span className="absolute -right-1 -bottom-1 flex size-5 items-center justify-center rounded-full bg-accent-coral shadow-xs">
+              <Icon name="favorite" size={12} className="text-surface" />
+            </span>
           </div>
           <h1 className="t-headline-lg-mobile font-semibold tracking-tight text-on-surface">
             Mulai Perjalanan Sakinah
@@ -42,21 +41,6 @@ export default function DaftarPage() {
         </div>
 
         <RegisterForm />
-
-        <aside className="mt-6 flex items-start gap-3 rounded-3xl bg-surface-container-high/60 p-4 shadow-sm">
-          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary/15 text-secondary">
-            <Icon name="verified_user" size={18} />
-          </span>
-          <div className="flex flex-col">
-            <h2 className="t-title-sm font-semibold text-secondary">Alur Verifikasi Cohort</h2>
-            <p className="t-body-sm mt-0.5 leading-relaxed text-on-surface-variant">
-              Setelah mendaftar, akun Anda akan terdaftar sebagai{" "}
-              <span className="font-semibold text-on-surface">Registered User</span>. Untuk
-              membuka fitur Journaling Harian Cohort, Tim Pendamping akan memverifikasi dan
-              mengaktifkan akses Anda secara bertahap.
-            </p>
-          </div>
-        </aside>
 
         <div className="mt-8 flex items-center justify-center gap-1.5 text-center">
           <span className="t-body-md text-text-muted">Sudah memiliki akun?</span>
