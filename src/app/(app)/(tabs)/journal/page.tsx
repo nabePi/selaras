@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { EntryAudio } from "@/components/entry-audio";
+import { EntryVideo } from "@/components/entry-video";
 import { Icon } from "@/components/icon";
 import { MonthCalendar } from "@/components/month-calendar";
 import {
@@ -78,12 +79,7 @@ function EntryCard({ entry: e }: { entry: JournalEntry }) {
   return (
     <article className="flex w-full flex-col gap-2 rounded-2xl bg-surface-container-lowest p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="t-label-sm rounded-full bg-sage-tint px-2.5 py-0.5 font-semibold text-primary">
-            {e.dayLabel}
-          </span>
-          <span className="t-body-sm text-text-muted">{e.dateLabel}</span>
-        </div>
+        <span className="t-body-sm text-text-muted">{e.dateLabel}</span>
         <span
           aria-label={`Perasaan: ${e.feeling.label}`}
           className="t-label-sm inline-flex items-center gap-1.5 rounded-full bg-secondary-container/55 px-2.5 py-1 font-medium text-on-secondary-container"
@@ -119,6 +115,7 @@ function EntryCard({ entry: e }: { entry: JournalEntry }) {
           </div>
         </div>
       )}
+      {e.video && <EntryVideo {...e.video} compact />}
       {e.audio && <EntryAudio title={e.audio.title} meta={e.audio.meta} />}
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-surface-container-low pt-2">

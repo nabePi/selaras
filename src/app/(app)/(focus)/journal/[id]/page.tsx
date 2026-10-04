@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { EntryAudio } from "@/components/entry-audio";
+import { EntryVideo } from "@/components/entry-video";
 import { FocusHeader } from "@/components/focus-header";
 import { Icon } from "@/components/icon";
 import { JOURNAL_ENTRIES } from "@/data/member";
@@ -63,6 +64,7 @@ export default async function JournalEntryPage({ params }: { params: Params }) {
             </div>
           </div>
         )}
+        {entry.video && <EntryVideo {...entry.video} />}
         {entry.audio && <EntryAudio title={entry.audio.title} meta={entry.audio.meta} />}
 
         <p className="t-body-md leading-relaxed text-on-surface-variant">{entry.content}</p>

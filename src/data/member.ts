@@ -93,6 +93,7 @@ export type JournalEntry = {
   shared: boolean;
   versionLabel: string;
   photo?: { src: string; alt: string; caption: string };
+  video?: { src: string; poster: string; title: string };
   audio?: { title: string; meta: string };
 };
 
@@ -144,6 +145,11 @@ export const JOURNAL_ENTRIES: JournalEntry[] = [
     feeling: JOURNAL_FEELINGS[1],
     shared: false,
     versionLabel: "Versi 1 (24 Sep, 21:40 WIB)",
+    video: {
+      src: "/videos/selaras-reels.mp4",
+      poster: "/videos/selaras-reels-poster.jpg",
+      title: "Video Refleksi",
+    },
   },
   {
     id: "hari-1",
