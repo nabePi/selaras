@@ -64,6 +64,7 @@ export const MENTOR_QUOTE: MentorQuote = {
 
 export type CommunityReflection = {
   id: string;
+  name: string;
   handle: string;
   source: string;
   summary: string;
@@ -74,21 +75,36 @@ export type CommunityReflection = {
 };
 
 /**
- * Sumber: https://www.instagram.com/p/DdMBL-9Ezhn/ — dibagikan ulang dan
- * ditandai ke @selaraslaktasi / @selaras.life.
+ * Sumber: https://www.instagram.com/p/DdMBL-9Ezhn/ dan
+ * https://www.instagram.com/p/DdR3xy8kjKD/ — dibagikan ulang dan ditandai ke
+ * @selaraslaktasi / @selaras.life.
  */
 export const COMMUNITY_REFLECTIONS: CommunityReflection[] = [
   {
     id: "ladhian-taaruf",
+    name: "Laras Adhianti",
     handle: "@ladhian",
     source: "https://www.instagram.com/p/DdMBL-9Ezhn/",
     summary:
-      "Membaca ulang CV ta'arufnya sendiri, @ladhian tersadar bahwa pasangan yang Allah pilihkan punya wawasan jauh lebih luas dari yang pernah ia bayangkan — meski dulu ia menuliskan syarat pendidikan minimal S1.",
+      "Laras Adhianti — Founder Selaras Laktasi — membaca ulang CV ta'arufnya sendiri dan tersadar bahwa pasangan yang Allah pilihkan punya wawasan jauh lebih luas dari yang pernah ia bayangkan, meski dulu ia menuliskan syarat pendidikan minimal S1.",
     quote:
       "Ternyata ada doa-doa lama yang baru kusadari sekarang: Oh... ternyata ini sudah Allah jawab.",
     responseQuote:
       "Ternyata dengan ilmu, pernikahan tidak semengerikan apa yang digaungkan selama ini.",
     responseAuthor: "Anggit Oktafiania, Co-founder Selaras Life",
     likes: "90an",
+  },
+  {
+    id: "meidivira-selaras",
+    name: "Meidivira",
+    handle: "@meidivira",
+    source: "https://www.instagram.com/p/DdR3xy8kjKD/",
+    summary:
+      "Meidivira, bagian dari tim yang bekerja bersama Laras Adhianti, merefleksikan setahun penuh rezeki: menikah dengan suaminya pada Oktober 2024, dan menemukan Selaras sebagai jawaban doanya akan lingkungan kerja yang islami setelah lama skeptis hal itu mungkin ditemukan.",
+    quote:
+      "Bertemu dengan SELARAS adalah rezeki yang datangnya dari Allah. Jujur, aku sudah skeptis dengan lingkungan kerja yang 'berandingannya islami', tapi bertemu SELARAS betul-betul menamparku bahwa kuasa Allah itu jauh lebih besar dari yang kita bayangkan.",
+    responseQuote: "Ana uhibukk fillah meimeiii 🫶",
+    responseAuthor: "Anggit Oktafiania, Co-founder Selaras Life",
+    likes: "Laras Adhianti & lainnya",
   },
 ];

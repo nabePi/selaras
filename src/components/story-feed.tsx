@@ -92,8 +92,11 @@ export function StoryFeed() {
             className="flex flex-col gap-3 rounded-2xl bg-surface-container-lowest p-4 shadow-[0_4px_16px_rgba(92,75,62,0.04)]"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="t-title-sm font-semibold text-on-surface">
-                {r.handle}
+              <span className="flex items-baseline gap-1.5">
+                <span className="t-title-sm font-semibold text-on-surface">
+                  {r.name}
+                </span>
+                <span className="t-body-sm text-text-muted">{r.handle}</span>
               </span>
               <span className="t-body-sm flex items-center gap-1 text-text-muted">
                 <Icon name="favorite" size={14} /> {r.likes}
