@@ -173,3 +173,43 @@ export const JOURNAL_ENTRIES: JournalEntry[] = [
 
 /** Jumlah refleksi tertunda, ditampilkan sebagai badge di tab Journal. */
 export const PENDING_COUNT = 1;
+
+export type AppNotification = {
+  id: string;
+  icon: string;
+  iconTone: string;
+  title: string;
+  body: string;
+  time: string;
+  read: boolean;
+};
+
+export const NOTIFICATIONS: AppNotification[] = [
+  {
+    id: "n1",
+    icon: "edit_note",
+    iconTone: "bg-secondary-container text-secondary",
+    title: `Refleksi Hari ke-${PENDING_REFLECTION.day} Menunggu`,
+    body: "Tuntaskan refleksi kemarin sebelum topik hari ini terbuka.",
+    time: "2 jam lalu",
+    read: false,
+  },
+  {
+    id: "n2",
+    icon: "support_agent",
+    iconTone: "bg-accent-mint/40 text-primary",
+    title: "Pesan dari Fasilitator",
+    body: "Jangan ragu menghubungi tim pendamping jika ada yang ingin didiskusikan lebih lanjut.",
+    time: "Kemarin",
+    read: false,
+  },
+  {
+    id: "n3",
+    icon: "auto_stories",
+    iconTone: "bg-sage-tint text-primary",
+    title: "Hadis Harian Baru",
+    body: DAILY_WISDOM.quote,
+    time: "2 hari lalu",
+    read: true,
+  },
+];

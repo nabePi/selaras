@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ComingSoonButton } from "@/components/coming-soon-button";
 import { EntryAudio } from "@/components/entry-audio";
 import { Icon } from "@/components/icon";
 import { MonthCalendar } from "@/components/month-calendar";
@@ -78,20 +77,13 @@ function Feed() {
 function EntryCard({ entry: e }: { entry: JournalEntry }) {
   return (
     <article className="flex w-full flex-col gap-2 rounded-2xl bg-surface-container-lowest p-4 shadow-sm">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center">
         <div className="flex items-center gap-2">
           <span className="t-label-sm rounded-full bg-sage-tint px-2.5 py-0.5 font-semibold text-primary">
             {e.dayLabel}
           </span>
           <span className="t-body-sm text-text-muted">{e.dateLabel}</span>
         </div>
-        <ComingSoonButton
-          feature="Menu entri"
-          aria-label={`Menu opsi entri ${e.dayLabel}`}
-          className="flex size-8 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-container-low"
-        >
-          <Icon name="more_horiz" size={18} />
-        </ComingSoonButton>
       </div>
 
       <div className="flex flex-col gap-1">
@@ -132,13 +124,14 @@ function EntryCard({ entry: e }: { entry: JournalEntry }) {
             Privat (Catatan Pribadi)
           </span>
         )}
-        <ComingSoonButton
-          feature="Riwayat versi"
-          className="t-label-sm flex items-center gap-1 font-normal text-text-muted transition-colors hover:text-on-surface"
+        <Link
+          href={`/journal/${e.id}`}
+          aria-label={`Lihat detail ${e.dayLabel}, ${e.dateLabel}`}
+          className="t-title-sm flex items-center gap-1.5 rounded-full px-2 py-1 text-primary transition-colors hover:bg-sage-tint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
-          <span>{e.versionLabel}</span>
-          <Icon name="history" size={14} />
-        </ComingSoonButton>
+          <span>Lihat Detail</span>
+          <Icon name="arrow_forward" size={15} />
+        </Link>
       </div>
     </article>
   );

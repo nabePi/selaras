@@ -22,7 +22,7 @@ export default async function JournalEntryPage({ params }: { params: Params }) {
   return (
     <>
       <FocusHeader title={entry.dayLabel} backHref="/journal" hideLogo />
-      <div className="flex w-full flex-col gap-4 pb-10">
+      <div className="mt-3 flex w-full flex-col gap-4 pb-10">
         <div className="flex items-center gap-2">
           <span className="t-label-sm rounded-full bg-sage-tint px-2.5 py-0.5 font-semibold text-primary">
             {entry.dayLabel}
