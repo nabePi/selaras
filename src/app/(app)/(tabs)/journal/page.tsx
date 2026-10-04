@@ -77,13 +77,22 @@ function Feed() {
 function EntryCard({ entry: e }: { entry: JournalEntry }) {
   return (
     <article className="flex w-full flex-col gap-2 rounded-2xl bg-surface-container-lowest p-4 shadow-sm">
-      <div className="flex items-center">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="t-label-sm rounded-full bg-sage-tint px-2.5 py-0.5 font-semibold text-primary">
             {e.dayLabel}
           </span>
           <span className="t-body-sm text-text-muted">{e.dateLabel}</span>
         </div>
+        <span
+          aria-label={`Perasaan: ${e.feeling.label}`}
+          className="t-label-sm inline-flex items-center gap-1.5 rounded-full bg-secondary-container/55 px-2.5 py-1 font-medium text-on-secondary-container"
+        >
+          <span aria-hidden="true" className="text-base leading-none">
+            {e.feeling.emoji}
+          </span>
+          {e.feeling.label}
+        </span>
       </div>
 
       <div className="flex flex-col gap-1">

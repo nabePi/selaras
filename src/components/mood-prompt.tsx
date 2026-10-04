@@ -1,19 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { JOURNAL_FEELINGS } from "@/data/member";
 import { Icon } from "./icon";
-
-const MOODS = [
-  { emoji: "😢", label: "Sedih" },
-  { emoji: "😟", label: "Cemas" },
-  { emoji: "😐", label: "Biasa Saja" },
-  { emoji: "😊", label: "Tenang" },
-  { emoji: "😄", label: "Bahagia" },
-] as const;
 
 /** Prompt pembuka dari fasilitator: cek kondisi perasaan sebelum menulis refleksi. */
 export function MoodPrompt() {
-  const [mood, setMood] = useState<(typeof MOODS)[number]["label"] | null>(null);
+  const [mood, setMood] = useState<(typeof JOURNAL_FEELINGS)[number]["label"] | null>(null);
 
   return (
     <section className="relative mb-4 overflow-hidden rounded-3xl bg-surface-container-low p-5 shadow-sm">
@@ -31,7 +24,7 @@ export function MoodPrompt() {
           aria-label="Pilih perasaan hari ini"
           className="flex items-stretch justify-between gap-1.5 rounded-2xl bg-surface-bright p-2.5 shadow-xs"
         >
-          {MOODS.map((m) => {
+          {JOURNAL_FEELINGS.map((m) => {
             const active = mood === m.label;
             return (
               <button

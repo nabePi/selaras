@@ -23,11 +23,22 @@ export default async function JournalEntryPage({ params }: { params: Params }) {
     <>
       <FocusHeader title={entry.dayLabel} backHref="/journal" hideLogo />
       <div className="mt-3 flex w-full flex-col gap-4 pb-10">
-        <div className="flex items-center gap-2">
-          <span className="t-label-sm rounded-full bg-sage-tint px-2.5 py-0.5 font-semibold text-primary">
-            {entry.dayLabel}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="t-label-sm rounded-full bg-sage-tint px-2.5 py-0.5 font-semibold text-primary">
+              {entry.dayLabel}
+            </span>
+            <span className="t-body-sm text-text-muted">{entry.dateLabel}</span>
+          </div>
+          <span
+            aria-label={`Perasaan: ${entry.feeling.label}`}
+            className="t-label-sm inline-flex items-center gap-1.5 rounded-full bg-secondary-container/55 px-2.5 py-1 font-medium text-on-secondary-container"
+          >
+            <span aria-hidden="true" className="text-base leading-none">
+              {entry.feeling.emoji}
+            </span>
+            {entry.feeling.label}
           </span>
-          <span className="t-body-sm text-text-muted">{entry.dateLabel}</span>
         </div>
 
         <div className="flex flex-col gap-1">
@@ -56,7 +67,7 @@ export default async function JournalEntryPage({ params }: { params: Params }) {
 
         <p className="t-body-md leading-relaxed text-on-surface-variant">{entry.content}</p>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-surface-container-low pt-3">
+        <div className="flex items-center border-t border-surface-container-low pt-3">
           {entry.shared ? (
             <span className="t-label-sm flex items-center gap-1 rounded-full bg-accent-mint/30 px-2 py-0.5 text-primary">
               <Icon name="verified_user" size={13} />
@@ -68,7 +79,6 @@ export default async function JournalEntryPage({ params }: { params: Params }) {
               Privat (Catatan Pribadi)
             </span>
           )}
-          <span className="t-label-sm text-text-muted">{entry.versionLabel}</span>
         </div>
       </div>
     </>
