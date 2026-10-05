@@ -6,7 +6,15 @@ export const PRE_ASSESSMENT = {
 
 export type AssessmentPart = "mindset" | "habit";
 
+export type AssessmentKind = "pre" | "post";
+
+export const ASSESSMENT_KINDS: Record<AssessmentKind, { title: string; short: string }> = {
+  pre: { title: "Pre Assessment", short: "Pre" },
+  post: { title: "Post Assessment", short: "Post" },
+};
+
 export type AssessmentItem = {
+  id: string;
   part: AssessmentPart;
   dimension: string;
   text: string;
@@ -28,18 +36,20 @@ export const ASSESSMENT_PARTS: Record<
   },
 };
 
-const m = (dimension: string, text: string): AssessmentItem => ({
+type BaseItem = Omit<AssessmentItem, "id">;
+
+const m = (dimension: string, text: string): BaseItem => ({
   part: "mindset",
   dimension,
   text,
 });
-const h = (dimension: string, text: string): AssessmentItem => ({
+const h = (dimension: string, text: string): BaseItem => ({
   part: "habit",
   dimension,
   text,
 });
 
-export const ASSESSMENT_ITEMS: AssessmentItem[] = [
+const BASE_ITEMS: BaseItem[] = [
   m("Ketaatan & Otonomi", "Saya percaya taat pada suami dan mengembangkan potensi diri bisa berjalan bersamaan, bukan pilihan salah satu."),
   m("Ketaatan & Otonomi", "Saya tidak lagi merasa harus \"mengecilkan diri\" untuk terlihat sebagai istri yang baik."),
   m("Ketaatan & Otonomi", "Saya memahami batasan ketaatan yang sehat dalam pernikahan saya."),
@@ -71,3 +81,23 @@ export const ASSESSMENT_ITEMS: AssessmentItem[] = [
   h("Self-care Fisik & Mental", "Saya meluangkan waktu untuk diri sendiri (me-time) secara sengaja."),
   h("Self-care Fisik & Mental", "Saya memperhatikan kondisi emosi saya dan mencari cara sehat untuk mengelolanya."),
 ];
+
+const withIds = (items: BaseItem[]): AssessmentItem[] =>
+  items.map((it, i) => ({ ...it, id: `${it.part === "mindset" ? "m" : "h"}${i < 15 ? i + 1 : i - 14}` }));
+
+/**
+ * Soal Pre dan Post identik agar skornya bisa dibandingkan. Static: soal buatan admin
+ * nanti diambil dari API per jenis assessment.
+ */
+export const ASSESSMENT_SETS: Record<AssessmentKind, AssessmentItem[]> = {
+  pre: withIds(BASE_ITEMS),
+  post: withIds(BASE_ITEMS),
+};
+
+/** Label band dari rata-rata skor (skala 1-5). */
+export function scoreBand(avg: number) {
+  if (avg < 2.5) return { label: "Baru Menyadari", tone: "bg-secondary-container text-secondary" };
+  if (avg < 3.5) return { label: "Mulai Bergerak", tone: "bg-accent-sunray/40 text-on-surface" };
+  if (avg < 4.5) return { label: "Bertumbuh Konsisten", tone: "bg-sage-tint text-primary" };
+  return { label: "Berkembang Mantap", tone: "bg-primary text-on-primary" };
+}

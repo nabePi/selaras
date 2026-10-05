@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { FocusHeader } from "@/components/focus-header";
 import { Icon } from "@/components/icon";
-import { MoodPrompt } from "@/components/mood-prompt";
+import { PromptQuestions } from "@/components/prompt-questions";
 import { ReflectionForm } from "@/components/reflection-form";
+import { JOURNAL_PROMPTS, PENDING_PROMPT_DATE } from "@/data/journal-prompts";
 import { PENDING_REFLECTION as P } from "@/data/member";
 
 export const metadata: Metadata = { title: "Tulis Jurnal" };
 
 export default function TulisJurnalPage() {
+  // Static: prompt dipilih berdasarkan tanggal refleksi; nanti diambil dari prompt buatan admin.
+  const prompt = JOURNAL_PROMPTS.find((p) => p.date === PENDING_PROMPT_DATE)!;
   const progress = ((P.day / P.totalDays) * 100).toFixed(1);
 
   return (
@@ -45,24 +48,18 @@ export default function TulisJurnalPage() {
           </div>
         </div>
 
-        <MoodPrompt />
-
-        <section className="relative mb-4 overflow-hidden rounded-3xl bg-surface-container-low p-5 shadow-sm">
-          <div className="pointer-events-none absolute -top-8 -right-8 size-28 rounded-full bg-surface-container-high opacity-60 blur-2xl" />
-          <div className="relative z-10 flex flex-col gap-2">
-            <span className="t-label-sm inline-flex items-center gap-1.5 self-start rounded-full bg-sage-tint px-3 py-1 text-primary">
-              <Icon name="spa" size={15} filled />
-              Prompt Kurasi Coach
-            </span>
-            <h2 className="t-headline-md leading-snug text-on-surface">{P.prompt}</h2>
-            <div className="flex items-start gap-2 pt-1">
-              <Icon name="format_quote" size={18} className="mt-0.5 shrink-0 text-sage-medium" />
-              <p className="t-quote leading-relaxed text-on-surface-variant italic">
-                {P.promptNote}
-              </p>
-            </div>
-          </div>
+        <section className="mb-4 flex flex-col gap-2">
+          <span className="t-label-sm inline-flex items-center gap-1.5 self-start rounded-full bg-sage-tint px-3 py-1 text-primary">
+            <Icon name="spa" size={15} filled />
+            Prompt Kurasi Coach
+          </span>
+          <h2 className="t-headline-md leading-snug text-on-surface">{prompt.title}</h2>
+          {prompt.subtitle && <p className="t-body-md text-text-muted">{prompt.subtitle}</p>}
         </section>
+
+        <div className="mb-4">
+          <PromptQuestions questions={prompt.questions} />
+        </div>
 
         <ReflectionForm draftKey={`selaras:draft:sesi-${P.session}-hari-${P.day}`} />
       </div>

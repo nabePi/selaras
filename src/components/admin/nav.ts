@@ -1,7 +1,8 @@
 export const ADMIN_NAV = [
   { href: "/admin", label: "Dashboard", icon: "grid_view" },
   { href: "/admin/users", label: "Users", icon: "group" },
+  { href: "/admin/assessment/pre", label: "Pre Assessment", icon: "fact_check" },
+  { href: "/admin/assessment/post", label: "Post Assessment", icon: "task_alt" },
   { href: "/admin/prompt", label: "Kelola Prompt Jurnal", icon: "menu_book" },
-  { href: "/admin/kelas", label: "Manajemen Kelas & Sesi", icon: "calendar_month" },
-  { href: "/admin/insight", label: "Agregat Insight Emosional", icon: "sentiment_calm" },
+  { href: "/admin/insight", label: "Insight", icon: "sentiment_calm" },
 ] as const;
