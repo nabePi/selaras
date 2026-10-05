@@ -75,7 +75,7 @@ export const SESSIONS: ClassSession[] = [
 
 export const SESSION_DETAILS = {
   s1: {
-    promptsInfo: "7 Prompt Terdistribusi & 1 Hadis Harian/hari",
+    promptsInfo: "7 Prompt Terdistribusi",
     recording: "Zoom Cloud Recording (1j 48m)",
     slide: "Slide_Sesi1_VisiHidup.pdf (4.2 MB)",
     participation: { answered: 53, total: 60 },

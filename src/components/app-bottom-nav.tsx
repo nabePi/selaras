@@ -10,39 +10,29 @@ const TABS = [
   { href: "/profil", label: "Profil", icon: "person" },
 ] as const;
 
-export function AppBottomNav({ pendingCount = 0 }: { pendingCount?: number }) {
+export function AppBottomNav() {
   const pathname = usePathname();
 
   return (
     <nav
       aria-label="Navigasi member"
-      className="pb-safe pointer-events-none fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 px-margin"
+      className="pb-safe fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 bg-surface/90 shadow-[0_-4px_20px_rgba(92,75,62,0.06)] backdrop-blur-xl"
     >
-      <ul className="pointer-events-auto mb-3 flex items-center justify-between gap-1 rounded-full bg-surface-bright/95 px-4 py-1 shadow-[0_8px_30px_rgba(92,75,62,0.08)] ring-1 ring-border-subtle/70 backdrop-blur-xl">
+      <ul className="grid grid-cols-3 gap-1 p-3">
         {TABS.map((tab) => {
           const active = pathname === tab.href;
           return (
-            <li key={tab.href} className="flex-1">
+            <li key={tab.href}>
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-full py-2 transition-all ${
+                className={`flex min-h-11 flex-col items-center justify-center rounded-xl py-1 transition-colors ${
                   active
-                    ? "bg-sage-tint font-semibold text-primary"
-                    : "text-on-surface-variant hover:text-on-surface"
+                    ? "bg-sage-tint text-primary"
+                    : "text-on-surface-variant hover:bg-surface-container-low"
                 }`}
               >
-                <span className="relative flex items-center justify-center">
-                  <Icon name={tab.icon} size={22} filled={active} />
-                  {tab.href === "/journal" && pendingCount > 0 && (
-                    <span
-                      aria-label={`${pendingCount} refleksi tertunda`}
-                      className="absolute -top-1 -right-2 rounded-full bg-secondary px-1.5 text-[10px] leading-tight font-medium text-on-secondary"
-                    >
-                      {pendingCount}
-                    </span>
-                  )}
-                </span>
+                <Icon name={tab.icon} size={20} filled={active} />
                 <span className="t-label-sm">{tab.label}</span>
               </Link>
             </li>

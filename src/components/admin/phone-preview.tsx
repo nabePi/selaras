@@ -1,11 +1,10 @@
 import Image from "next/image";
-import type { Hadis, ResponseType } from "@/data/admin-prompts";
+import type { ResponseType } from "@/data/admin-prompts";
 import { Icon } from "../icon";
 
 type Props = {
   prompt: string;
   responseType: ResponseType;
-  hadis: Hadis | undefined;
   dayLabel: string;
   sessionTitle: string;
   voice: { name: string } | null;
@@ -13,7 +12,7 @@ type Props = {
 
 const MOODS = ["😔", "😕", "😐", "🙂", "😊"];
 
-export function PhonePreview({ prompt, responseType, hadis, dayLabel, sessionTitle, voice }: Props) {
+export function PhonePreview({ prompt, responseType, dayLabel, sessionTitle, voice }: Props) {
   return (
     <div className="relative w-full max-w-[390px] rounded-[42px] bg-on-surface p-3.5 shadow-2xl transition-transform duration-300 hover:scale-[1.008]">
       <div className="relative flex h-[740px] flex-col overflow-hidden rounded-[34px] bg-surface text-on-surface shadow-inner select-none">
@@ -70,26 +69,12 @@ export function PhonePreview({ prompt, responseType, hadis, dayLabel, sessionTit
             <div className="t-label-md rounded-full bg-primary py-2.5 text-center font-medium text-on-primary shadow-sm">Simpan Renungan Harian</div>
           </div>
 
-          {hadis && (
-            <div className="space-y-2.5 rounded-3xl bg-sage-tint/60 p-4 shadow-sm">
-              <div className="flex items-center gap-2 text-[11px] font-semibold text-primary">
-                <Icon name="format_quote" size={16} />
-                <span>Nasihat Hadis Penyejuk Jiwa</span>
-              </div>
-              <p className="t-headline-sm line-clamp-4 text-[13px] leading-relaxed italic">“{hadis.text}”</p>
-              <div className="flex items-center justify-between pt-1">
-                <span className="flex items-center gap-2">
-                  {voice && (
-                    <>
-                      <span className="flex size-7 items-center justify-center rounded-full bg-primary text-on-primary">
-                        <Icon name="play_arrow" size={16} />
-                      </span>
-                      <span className="text-[11px] text-text-muted">Coach Afifah</span>
-                    </>
-                  )}
-                </span>
-                <span className="text-[11px] text-text-muted">{hadis.source}</span>
-              </div>
+          {voice && (
+            <div className="flex items-center gap-2 rounded-3xl bg-sage-tint/60 p-3 shadow-sm">
+              <span className="flex size-7 items-center justify-center rounded-full bg-primary text-on-primary">
+                <Icon name="play_arrow" size={16} />
+              </span>
+              <span className="text-[11px] text-text-muted">Voice note · Coach Afifah</span>
             </div>
           )}
         </div>

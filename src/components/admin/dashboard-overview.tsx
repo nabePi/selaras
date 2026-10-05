@@ -5,7 +5,7 @@ import { useState } from "react";
 import { CLASS_INFO, SESSIONS } from "@/data/admin-curriculum";
 import { INITIAL_COUPLES, progressPercent } from "@/data/admin-couples";
 import { INITIAL_COACH_NOTES, MOOD, WEEKLY_STRAIN } from "@/data/admin-insight";
-import { CYCLE_STATS, HADIS_LIBRARY, INITIAL_SCHEDULE } from "@/data/admin-prompts";
+import { CYCLE_STATS, INITIAL_SCHEDULE } from "@/data/admin-prompts";
 import { sendNudge } from "@/lib/admin-actions";
 import { Icon } from "../icon";
 import { useToast } from "../toast-provider";
@@ -21,7 +21,6 @@ const counts = {
 const backlog = INITIAL_COUPLES.filter((c) => c.status === "backlog");
 const pending = INITIAL_COUPLES.filter((c) => c.status === "pending");
 const todayPrompt = INITIAL_SCHEDULE.find((i) => i.state === "active")!;
-const todayHadis = HADIS_LIBRARY.find((h) => h.id === todayPrompt.hadisId)!;
 const peak = WEEKLY_STRAIN.reduce((a, b) => (b.value > a.value ? b : a));
 const readyNotes = INITIAL_COACH_NOTES.filter((n) => n.status === "ready").length;
 const nextSession = SESSIONS.find((s) => s.state === "upcoming")!;
@@ -51,7 +50,7 @@ export function DashboardOverview() {
       <PageHeader
         pill="RINGKASAN HARI INI"
         meta="Pembaruan Sinkron: Hari ini, 09:42 WIB"
-        title="Ikhtisar Dashboard"
+        title="Dashboard"
         description="Gambaran cepat kondisi Cohort 04: peserta yang perlu disapa, kelas yang berjalan, prompt yang tayang hari ini, dan denyut emosional pasutri secara agregat."
         actions={
           <>
@@ -165,12 +164,8 @@ export function DashboardOverview() {
               <span className="t-label-sm font-normal text-text-muted">{todayPrompt.responseRate}% merespons</span>
             </div>
             <h2 className="t-headline-sm leading-snug text-on-surface">“{todayPrompt.prompt}”</h2>
-            <div className="rounded-2xl bg-sage-tint/60 p-4">
-              <p className="t-quote line-clamp-3 text-[14px] leading-relaxed text-on-surface italic">“{todayHadis.text}”</p>
-              <p className="t-label-sm mt-2 font-semibold text-tertiary">{todayHadis.source}</p>
-            </div>
           </div>
-          <Link href="/admin/prompt" className="t-label-md flex items-center gap-1 self-start text-primary hover:underline">Kelola Prompt &amp; Hadis <Icon name="arrow_forward" size={16} /></Link>
+          <Link href="/admin/prompt" className="t-label-md flex items-center gap-1 self-start text-primary hover:underline">Kelola Prompt Jurnal <Icon name="arrow_forward" size={16} /></Link>
         </section>
 
         <section aria-label="Insight singkat" className="flex flex-col justify-between gap-5 rounded-3xl bg-canvas-ivory p-7 shadow-sm">

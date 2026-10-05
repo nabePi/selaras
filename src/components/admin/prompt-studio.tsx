@@ -6,7 +6,6 @@ import {
   DAYS_PER_SESSION,
   DEFAULT_FALLBACK,
   DEFAULT_VOICE_NOTE,
-  HADIS_LIBRARY,
   INITIAL_SCHEDULE,
   PROMPT_MAX_LENGTH,
   PROMPT_SESSIONS,
@@ -14,12 +13,11 @@ import {
   WEEKDAYS,
   dateForSlot,
   slotKey,
-  type Hadis,
   type ResponseType,
   type ScheduleItem,
   type ScheduleState,
 } from "@/data/admin-prompts";
-import { publishPrompt, saveFallbackSettings, saveHadis, savePromptDraft } from "@/lib/admin-actions";
+import { publishPrompt, saveFallbackSettings, savePromptDraft } from "@/lib/admin-actions";
 import { Dialog, DialogActions, FieldLabel, fieldClass } from "../dialog";
 import { Icon } from "../icon";
 import { useToast } from "../toast-provider";
@@ -34,16 +32,8 @@ type Form = {
   date: string;
   responseType: ResponseType;
   prompt: string;
-  hadisId: string;
   voice: Voice | null;
 };
-
-const TONES = [
-  "bg-sage-tint text-on-surface",
-  "bg-accent-mint/70 text-on-surface",
-  "bg-secondary-container text-on-secondary-container",
-  "bg-accent-sunray text-on-surface",
-];
 
 const toForm = (i: Item): Form => ({
   session: i.session,
@@ -51,17 +41,15 @@ const toForm = (i: Item): Form => ({
   date: i.date,
   responseType: i.responseType,
   prompt: i.prompt,
-  hadisId: i.hadisId,
   voice: i.voice ?? null,
 });
 
-const blankForm = (session: number, day: number, hadisId: string): Form => ({
+const blankForm = (session: number, day: number): Form => ({
   session,
   day,
   date: dateForSlot(session, day),
   responseType: "text",
   prompt: "",
-  hadisId,
   voice: null,
 });
 
@@ -104,22 +92,17 @@ export function PromptStudio() {
   const [schedule, setSchedule] = useState(initial);
   const [form, setForm] = useState<Form>(() => toForm(initial[slotKey(1, 5)]));
   const [mode, setMode] = useState<"edit" | "new">("edit");
-  const [library, setLibrary] = useState<Hadis[]>(HADIS_LIBRARY);
-  const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [fallback, setFallback] = useState({ enabled: true, template: DEFAULT_FALLBACK });
   const [fallbackOpen, setFallbackOpen] = useState(false);
-  const [hadisOpen, setHadisOpen] = useState(false);
   const [busy, setBusy] = useState<"publish" | "draft" | null>(null);
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
-  const libraryRef = useRef<HTMLElement>(null);
 
   const existing = schedule[slotKey(form.session, form.day)];
   const duplicate = mode === "new" && !!existing;
   const readOnly = mode === "edit" && existing?.state === "done";
-  const hadis = library.find((h) => h.id === form.hadisId);
   const session = PROMPT_SESSIONS.find((s) => s.value === form.session)!;
   const dayInvalid = form.prompt.trim().length < 10;
 
@@ -135,14 +118,14 @@ export function PromptStudio() {
       setForm(toForm(item));
     } else {
       setMode("new");
-      setForm(blankForm(sessionNo, day, form.hadisId));
+      setForm(blankForm(sessionNo, day));
     }
     stopAudio();
   }
 
   function startNew() {
     setMode("new");
-    setForm((f) => blankForm(f.session, f.day, f.hadisId));
+    setForm((f) => blankForm(f.session, f.day));
     editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -154,7 +137,7 @@ export function PromptStudio() {
 
   function reset() {
     if (mode === "edit" && existing) setForm(toForm(existing));
-    else setForm((f) => blankForm(f.session, f.day, f.hadisId));
+    else setForm((f) => blankForm(f.session, f.day));
   }
 
   function stopAudio() {
@@ -202,7 +185,6 @@ export function PromptStudio() {
       title: form.prompt.trim().split(/\s+/).slice(0, 4).join(" "),
       prompt: "",
       responseType: form.responseType,
-      hadisId: form.hadisId,
       date: form.date,
       state,
     };
@@ -212,8 +194,7 @@ export function PromptStudio() {
         ...base,
         prompt: form.prompt.trim(),
         responseType: form.responseType,
-        hadisId: form.hadisId,
-        date: form.date,
+          date: form.date,
         voice: form.voice ?? undefined,
         state: prev ? prev.state : state,
       },
@@ -250,20 +231,6 @@ export function PromptStudio() {
     showToast("Draf prompt tersimpan.", { tone: "success" });
   }
 
-  function applyHadis(h: Hadis) {
-    setForm((f) => ({ ...f, hadisId: h.id }));
-    showToast(`Hadis ${h.source} dipasang pada editor.`, { tone: "success" });
-    editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  function scrollToLibrary() {
-    libraryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  const filteredLibrary = library.filter((h) =>
-    [h.topic, h.text, h.source, h.id].some((v) => v.toLowerCase().includes(query.trim().toLowerCase())),
-  );
-
   const charCount = form.prompt.length;
 
   return (
@@ -272,17 +239,13 @@ export function PromptStudio() {
         pill="Modul Pembinaan Ruhani & Pasutri"
         pulse={false}
         meta="Cohort 04 Aktif (Minggu 1)"
-        title="Kelola Prompt & Nasihat Hadis Harian"
-        description="Kurasi pertanyaan refleksi berurutan per sesi dan kutipan hadis penyejuk jiwa untuk peserta Cohort 4 Young Marriage. Satu pintu dialog bernilai ibadah setiap Subuh."
+        title="Kelola Prompt Jurnal"
+        description="Kurasi pertanyaan refleksi berurutan per sesi untuk peserta Cohort 4 Young Marriage. Satu pintu dialog bernilai ibadah setiap Subuh."
         actions={
           <>
             <button type="button" onClick={() => setFallbackOpen(true)} className={btnSoft}>
               <Icon name="tune" size={18} className="text-tertiary" />
               <span>Pengaturan Fallback Otomatis</span>
-            </button>
-            <button type="button" onClick={scrollToLibrary} className={btnSoft}>
-              <Icon name="auto_stories" size={18} className="text-primary" />
-              <span>Kelola Library Hadis</span>
             </button>
             <button type="button" onClick={startNew} className={btnPrimary}>
               <Icon name="event_upcoming" size={18} />
@@ -425,26 +388,10 @@ export function PromptStudio() {
               </div>
 
               <div className="space-y-4 rounded-2xl bg-surface-container-low/70 p-5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-2.5">
-                    <Icon name="menu_book" size={20} className="text-primary" />
-                    <span className="t-title-sm font-semibold text-on-surface">Kutipan Nasihat / Hadis Harian</span>
-                  </span>
-                  <button type="button" onClick={scrollToLibrary} className="t-label-sm flex items-center gap-1 rounded-full bg-canvas-ivory px-3 py-1 text-on-surface shadow-sm transition-colors hover:bg-surface">
-                    <Icon name="sync_alt" size={14} />
-                    <span>Ganti dari Library</span>
-                  </button>
-                </div>
-                {hadis && (
-                  <div className="space-y-2 rounded-xl bg-canvas-cream/90 p-4 shadow-sm">
-                    <p className="t-headline-sm text-[16px] leading-relaxed text-on-surface italic">“{hadis.text}”</p>
-                    <div className="t-label-sm flex items-center justify-between font-normal text-text-muted">
-                      <span className="font-semibold text-tertiary">{hadis.source}</span>
-                      {hadis.grade && <span className="rounded-md bg-sage-tint px-2 py-0.5 text-[10px] text-on-surface">{hadis.grade}</span>}
-                    </div>
-                  </div>
-                )}
-
+                <span className="flex items-center gap-2.5">
+                  <Icon name="graphic_eq" size={20} className="text-primary" />
+                  <span className="t-title-sm font-semibold text-on-surface">Voice Note Renungan</span>
+                </span>
                 <div className="flex items-center justify-between gap-3 rounded-xl bg-canvas-ivory p-3">
                   {form.voice ? (
                     <>
@@ -508,7 +455,6 @@ export function PromptStudio() {
           <PhonePreview
             prompt={form.prompt}
             responseType={form.responseType}
-            hadis={hadis}
             dayLabel={`Hari ke-${form.day} dari ${DAYS_PER_SESSION} Hari`}
             sessionTitle={session.label}
             voice={form.voice}
@@ -574,68 +520,7 @@ export function PromptStudio() {
         </section>
       </div>
 
-      {/* Pustaka */}
-      <section ref={libraryRef} id="pustaka-hadis" aria-label="Pustaka hadis" className="scroll-mt-24 space-y-6 rounded-3xl bg-canvas-ivory p-7 shadow-sm">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div>
-            <h2 className="t-headline-sm text-on-surface">Pustaka Hadis &amp; Nasihat Pernikahan Terverifikasi</h2>
-            <p className="t-body-md text-text-muted">Koleksi hadis shahih dan qawl ulama yang telah ditakhrij oleh Dewan Syariah Selaras Life.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Icon name="search" size={18} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-text-muted" />
-              <label htmlFor="hadis-search" className="sr-only">Cari topik hadis</label>
-              <input id="hadis-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari topik hadis..." className="t-body-sm rounded-full bg-canvas-cream py-2 pr-4 pl-9 text-on-surface outline-none focus-visible:ring-1 focus-visible:ring-sage-medium" />
-            </div>
-            <button type="button" onClick={() => setHadisOpen(true)} className="t-label-md flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-on-primary shadow-sm transition-colors hover:bg-primary-container">
-              <Icon name="add" size={18} />
-              <span>Tambah Hadis Baru</span>
-            </button>
-          </div>
-        </div>
-
-        {filteredLibrary.length === 0 ? (
-          <p className="t-body-md rounded-2xl bg-canvas-cream p-6 text-center text-text-muted">Tidak ada hadis yang cocok dengan “{query}”.</p>
-        ) : (
-          <ul className="grid grid-cols-1 gap-5 md:grid-cols-3">
-            {filteredLibrary.map((h) => {
-              const used = h.id === form.hadisId;
-              return (
-                <li key={h.id} className={`flex flex-col justify-between gap-4 rounded-2xl bg-canvas-cream p-5 transition-shadow hover:shadow-md ${used ? "ring-2 ring-primary/50" : ""}`}>
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className={`t-label-sm rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${h.toneClass}`}>{h.topic}</span>
-                      <span className="text-[11px] text-text-muted">ID: {h.id}</span>
-                    </div>
-                    <p className="t-quote text-[14px] leading-relaxed text-on-surface italic" style={{ lineHeight: "22px" }}>“{h.text}”</p>
-                  </div>
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="t-label-sm font-semibold text-tertiary">{h.source}</span>
-                    {used ? (
-                      <span className="t-label-md flex items-center gap-1 font-semibold text-primary"><Icon name="check_circle" size={16} filled />Terpasang</span>
-                    ) : (
-                      <button type="button" onClick={() => applyHadis(h)} className="t-label-md flex items-center gap-1 font-semibold text-primary hover:underline">
-                        Gunakan <Icon name="arrow_forward" size={16} />
-                      </button>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-
       <FallbackDialog open={fallbackOpen} onClose={() => setFallbackOpen(false)} value={fallback} onSave={setFallback} />
-      <AddHadisDialog
-        open={hadisOpen}
-        onClose={() => setHadisOpen(false)}
-        onAdd={(h) => {
-          const id = `HD-${String(200 + library.length).padStart(3, "0")}`;
-          setLibrary((l) => [{ ...h, id, toneClass: TONES[l.length % TONES.length] }, ...l]);
-          showToast(`Hadis ${h.source} ditambahkan ke pustaka.`, { tone: "success" });
-        }}
-      />
     </div>
   );
 }
@@ -768,56 +653,6 @@ function FallbackForm({ onClose, value, onSave }: { onClose: () => void; value: 
         {error && <p role="alert" className="t-body-sm text-error">{error}</p>}
       </div>
       <DialogActions onCancel={onClose} submitLabel="Simpan Pengaturan" submitting={saving} />
-    </form>
-  );
-}
-
-function AddHadisDialog({ open, onClose, onAdd }: { open: boolean; onClose: () => void; onAdd: (h: Pick<Hadis, "topic" | "text" | "source">) => void }) {
-  return (
-    <Dialog open={open} onClose={onClose} eyebrow="Pustaka Hadis" title="Tambah Hadis Baru">
-      <AddHadisForm onClose={onClose} onAdd={onAdd} />
-    </Dialog>
-  );
-}
-
-function AddHadisForm({ onClose, onAdd }: { onClose: () => void; onAdd: (h: Pick<Hadis, "topic" | "text" | "source">) => void }) {
-  const [topic, setTopic] = useState("");
-  const [text, setText] = useState("");
-  const [source, setSource] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    const next: Record<string, string> = {};
-    if (topic.trim().length < 3) next.topic = "Isi topik.";
-    if (text.trim().length < 10) next.text = "Isi teks hadis/nasihat.";
-    if (source.trim().length < 3) next.source = "Isi sumber/takhrij (mis. HR. Bukhari).";
-    setErrors(next);
-    if (Object.keys(next).length) return;
-    setSaving(true);
-    const result = await saveHadis({ topic, text, source });
-    setSaving(false);
-    if (!result.ok) return setErrors({ form: result.error });
-    onAdd({ topic: topic.trim(), text: text.trim(), source: source.trim() });
-    onClose();
-  }
-
-  const field = (id: string, label: string, el: React.ReactNode, err?: string) => (
-    <div className="space-y-1">
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      {el}
-      {err && <p role="alert" className="t-body-sm text-error">{err}</p>}
-    </div>
-  );
-
-  return (
-    <form onSubmit={submit} noValidate className="space-y-4">
-      {field("hadis-topic", "Topik", <input id="hadis-topic" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="cth: Kelembutan Hati" className={fieldClass} />, errors.topic)}
-      {field("hadis-text", "Teks hadis / nasihat", <textarea id="hadis-text" rows={4} value={text} onChange={(e) => setText(e.target.value)} className={`${fieldClass} resize-none`} />, errors.text)}
-      {field("hadis-source", "Sumber & takhrij", <input id="hadis-source" value={source} onChange={(e) => setSource(e.target.value)} placeholder="cth: HR. Muslim No. 1469" className={fieldClass} />, errors.source)}
-      {errors.form && <p role="alert" className="t-body-sm rounded-xl bg-error-container px-3 py-2 text-error">{errors.form}</p>}
-      <DialogActions onCancel={onClose} submitLabel="Tambahkan" submitting={saving} />
     </form>
   );
 }

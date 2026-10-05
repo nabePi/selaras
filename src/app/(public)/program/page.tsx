@@ -37,12 +37,6 @@ export default function ProgramPage() {
   return (
     <div className="flex w-full flex-col">
       <section className="flex flex-col pt-3 pb-6">
-        <div className="mb-3 flex items-center gap-1.5 self-start rounded-full bg-sage-tint px-3 py-1 text-primary">
-          <Icon name="eco" size={15} filled />
-          <span className="t-label-sm font-semibold tracking-wider uppercase">
-            Pendampingan Pasutri &amp; Keluarga
-          </span>
-        </div>
         <h1 className="t-headline-lg-mobile mb-3 leading-snug font-medium text-on-surface">
           Tumbuh Selaras Menuju Keluarga yang Diridhai Allah
         </h1>

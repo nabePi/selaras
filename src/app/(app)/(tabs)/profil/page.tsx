@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { ProfileCard } from "@/components/profile-card";
+import { SkillsCard } from "@/components/skills-card";
 import { buildWhatsappLink } from "@/data/programs";
 
 export const metadata: Metadata = { title: "Profil" };
@@ -12,7 +13,10 @@ export default function ProfilPage() {
       {/* 1. Kartu profil */}
       <ProfileCard />
 
-      {/* 2. Bantuan & keluar */}
+      {/* 2. Potensi & keahlian */}
+      <SkillsCard />
+
+      {/* 3. Bantuan & keluar */}
       <section className="mt-1 flex flex-col gap-1">
         <Link
           href={buildWhatsappLink(
