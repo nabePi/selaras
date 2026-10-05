@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
+import { PRE_ASSESSMENT } from "@/data/assessment";
 import { WisdomActions } from "@/components/wisdom-actions";
 import {
   DAILY_WISDOM,
@@ -83,35 +84,38 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. Refleksi tertunda */}
-      <section className="flex flex-col gap-2">
-        <div className="flex flex-col gap-4 rounded-4xl bg-surface-container-low p-5 shadow-sm">
+      {/* Pre assessment (hilang setelah diisi) */}
+      {!PRE_ASSESSMENT.completed && (
+        <section className="flex flex-col gap-4 rounded-4xl bg-sage-tint p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <span className="size-2.5 animate-pulse rounded-full bg-accent-coral" />
-              <span className="t-label-sm font-semibold tracking-wider text-secondary uppercase">
-                Sesi {P.session} • Hari ke-{P.day} (Tertunda)
-              </span>
-            </div>
-            <span className="t-label-sm rounded-full bg-surface-container-highest px-2.5 py-0.5 font-medium text-tertiary">
-              ~{P.minutes} Menit
+            <span className="t-label-sm inline-flex items-center gap-1.5 font-semibold tracking-wider text-primary uppercase">
+              <Icon name="quiz" size={16} filled />
+              Pre Assessment
+            </span>
+            <span className="t-label-sm rounded-full bg-surface-container-lowest px-2.5 py-0.5 font-medium text-tertiary">
+              ~{PRE_ASSESSMENT.minutes} Menit
             </span>
           </div>
           <div className="flex flex-col gap-2">
-            <h2 className="t-headline-sm leading-snug text-on-surface">{P.teaser}</h2>
-            <p className="t-body-sm text-text-muted">{P.teaserNote}</p>
+            <h2 className="t-headline-sm leading-snug text-on-surface">
+              Mulai dengan mengenali titik awalmu
+            </h2>
+            <p className="t-body-sm text-text-muted">
+              Isi pre assessment singkat agar perjalanan refleksimu bisa dibandingkan
+              dan terasa lebih bermakna.
+            </p>
           </div>
           <Link
-            href="/journal/tulis"
+            href="/pre-assessment"
             className="t-title-sm flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 tracking-wide text-on-primary shadow-md transition-all hover:bg-primary-container active:scale-[0.99]"
           >
-            <span>Tulis Jurnal Sekarang</span>
+            <span>Isi Pre Assessment</span>
             <Icon name="arrow_forward" size={18} />
           </Link>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* 4. Pita pekan */}
+      {/* 3. Pita pekan */}
       <section className="flex flex-col gap-2 rounded-4xl bg-surface-container-lowest p-4 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
@@ -151,6 +155,34 @@ export default function HomePage() {
             Tuntaskan hari tertunda agar ritme refleksi tetap mengalir selaras dan
             bermakna.
           </p>
+        </div>
+      </section>
+
+      {/* 4. Refleksi tertunda */}
+      <section className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4 rounded-4xl bg-surface-container-low p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <span className="size-2.5 animate-pulse rounded-full bg-accent-coral" />
+              <span className="t-label-sm font-semibold tracking-wider text-secondary uppercase">
+                Sesi {P.session} • Hari ke-{P.day} (Tertunda)
+              </span>
+            </div>
+            <span className="t-label-sm rounded-full bg-surface-container-highest px-2.5 py-0.5 font-medium text-tertiary">
+              ~{P.minutes} Menit
+            </span>
+          </div>
+          <div className="flex flex-col gap-2">
+            <h2 className="t-headline-sm leading-snug text-on-surface">{P.teaser}</h2>
+            <p className="t-body-sm text-text-muted">{P.teaserNote}</p>
+          </div>
+          <Link
+            href="/journal/tulis"
+            className="t-title-sm flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 tracking-wide text-on-primary shadow-md transition-all hover:bg-primary-container active:scale-[0.99]"
+          >
+            <span>Tulis Jurnal Sekarang</span>
+            <Icon name="arrow_forward" size={18} />
+          </Link>
         </div>
       </section>
     </div>

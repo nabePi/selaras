@@ -195,9 +195,6 @@ export const JOURNAL_ENTRIES: JournalEntry[] = [
   },
 ];
 
-/** Jumlah refleksi tertunda, ditampilkan sebagai badge di tab Journal. */
-export const PENDING_COUNT = 1;
-
 export type AppNotification = {
   id: string;
   icon: string;

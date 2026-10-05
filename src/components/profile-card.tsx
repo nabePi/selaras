@@ -3,13 +3,12 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { MEMBER } from "@/data/member";
+import { PROFILE_AVATAR_KEY, PROFILE_NAME_KEY } from "@/lib/profile-storage";
 import { setStoredValue, useStoredValue } from "@/lib/stored-value";
 import { Dialog, DialogActions, FieldLabel, fieldClass } from "./dialog";
 import { Icon } from "./icon";
 import { useToast } from "./toast-provider";
 
-const PROFILE_NAME_KEY = "selaras:profile:full-name";
-const PROFILE_AVATAR_KEY = "selaras:profile:avatar";
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 const AVATAR_SIZE = 512;
 

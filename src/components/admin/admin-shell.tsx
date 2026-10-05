@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Icon } from "../icon";
-import { useToast } from "../toast-provider";
 import { ADMIN_NAV } from "./nav";
 import { NudgeDialog, type NudgeAudience } from "./nudge-dialog";
 
@@ -20,8 +19,8 @@ export function useAdminUi() {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { showToast } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [nudge, setNudge] = useState<{ open: boolean; audience: NudgeAudience }>({
     open: false,
     audience: "backlog",
@@ -38,6 +37,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [menuOpen]);
+
+  /** Layar lebar: ciutkan/lebarkan sidebar. Layar kecil: buka laci menu. */
+  function toggleMenu() {
+    if (window.matchMedia("(min-width: 1024px)").matches) setCollapsed((c) => !c);
+    else setMenuOpen(true);
+  }
 
   const isActive = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname.startsWith(href));
 
@@ -60,19 +65,32 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 flex h-full w-72 flex-col justify-between bg-canvas-cream shadow-[0_1px_8px_rgba(92,75,62,0.04)] transition-transform duration-200 lg:translate-x-0 ${
-          menuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 z-50 flex h-full w-72 flex-col justify-between overflow-hidden bg-canvas-cream shadow-[0_1px_8px_rgba(92,75,62,0.04)] transition-[transform,width] duration-200 lg:translate-x-0 ${
+          collapsed ? "lg:w-20" : "lg:w-72"
+        } ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex flex-col">
-          <div className="flex items-center gap-3 px-6 pt-7 pb-6">
-            <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-sage-tint">
-              <Image src="/images/logo-avatar.png" alt="Logo Selaras Life" width={40} height={40} className="size-full object-cover" />
-            </span>
-            <div className="flex flex-col">
-              <span className="t-headline-sm leading-tight text-on-surface">Selaras Life</span>
-              <span className="t-label-sm tracking-wider text-text-muted uppercase">Admin &amp; Coach Console</span>
-            </div>
+          <div className={`pt-7 pb-6 ${collapsed ? "px-6 lg:flex lg:justify-center lg:px-0" : "px-6"}`}>
+            <Link href="/admin" aria-label="Selaras Life" className="inline-flex">
+              <Image
+                src="/images/logo-header.png"
+                alt="Selaras Life"
+                width={720}
+                height={323}
+                sizes="160px"
+                className={`h-14 w-auto ${collapsed ? "lg:hidden" : ""}`}
+                priority
+              />
+              {collapsed && (
+                <Image
+                  src="/images/logo-mark.png"
+                  alt=""
+                  width={44}
+                  height={44}
+                  className="hidden size-11 object-contain lg:block"
+                />
+              )}
+            </Link>
           </div>
           <nav aria-label="Navigasi admin" className="px-4 py-2">
             <ul className="flex flex-col gap-1.5">
@@ -84,14 +102,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                       href={item.href}
                       aria-current={active ? "page" : undefined}
                       onClick={() => setMenuOpen(false)}
+                      title={collapsed ? item.label : undefined}
                       className={`flex items-center gap-3.5 rounded-2xl px-4 py-3 transition-all duration-200 ${
+                        collapsed ? "lg:justify-center lg:px-0" : ""
+                      } ${
                         active
                           ? "bg-primary-container font-semibold text-on-primary-container shadow-sm"
                           : "text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
                       }`}
                     >
                       <Icon name={item.icon} size={20} filled={active} />
-                      <span className="t-title-sm">{item.label}</span>
+                      <span className={`t-title-sm ${collapsed ? "lg:sr-only" : ""}`}>{item.label}</span>
                     </Link>
                   </li>
                 );
@@ -99,101 +120,49 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </ul>
           </nav>
         </div>
-
-        <div className="flex flex-col gap-3 p-4">
-          <div className="flex items-center justify-between rounded-2xl bg-surface-container-low p-3.5">
-            <div className="flex items-center gap-2.5">
-              <span className="size-2.5 animate-pulse rounded-full bg-primary-container" />
-              <span className="t-label-sm text-on-surface">Mode Pendampingan Aktif</span>
-            </div>
-            <Icon name="verified" size={18} className="text-primary" />
-          </div>
-          <div className="flex items-center justify-between px-2 text-on-surface-variant">
-            <Link
-              href="/admin/panduan"
-              onClick={() => setMenuOpen(false)}
-              aria-current={pathname === "/admin/panduan" ? "page" : undefined}
-              className={`t-label-md flex items-center gap-2 transition-colors hover:text-on-surface ${
-                pathname === "/admin/panduan" ? "font-semibold text-primary" : ""
-              }`}
-            >
-              <Icon name="help_outline" size={18} />
-              <span>Panduan &amp; SOP</span>
-            </Link>
-            <span className="t-label-sm font-normal text-text-muted">v2.4 Coach</span>
-          </div>
-        </div>
       </aside>
 
       {/* Header */}
-      <header className="fixed top-0 right-0 left-0 z-30 h-20 bg-surface/85 shadow-[0_1px_8px_rgba(92,75,62,0.03)] backdrop-blur-xl lg:left-72">
+      <header
+        className={`fixed top-0 right-0 left-0 z-30 h-20 bg-surface/85 shadow-[0_1px_8px_rgba(92,75,62,0.03)] backdrop-blur-xl transition-[left] duration-200 ${
+          collapsed ? "lg:left-20" : "lg:left-72"
+        }`}
+      >
         <div className="flex h-20 w-full items-center justify-between gap-3 px-4 sm:px-8">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <button
               type="button"
-              aria-label="Buka menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen(true)}
-              className="flex size-11 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-low lg:hidden"
+              aria-label="Menu navigasi"
+              onClick={toggleMenu}
+              className="flex size-11 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-low"
             >
               <Icon name="menu" size={24} />
             </button>
-            <form
-              role="search"
-              onSubmit={(e) => {
-                e.preventDefault();
-                showToast("Pencarian global akan hadir pada fase berikutnya ✨");
-              }}
-              className="relative hidden w-full max-w-lg md:block"
-            >
-              <Icon name="search" size={20} className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-text-muted" />
-              <label htmlFor="admin-search" className="sr-only">
-                Cari peserta, hadis harian, sesi refleksi
-              </label>
-              <input
-                id="admin-search"
-                type="search"
-                placeholder="Cari peserta, hadis harian, sesi refleksi..."
-                className="t-body-sm w-full rounded-full bg-canvas-cream py-2.5 pr-4 pl-11 text-on-surface outline-none transition-all placeholder:text-text-muted focus-visible:ring-1 focus-visible:ring-sage-medium"
-              />
-            </form>
           </div>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-4">
-            <div className="hidden items-center gap-2 rounded-full bg-sage-tint px-3.5 py-1.5 xl:flex">
-              <span className="size-2 rounded-full bg-primary" />
-              <span className="t-label-sm text-on-primary-fixed-variant">Cohort 04 — Young Marriage</span>
-            </div>
-            <button
-              type="button"
-              aria-label="Notifikasi"
-              onClick={() => showToast("Notifikasi akan hadir pada fase berikutnya ✨")}
-              className="relative rounded-full bg-canvas-cream p-2.5 text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
-            >
-              <Icon name="notifications" size={20} />
-              <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent-coral ring-2 ring-surface" />
-            </button>
-            <button
-              type="button"
-              onClick={() => openNudge()}
-              className="t-label-md flex items-center gap-2 rounded-full bg-primary px-3 py-2.5 text-on-primary shadow-sm transition-colors hover:bg-primary-container sm:px-4"
-            >
-              <Icon name="send" size={18} />
-              <span className="hidden sm:inline">Kirim Nudge</span>
-              <span className="sr-only sm:hidden">Kirim Nudge</span>
-            </button>
             <div className="flex items-center gap-3 sm:pl-3">
-              <div className="hidden text-right md:block">
-                <p className="t-title-sm leading-tight font-semibold text-on-surface">Ustaz Ahmad &amp; Tim</p>
-                <p className="t-label-sm font-normal text-text-muted">Head Facilitator</p>
-              </div>
-              <Image src="/images/logo-avatar.png" alt="" width={32} height={32} className="hidden size-8 rounded-full object-cover sm:block" />
+              <p className="t-title-sm hidden leading-tight font-semibold text-on-surface md:block">
+                Anggit Octaviani
+              </p>
+              {/* Sementara mengarah ke halaman masuk; ganti dengan aksi logout saat auth tersedia. */}
+              <Link
+                href="/masuk"
+                aria-label="Keluar"
+                title="Keluar"
+                className="rounded-full bg-canvas-cream p-2.5 text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-error"
+              >
+                <Icon name="logout" size={20} />
+              </Link>
             </div>
           </div>
         </div>
       </header>
 
-      <main id="konten-admin" className="min-h-dvh bg-surface pt-20 lg:pl-72">
+      <main
+        id="konten-admin"
+        className={`min-h-dvh bg-surface pt-20 transition-[padding] duration-200 ${collapsed ? "lg:pl-20" : "lg:pl-72"}`}
+      >
         {children}
       </main>
 

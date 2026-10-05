@@ -33,14 +33,10 @@ export default function HomePage() {
   return (
     <div className="flex w-full flex-col gap-y-6">
       {/* 1. Hero */}
-      <section className="relative w-full overflow-hidden rounded-3xl bg-canvas-ivory p-6 shadow-sm">
+      <section className="relative mt-4 w-full overflow-hidden rounded-3xl bg-canvas-ivory p-6 shadow-sm">
         <div className="pointer-events-none absolute -top-12 -right-12 size-48 rounded-full bg-sage-tint/60 blur-2xl" />
         <div className="pointer-events-none absolute -bottom-10 -left-10 size-44 rounded-full bg-secondary-container/30 blur-2xl" />
         <div className="relative z-10 flex flex-col gap-3">
-          <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-sage-tint px-3 py-1 text-primary">
-            <Icon name="eco" size={16} />
-            <span className="t-label-sm">Selaras Life</span>
-          </div>
           <h1 className="t-headline-lg-mobile mt-1 tracking-tight text-on-surface">
             Your companion for{" "}
             <span className="font-serif text-primary italic">every season</span>{" "}

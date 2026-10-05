@@ -21,13 +21,14 @@ export type NudgeTarget =
   | { kind: "audience"; audience: string; count: number };
 
 export const activateCouple = (id: string) => (void id, simulate(700));
+export const activateUser = (id: string) => (void id, simulate(700));
+export const resetUserPassword = (id: string) => (void id, simulate(700));
 export const addCouple = (input: object) => (void input, simulate(800));
 export const sendNudge = (target: NudgeTarget, message?: string) => (void target, void message, simulate(700));
 export const saveCoachNote = (coupleId: string, note: string) => (void coupleId, void note, simulate(500));
 export const publishPrompt = (input: object) => (void input, simulate(800));
 export const savePromptDraft = (input: object) => (void input, simulate(500));
 export const saveFallbackSettings = (input: object) => (void input, simulate(500));
-export const saveHadis = (input: object) => (void input, simulate(500));
 export const saveCurriculum = (input: object) => (void input, simulate(900));
 export const saveClosingMessage = (message: string) => (void message, simulate(500));
 export const saveQuestion = (input: object) => (void input, simulate(500));

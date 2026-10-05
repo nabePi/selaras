@@ -17,11 +17,7 @@ export default function CeritaPage() {
   return (
     <div className="flex w-full flex-col pb-8">
       <header className="flex flex-col gap-2 pt-2 pb-2">
-        <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-sage-tint px-3 py-1 text-primary">
-          <Icon name="spa" size={15} filled />
-          <span className="t-label-sm">Kisah Nyata, Refleksi, &amp; Tumbuh Bersama</span>
-        </div>
-        <h1 className="t-headline-lg-mobile mt-1 leading-tight font-medium tracking-tight text-on-surface">
+        <h1 className="t-headline-lg-mobile tracking-tight text-on-surface">
           Jejak Langkah Menemukan Ketenangan Rumah Tangga
         </h1>
         <p className="t-body-md leading-relaxed text-text-muted">
