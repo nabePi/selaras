@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Icon } from "@/components/icon";
-import { ASSESSMENT_ITEMS, ASSESSMENT_PARTS } from "@/data/assessment";
-
-const TOTAL = ASSESSMENT_ITEMS.length;
+import { ASSESSMENT_KINDS, ASSESSMENT_PARTS, ASSESSMENT_SETS, type AssessmentKind } from "@/data/assessment";
 
 /** Satu pertanyaan per layar dengan indikator progres; jawaban belum disimpan (static). */
-export function PreAssessmentWizard() {
+export function AssessmentWizard({ kind }: { kind: AssessmentKind }) {
+  const items = ASSESSMENT_SETS[kind];
+  const TOTAL = items.length;
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(() => Array(TOTAL).fill(null));
 
@@ -18,10 +18,11 @@ export function PreAssessmentWizard() {
         <span className="flex size-14 items-center justify-center rounded-full bg-primary text-on-primary">
           <Icon name="check" size={28} />
         </span>
-        <h2 className="t-headline-sm text-on-surface">Terima kasih, Pre Assessment selesai</h2>
+        <h2 className="t-headline-sm text-on-surface">Terima kasih, {ASSESSMENT_KINDS[kind].title} selesai</h2>
         <p className="t-body-sm text-text-muted">
-          Jawabanmu menjadi titik awal perjalanan bertumbuhmu. Kamu akan melihat
-          perubahannya setelah Sesi 4.
+          {kind === "pre"
+            ? "Jawabanmu menjadi titik awal perjalanan bertumbuhmu. Kamu akan melihat perubahannya setelah Sesi 4."
+            : "Jawabanmu akan dibandingkan dengan Pre Assessment untuk melihat perjalanan bertumbuhmu."}
         </p>
         <Link
           href="/home"
@@ -33,7 +34,7 @@ export function PreAssessmentWizard() {
     );
   }
 
-  const item = ASSESSMENT_ITEMS[step];
+  const item = items[step];
   const part = ASSESSMENT_PARTS[item.part];
   const answer = answers[step];
   const isLast = step === TOTAL - 1;
