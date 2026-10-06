@@ -111,42 +111,40 @@ export function AssessmentManager({
         }
       />
 
-      {kind === "post" && (
-        <section className="flex items-center justify-between gap-4 rounded-3xl bg-canvas-ivory p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-sage-tint text-primary">
-              <Icon name={visible ? "visibility" : "visibility_off"} size={20} />
-            </span>
-            <div>
-              <h2 id="visible-label" className="t-title-sm text-on-surface">
-                Tampilkan ke peserta
-              </h2>
-              <p className={`t-body-sm ${visible ? "font-medium text-primary" : "text-text-muted"}`}>
-                {visible
-                  ? "Aktif · section Post Assessment tampil di Home peserta yang belum mengisi."
-                  : "Nonaktif · peserta belum melihat Post Assessment."}
-              </p>
-            </div>
+      <section className="flex items-center justify-between gap-4 rounded-3xl bg-canvas-ivory p-5 shadow-sm">
+        <div className="flex items-center gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-sage-tint text-primary">
+            <Icon name={visible ? "visibility" : "visibility_off"} size={20} />
+          </span>
+          <div>
+            <h2 id="visible-label" className="t-title-sm text-on-surface">
+              Tampilkan ke peserta
+            </h2>
+            <p className={`t-body-sm ${visible ? "font-medium text-primary" : "text-text-muted"}`}>
+              {visible
+                ? `Aktif · section ${meta.title} tampil di Home peserta yang belum mengisi.`
+                : `Nonaktif · peserta belum melihat ${meta.title}.`}
+            </p>
           </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={visible}
-            aria-labelledby="visible-label"
-            disabled={togglingVisible}
-            onClick={toggleVisible}
-            className={`relative h-7 w-12 shrink-0 rounded-full p-0.5 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60 ${
-              visible ? "bg-primary" : "bg-canvas-sand"
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={visible}
+          aria-labelledby="visible-label"
+          disabled={togglingVisible}
+          onClick={toggleVisible}
+          className={`relative h-7 w-12 shrink-0 rounded-full p-0.5 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60 ${
+            visible ? "bg-primary" : "bg-canvas-sand"
+          }`}
+        >
+          <span
+            className={`block size-6 rounded-full bg-surface-container-lowest shadow-sm transition-transform duration-300 ${
+              visible ? "translate-x-5" : "translate-x-0"
             }`}
-          >
-            <span
-              className={`block size-6 rounded-full bg-surface-container-lowest shadow-sm transition-transform duration-300 ${
-                visible ? "translate-x-5" : "translate-x-0"
-              }`}
-            />
-          </button>
-        </section>
-      )}
+          />
+        </button>
+      </section>
 
       <div role="tablist" aria-label="Bagian halaman" className="flex gap-2">
         {(

@@ -60,10 +60,11 @@ export default async function HomePage() {
   const user = await requireMemberPage();
   const today = todayWib();
   const prompt = await getPromptForDate(today);
-  const [entry, week, streak, preDone, postVisible, postDone] = await Promise.all([
+  const [entry, week, streak, preVisible, preDone, postVisible, postDone] = await Promise.all([
     getTodayEntry(user.id, prompt),
     getWeek(user.id),
     getStreak(user.id),
+    isAssessmentVisible("pre"),
     hasCompletedAssessment(user.id, "pre"),
     isAssessmentVisible("post"),
     hasCompletedAssessment(user.id, "post"),
@@ -116,7 +117,7 @@ export default async function HomePage() {
       </section>
 
       {/* Assessment (hilang setelah diisi). Post hanya tampil bila admin menyalakannya. */}
-      {!preDone && (
+      {preVisible && !preDone && (
         <AssessmentCard
           kind="pre"
           minutes={7}

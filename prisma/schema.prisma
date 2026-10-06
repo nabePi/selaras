@@ -218,7 +218,7 @@ model AssessmentAnswer {
   @@id([responseId, itemId])
 }
 
-/// Pengaturan tampil assessment ke peserta. Pre selalu tampil; Post tampil setelah admin menyalakannya.
+/// Pengaturan tampil assessment ke peserta. Tanpa baris: Pre tampil, Post tersembunyi (default).
 model AssessmentSetting {
   kind    AssessmentKind @id
   visible Boolean        @default(false)
