@@ -22,11 +22,38 @@ function fail(error: unknown) {
   return NextResponse.json({ error: "Terjadi kesalahan di server." }, { status: 500 });
 }
 
+const firstOf = (value: string | null) => value?.split(",")[0]?.trim() || null;
+
+/**
+ * Host & skema yang dilihat peramban. Di belakang proxy (Traefik/Cloudflare) `request.url` berisi
+ * alamat internal container (mis. http://0.0.0.0:3000), jadi header forwarded yang dipakai.
+ */
+export function requestOrigin(request: Request): string {
+  const url = new URL(request.url);
+  const host = firstOf(request.headers.get("x-forwarded-host")) ?? firstOf(request.headers.get("host")) ?? url.host;
+  const proto = firstOf(request.headers.get("x-forwarded-proto")) ?? url.protocol.replace(":", "");
+  return `${proto}://${host}`;
+}
+
 /** Menolak request mutasi lintas-origin (pertahanan CSRF tambahan di atas cookie SameSite=Lax). */
 function assertSameOrigin(request: Request) {
   if (["GET", "HEAD", "OPTIONS"].includes(request.method)) return;
   const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) throw new ApiError(403, "Origin tidak diizinkan.");
+  if (!origin) return;
+  // Cukup bandingkan host: origin penyerang selalu punya host berbeda. Skema sengaja diabaikan
+  // karena proxy bisa meneruskan https sebagai http ke container.
+  let originHost: string;
+  try {
+    originHost = new URL(origin).host;
+  } catch {
+    throw new ApiError(403, "Origin tidak diizinkan.");
+  }
+  const hosts = [
+    firstOf(request.headers.get("x-forwarded-host")),
+    firstOf(request.headers.get("host")),
+    new URL(request.url).host,
+  ];
+  if (!hosts.includes(originHost)) throw new ApiError(403, "Origin tidak diizinkan.");
 }
 
 export async function readJson<S extends z.ZodType>(request: Request, schema: S): Promise<z.output<S>> {
