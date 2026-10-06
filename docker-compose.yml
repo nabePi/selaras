@@ -2,18 +2,38 @@
 # Domain diatur di tab "Domains" Dokploy: Service = web, Port = 3000, Host = selaras.life,
 # HTTPS aktif (Let's Encrypt). Jangan publish `ports:` agar tidak bentrok dengan Traefik.
 services:
+  # Menerapkan migrasi database lalu selesai.
+  # `web` baru berjalan setelah service ini sukses, jadi migrasi yang gagal menggagalkan deploy.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrate
+    restart: "no"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    networks:
+      - dokploy-network
+
   web:
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     expose:
       - "3000"
     environment:
       NODE_ENV: production
-      # Variabel rahasia/konfigurasi lain (DB, secret sesi, dll.) isi lewat tab Environment Dokploy,
-      # lalu daftarkan di sini, mis.:
-      # DATABASE_URL: ${DATABASE_URL}
+      # Variabel rahasia/konfigurasi diisi lewat tab Environment Dokploy, lalu didaftarkan di sini.
+      DATABASE_URL: ${DATABASE_URL}
+      # Cloudflare R2 (lampiran jurnal). Bucket privat; akses lewat URL bertanda tangan.
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+      R2_BUCKET: ${R2_BUCKET:-selaras}
     networks:
       - dokploy-network
 

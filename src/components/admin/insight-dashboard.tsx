@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatDateId } from "@/data/admin-prompts";
 import { ASSESSMENT_PARTS, scoreBand } from "@/data/assessment";
-import { getInsight } from "@/lib/insight";
+import { getInsight } from "@/server/admin/insight";
 import { Icon } from "../icon";
 import { PageHeader, btnSoft } from "./page-header";
 
@@ -76,8 +76,8 @@ function SectionTitle({
   );
 }
 
-export function InsightDashboard() {
-  const d = getInsight();
+export async function InsightDashboard() {
+  const d = await getInsight();
   const maxMood = Math.max(1, ...d.moodCounts.map((m) => m.count));
   const hasPre = d.preDone > 0;
   const hasPost = d.postDone > 0;

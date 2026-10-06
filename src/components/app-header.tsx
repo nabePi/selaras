@@ -1,10 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { NOTIFICATIONS } from "@/data/member";
+import { requireMemberPage } from "@/lib/server/session";
+import { countUnread } from "@/server/member/notifications";
 import { Icon } from "./icon";
 
-export function AppHeader() {
-  const hasUnread = NOTIFICATIONS.some((n) => !n.read);
+export async function AppHeader() {
+  const user = await requireMemberPage();
+  const hasUnread = (await countUnread(user.id)) > 0;
 
   return (
     <header className="pt-safe fixed top-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 bg-surface/85 shadow-[0_1px_12px_rgba(92,75,62,0.04)] backdrop-blur-xl">

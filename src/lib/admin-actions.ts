@@ -1,11 +1,13 @@
 /**
- * SIMULASI — belum ada backend.
+ * Aksi admin dari komponen client.
  *
- * Setiap aksi admin yang seharusnya mengubah data di server atau mengirim pesan
- * (WhatsApp, PDF, dll.) melewati fungsi di bawah. Saat API tersedia, ganti isi fungsi
- * ini dengan panggilan sungguhan; UI sudah menangani hasil `{ ok: false, error }`
- * dan keadaan loading. Perubahan di layar saat ini hanya hidup di memori halaman.
+ * Aksi untuk Users, Prompt Jurnal, dan Assessment memanggil API sungguhan (`/api/admin/*`).
+ * Sisanya (peserta/kelas/nudge/catatan coach) masih SIMULASI — belum ada backend-nya; ganti
+ * isinya saat API tersedia. UI menangani hasil `{ ok: false, error }` dan keadaan loading.
  */
+import type { AssessmentItem, AssessmentKind } from "@/data/assessment";
+import type { JournalPrompt, PromptQuestion } from "@/data/journal-prompts";
+import { api } from "@/lib/api-client";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -21,12 +23,43 @@ export type NudgeTarget =
   | { kind: "audience"; audience: string; count: number };
 
 export const activateCouple = (id: string) => (void id, simulate(700));
-export const activateUser = (id: string) => (void id, simulate(700));
-export const resetUserPassword = (id: string) => (void id, simulate(700));
+
+// ---- API sungguhan ----
+
+export const activateUser = (id: string) => api<{ id: string }>(`/api/admin/users/${id}/activate`, "POST");
+export const resetUserPassword = (id: string) => api<{ id: string }>(`/api/admin/users/${id}/reset-password`, "POST");
+
+export type PromptPayload = {
+  title: string;
+  subtitle: string;
+  date: string;
+  questions: Pick<PromptQuestion, "type" | "label" | "options">[];
+};
+
+/** Tanpa `id` membuat prompt baru; dengan `id` mengubah prompt yang belum terbit. */
+export const savePromptJurnal = (input: PromptPayload, id?: string) =>
+  id
+    ? api<JournalPrompt>(`/api/admin/prompts/${id}`, "PATCH", input)
+    : api<JournalPrompt>("/api/admin/prompts", "POST", input);
+
+export const setAssessmentVisibility = (kind: AssessmentKind, visible: boolean) =>
+  api<{ visible: boolean }>(`/api/admin/assessment/${kind}/visibility`, "PATCH", { visible });
+
+export type AssessmentItemPayload = Omit<AssessmentItem, "id">;
+
+export const saveAssessmentItem = (kind: AssessmentKind, input: AssessmentItemPayload & { id?: string }) => {
+  const { id, ...body } = input;
+  return id
+    ? api<AssessmentItem>(`/api/admin/assessment/${kind}/items/${id}`, "PATCH", body)
+    : api<AssessmentItem>(`/api/admin/assessment/${kind}/items`, "POST", body);
+};
+export const deleteAssessmentItem = (kind: AssessmentKind, id: string) =>
+  api<{ id: string }>(`/api/admin/assessment/${kind}/items/${id}`, "DELETE");
+
+// ---- Simulasi (belum ada backend) ----
 export const addCouple = (input: object) => (void input, simulate(800));
 export const sendNudge = (target: NudgeTarget, message?: string) => (void target, void message, simulate(700));
 export const saveCoachNote = (coupleId: string, note: string) => (void coupleId, void note, simulate(500));
-export const savePromptJurnal = (input: object) => (void input, simulate(800));
 export const saveCurriculum = (input: object) => (void input, simulate(900));
 export const saveClosingMessage = (message: string) => (void message, simulate(500));
 export const saveQuestion = (input: object) => (void input, simulate(500));
@@ -34,5 +67,3 @@ export const archiveQuestion = (id: string) => (void id, simulate(400));
 export const rescheduleSession = (sessionId: string, input: object) => (void sessionId, void input, simulate(600));
 export const finalizeCoachNote = (coupleId: string, note: string) => (void coupleId, void note, simulate(500));
 export const saveAllCoachNotes = (count: number) => (void count, simulate(1000));
-export const saveAssessmentItem = (kind: string, input: object) => (void kind, void input, simulate(500));
-export const deleteAssessmentItem = (kind: string, id: string) => (void kind, void id, simulate(400));

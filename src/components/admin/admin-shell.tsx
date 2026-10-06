@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { api } from "@/lib/api-client";
 import { Icon } from "../icon";
 import { ADMIN_NAV } from "./nav";
 import { NudgeDialog, type NudgeAudience } from "./nudge-dialog";
@@ -17,8 +18,9 @@ export function useAdminUi() {
   return ctx;
 }
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({ children, adminName }: { children: React.ReactNode; adminName: string }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [nudge, setNudge] = useState<{ open: boolean; audience: NudgeAudience }>({
@@ -42,6 +44,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   function toggleMenu() {
     if (window.matchMedia("(min-width: 1024px)").matches) setCollapsed((c) => !c);
     else setMenuOpen(true);
+  }
+
+  async function logout() {
+    await api("/api/auth/logout", "POST", { scope: "admin" });
+    router.replace("/admin/masuk");
+    router.refresh();
   }
 
   const isActive = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname.startsWith(href));
@@ -143,17 +151,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <div className="flex shrink-0 items-center gap-2 sm:gap-4">
             <div className="flex items-center gap-3 sm:pl-3">
               <p className="t-title-sm hidden leading-tight font-semibold text-on-surface md:block">
-                Anggit Octaviani
+                {adminName}
               </p>
-              {/* Sementara mengarah ke halaman masuk; ganti dengan aksi logout saat auth tersedia. */}
-              <Link
-                href="/masuk"
+              <button
+                type="button"
+                onClick={logout}
                 aria-label="Keluar"
                 title="Keluar"
                 className="rounded-full bg-canvas-cream p-2.5 text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-error"
               >
                 <Icon name="logout" size={20} />
-              </Link>
+              </button>
             </div>
           </div>
         </div>

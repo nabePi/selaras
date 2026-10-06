@@ -91,9 +91,20 @@ export function PromptForm({ initial }: { initial?: JournalPrompt }) {
     setErrors(e);
     if (e.title || e.date || e.form || Object.keys(e.questions).length) return;
     setSaving(true);
-    const result = await savePromptJurnal({ title, subtitle, date, questions });
+    const result = await savePromptJurnal(
+      {
+        title,
+        subtitle,
+        date,
+        questions: questions.map(({ type, label, options }) => ({ type, label, options })),
+      },
+      initial?.id,
+    );
     setSaving(false);
-    if (!result.ok) return showToast(result.error);
+    if (!result.ok) {
+      if (result.fields?.date) setErrors((prev) => ({ ...prev, date: result.fields!.date }));
+      return showToast(result.error);
+    }
     showToast(
       initial
         ? `Perubahan prompt “${title.trim()}” disimpan.`
@@ -101,6 +112,7 @@ export function PromptForm({ initial }: { initial?: JournalPrompt }) {
       { tone: "success" },
     );
     router.push("/admin/prompt");
+    router.refresh();
   }
 
   const errorText = (msg?: string) =>

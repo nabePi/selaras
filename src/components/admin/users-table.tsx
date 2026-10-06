@@ -1,16 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { activateUser, resetUserPassword } from "@/lib/admin-actions";
-import { ADMIN_USERS, type AdminUser } from "@/data/admin-users";
-import {
-  PROFILE_AVATAR_KEY,
-  PROFILE_NAME_KEY,
-  PROFILE_SKILLS_KEY,
-  parseSkills,
-} from "@/lib/profile-storage";
-import { useStoredValue } from "@/lib/stored-value";
+import type { AdminUser } from "@/data/admin-users";
 import { formatDateId } from "@/data/admin-prompts";
 import { Dialog, DialogActions } from "../dialog";
 import { Icon } from "../icon";
@@ -22,38 +16,19 @@ const STATUS = {
   pending: { label: "Menunggu", tone: "bg-secondary-container text-secondary" },
 } as const;
 
-export function UsersTable() {
-  const storedName = useStoredValue(PROFILE_NAME_KEY);
-  const storedAvatar = useStoredValue(PROFILE_AVATAR_KEY);
-  const storedSkills = useStoredValue(PROFILE_SKILLS_KEY);
+export function UsersTable({ users }: { users: AdminUser[] }) {
+  const router = useRouter();
   const { showToast } = useToast();
   const [query, setQuery] = useState("");
-  const [activated, setActivated] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
   const [resetTarget, setResetTarget] = useState<AdminUser | null>(null);
-
-  // Akun yang sedang login memakai data terbaru dari /profil.
-  const users = useMemo<AdminUser[]>(
-    () =>
-      ADMIN_USERS.map((u) =>
-        u.current
-          ? {
-              ...u,
-              name: storedName ?? u.name,
-              avatar: storedAvatar ?? u.avatar,
-              skills: storedSkills ? parseSkills(storedSkills) : u.skills,
-            }
-          : u,
-      ).map((u) => (activated.has(u.id) ? { ...u, status: "active" as const } : u)),
-    [storedName, storedAvatar, storedSkills, activated],
-  );
 
   async function activate(u: AdminUser) {
     setBusy(u.id);
     const result = await activateUser(u.id);
     setBusy(null);
     if (!result.ok) return showToast(result.error);
-    setActivated((set) => new Set(set).add(u.id));
+    router.refresh();
     showToast(`Akun ${u.name} berhasil diaktifkan.`, { tone: "success" });
   }
 
@@ -70,7 +45,7 @@ export function UsersTable() {
   const q = query.trim().toLowerCase();
   const rows = q
     ? users.filter((u) =>
-        [u.name, u.email, u.whatsapp, u.id, ...u.skills].some((v) => v.toLowerCase().includes(q)),
+        [u.name, u.email, u.whatsapp, u.id, u.activities ?? "", ...u.skills].some((v) => v.toLowerCase().includes(q)),
       )
     : users;
 
@@ -97,7 +72,7 @@ export function UsersTable() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari nama, email, keahlian..."
+              placeholder="Cari nama, email, keahlian, kegiatan..."
               className="t-body-sm w-72 max-w-full rounded-full bg-canvas-ivory py-2.5 pr-4 pl-9 text-on-surface shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-sage-medium"
             />
           </div>
@@ -114,6 +89,7 @@ export function UsersTable() {
                 <th scope="col" className="px-4 py-4">WhatsApp</th>
                 <th scope="col" className="px-4 py-4">Email</th>
                 <th scope="col" className="px-4 py-4">Potensi &amp; Keahlian</th>
+                <th scope="col" className="px-4 py-4">Kegiatan Sehari-hari</th>
                 <th scope="col" className="px-4 py-4">Bergabung</th>
                 <th scope="col" className="px-4 py-4">Status</th>
                 <th scope="col" className="py-4 pr-6 pl-4 text-right">Aksi</th>
@@ -122,7 +98,7 @@ export function UsersTable() {
             <tbody className="t-body-md divide-y divide-surface-container">
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-text-muted">
+                  <td colSpan={8} className="px-6 py-12 text-center text-text-muted">
                     Tidak ada pengguna yang cocok dengan “{query}”.
                   </td>
                 </tr>
@@ -226,6 +202,15 @@ function UserRow({
               </li>
             ))}
           </ul>
+        )}
+      </td>
+      <td className="px-4 py-4">
+        {u.activities ? (
+          <p title={u.activities} className="t-body-sm line-clamp-3 max-w-xs whitespace-pre-line text-on-surface">
+            {u.activities}
+          </p>
+        ) : (
+          <span className="t-body-sm text-text-muted">Belum diisi</span>
         )}
       </td>
       <td className="t-body-sm px-4 py-4 whitespace-nowrap text-text-muted">{formatDateId(u.joined)}</td>

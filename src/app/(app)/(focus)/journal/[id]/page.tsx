@@ -5,20 +5,21 @@ import { EntryAudio } from "@/components/entry-audio";
 import { EntryVideo } from "@/components/entry-video";
 import { FocusHeader } from "@/components/focus-header";
 import { Icon } from "@/components/icon";
-import { JOURNAL_ENTRIES } from "@/data/member";
+import { requireMemberPage } from "@/lib/server/session";
+import { getEntry } from "@/server/member/journal";
 
 type Params = Promise<{ id: string }>;
 
-export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { id } = await params;
-  const entry = JOURNAL_ENTRIES.find((e) => e.id === id);
-  return { title: entry ? `${entry.dayLabel} · Journal` : "Journal" };
-}
+export const metadata: Metadata = { title: "Journal" };
 
 export default async function JournalEntryPage({ params }: { params: Params }) {
   const { id } = await params;
-  const entry = JOURNAL_ENTRIES.find((e) => e.id === id);
+  const user = await requireMemberPage();
+  const entry = await getEntry(user.id, id);
   if (!entry) notFound();
+
+  // Catatan Rasa sudah menjadi `content`; jawaban prompt ditampilkan terpisah.
+  const answers = entry.answers.filter((a) => !(a.type === "text" && a.value === entry.content));
 
   return (
     <>
@@ -31,43 +32,53 @@ export default async function JournalEntryPage({ params }: { params: Params }) {
             </span>
             <span className="t-body-sm text-text-muted">{entry.dateLabel}</span>
           </div>
-          <span
-            aria-label={`Perasaan: ${entry.feeling.label}`}
-            className="t-label-sm inline-flex items-center gap-1.5 rounded-full bg-secondary-container/55 px-2.5 py-1 font-medium text-on-secondary-container"
-          >
-            <span aria-hidden="true" className="text-base leading-none">
-              {entry.feeling.emoji}
+          {entry.feeling && (
+            <span
+              aria-label={`Perasaan: ${entry.feeling.label}`}
+              className="t-label-sm inline-flex items-center gap-1.5 rounded-full bg-secondary-container/55 px-2.5 py-1 font-medium text-on-secondary-container"
+            >
+              <span aria-hidden="true" className="text-base leading-none">
+                {entry.feeling.emoji}
+              </span>
+              {entry.feeling.label}
             </span>
-            {entry.feeling.label}
-          </span>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">
           <span className="t-label-sm font-semibold tracking-wider text-primary uppercase">
-            Prompt Harian
+            {entry.promptTitle ? "Prompt Harian" : "Tanpa Prompt"}
           </span>
-          <h1 className="t-headline-sm leading-snug text-on-surface">“{entry.prompt}”</h1>
+          <h1 className="t-headline-sm leading-snug text-on-surface">
+            {entry.promptTitle ? `“${entry.promptTitle}”` : "Jurnal Bebas"}
+          </h1>
         </div>
 
-        {entry.photo && (
-          <div className="relative h-52 w-full overflow-hidden rounded-2xl shadow-inner">
-            <Image
-              src={entry.photo.src}
-              alt={entry.photo.alt}
-              fill
-              sizes="(max-width: 480px) 100vw, 440px"
-              className="object-cover"
-            />
-            <div className="t-label-sm absolute bottom-2 left-2 flex items-center gap-1 rounded-lg bg-inverse-surface/70 px-2 py-1 text-inverse-on-surface backdrop-blur-sm">
-              <Icon name="photo_camera" size={14} />
-              <span>{entry.photo.caption}</span>
-            </div>
-          </div>
+        {answers.length > 0 && (
+          <ol className="flex flex-col gap-3">
+            {answers.map((a) => (
+              <li key={a.label} className="flex flex-col gap-1 rounded-2xl bg-surface-container-low p-4">
+                <span className="t-label-md text-text-muted">{a.label}</span>
+                <span className="t-body-md text-on-surface">{a.value}</span>
+              </li>
+            ))}
+          </ol>
         )}
-        {entry.video && <EntryVideo {...entry.video} />}
-        {entry.audio && <EntryAudio title={entry.audio.title} meta={entry.audio.meta} />}
 
-        <p className="t-body-md leading-relaxed text-on-surface-variant">{entry.content}</p>
+        {entry.attachments.map((a) => {
+          if (a.kind === "image")
+            return (
+              <div key={a.id ?? a.title} className="relative h-52 w-full overflow-hidden rounded-2xl shadow-inner">
+                <Image unoptimized={!a.src.startsWith("/")} src={a.src} alt={a.title} fill sizes="(max-width: 480px) 100vw, 440px" className="object-cover" />
+              </div>
+            );
+          if (a.kind === "video") return <EntryVideo key={a.id ?? a.title} src={a.src} poster={a.poster} title={a.title} />;
+          return <EntryAudio key={a.id ?? a.title} title={a.title} meta={a.meta} src={a.src} />;
+        })}
+
+        {entry.content && (
+          <p className="t-body-md leading-relaxed whitespace-pre-line text-on-surface-variant">{entry.content}</p>
+        )}
 
         <div className="flex items-center border-t border-surface-container-low pt-3">
           {entry.shared ? (

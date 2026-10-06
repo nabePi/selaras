@@ -10,7 +10,8 @@ WORKDIR /app
 # ---- deps: install dependensi (di-cache selama package-lock.json tidak berubah) ----
 FROM base AS deps
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci
+# --ignore-scripts: postinstall (prisma generate) butuh schema yang baru ada di stage builder.
+RUN --mount=type=cache,target=/root/.npm npm ci --ignore-scripts
 
 # ---- builder: build aplikasi ----
 FROM base AS builder
@@ -18,7 +19,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Catatan: next/font/google mengunduh font saat build, jadi build butuh akses internet.
-RUN npm run build
+RUN npx prisma generate && npm run build
+
+# ---- migrate: dijalankan sekali sebelum web (lihat service `migrate` di docker-compose.yml) ----
+# Hanya menerapkan migrasi Prisma yang belum ada; aman dijalankan berulang di tiap deploy.
+# Akun admin tidak dibuat di sini (insert manual dengan SQL, lihat README).
+FROM builder AS migrate
+CMD ["npx", "prisma", "migrate", "deploy"]
 
 # ---- runner: image akhir, hanya file yang dibutuhkan untuk berjalan ----
 FROM base AS runner

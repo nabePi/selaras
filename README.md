@@ -136,3 +136,41 @@ jadi perlu ditambahkan sebagai `build.args`.
 - [ ] Halaman Ketentuan Layanan dan Kebijakan Privasi
 - [ ] Service worker / dukungan offline untuk PWA
 - [ ] Notifikasi pengingat refleksi harian
+
+## Backend admin (PostgreSQL + Prisma)
+
+Backend memakai Route Handlers App Router (`src/app/api`), Prisma 7, dan PostgreSQL yang dijalankan lewat Podman.
+
+```bash
+npm run db:up        # PostgreSQL di localhost:5434 (podman)
+cp .env.example .env # lalu sesuaikan DATABASE_URL / akun admin seed
+npm run db:migrate   # terapkan migrasi
+npm run db:seed      # data contoh + akun admin dari SEED_ADMIN_*
+npm run dev          # masuk di /admin/masuk
+```
+
+- Skema & migrasi: `prisma/schema.prisma`, `prisma/migrations`. Produksi: `npm run db:deploy`.
+- Lapisan data per fitur: `src/server/admin/*` (dipakai halaman server dan route handler).
+- API: `/api/auth/*` dan `/api/admin/*` (users, prompts, assessment, insight, dashboard).
+- Auth admin: email + password (scrypt), sesi di database, cookie `selaras_session` (httpOnly).
+
+## Lampiran jurnal (Cloudflare R2)
+
+Foto/video/suara dari `/journal/tulis` diunggah peramban langsung ke bucket R2 privat lewat URL bertanda tangan,
+dibaca kembali lewat URL bertanda tangan (1 jam). Isi `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`,
+`R2_BUCKET` di `.env`, lalu jalankan sekali `npm run r2:cors` agar bucket mengizinkan unggah dari peramban
+(domain produksi lewat `R2_CORS_ORIGINS`).
+
+## Deploy & admin pertama
+
+Service `migrate` di `docker-compose.yml` menjalankan `prisma migrate deploy` sebelum `web` start (deploy gagal bila migrasi gagal).
+Akun admin tidak dibuat otomatis; insert manual setelah migrasi pertama:
+
+```bash
+npm run hash-password -- 'passwordAdmin'   # cetak hash scrypt
+```
+
+```sql
+INSERT INTO "User" ("name","email","whatsapp","passwordHash","role","status","skills","activatedAt","updatedAt")
+VALUES ('Nama Admin','admin@domain.com','-','<hash dari langkah di atas>','ADMIN','ACTIVE','{}',NOW(),NOW());
+```

@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+}
+
+enum PromptStatus {
+  DRAF
+  TERJADWAL
+  TERBIT
+}
+
+enum QuestionType {
+  TEXT
+  SCALE
+  CHOICE
+  MOOD
+}
+
+enum AttachmentKind {
+  IMAGE
+  AUDIO
+  VIDEO
+}
+
+enum AssessmentKind {
+  PRE
+  POST
+}
+
+enum AssessmentPart {
+  MINDSET
+  HABIT
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  name         String
+  email        String     @unique
+  whatsapp     String
+  passwordHash String
+  role         Role       @default(MEMBER)
+  status       UserStatus @default(PENDING)
+  avatarUrl    String?
+  /// Potensi & keahlian yang diisi peserta di halaman profil.
+  skills       String[]
+  /// Kegiatan sehari-hari / kesibukan yang diisi peserta di halaman profil.
+  activities   String     @default("")
+  joinedAt     DateTime   @default(now())
+  activatedAt  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
+  promptResponses     PromptResponse[]
+  assessmentResponses AssessmentResponse[]
+  notifications       Notification[]
+
+  @@index([role, status])
+}
+
+model Session {
+  /// SHA-256 dari token di cookie; token mentahnya tidak pernah disimpan.
+  id        String   @id
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// SHA-256 dari token pada tautan reset.
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model JournalPrompt {
+  id        Int          @id @default(autoincrement())
+  title     String
+  subtitle  String       @default("")
+  /// Tanggal tayang di jurnal peserta. Satu prompt per tanggal.
+  date      DateTime     @unique @db.Date
+  /// Status tersimpan; status efektif (TERJADWAL yang sudah lewat tanggal = TERBIT) dihitung saat dibaca.
+  status    PromptStatus @default(TERJADWAL)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  questions PromptQuestion[]
+  responses PromptResponse[]
+}
+
+model PromptQuestion {
+  id       Int           @id @default(autoincrement())
+  promptId Int
+  prompt   JournalPrompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  position Int
+  type     QuestionType
+  label    String
+  /// Hanya dipakai tipe CHOICE.
+  options  String[]
+
+  answers PromptAnswer[]
+
+  @@unique([promptId, position])
+}
+
+/// Entri jurnal peserta untuk satu hari. Bila hari itu ada prompt, `promptId` terisi dan
+/// jawaban per pertanyaan ada di PromptAnswer; tanpa prompt, hanya `content` (jurnal bebas).
+model PromptResponse {
+  id         Int            @id @default(autoincrement())
+  promptId   Int?
+  prompt     JournalPrompt? @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  userId     Int
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Tanggal jurnal (WIB). Satu entri per peserta per hari.
+  date       DateTime       @db.Date
+  /// Catatan Rasa (refleksi bebas).
+  content    String         @default("")
+  /// Dibagikan ke coach; bila false, teks tidak boleh dibaca admin.
+  shared     Boolean        @default(true)
+  answeredAt DateTime
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  answers     PromptAnswer[]
+  attachments PromptAttachment[]
+
+  @@unique([promptId, userId])
+  @@unique([userId, date])
+}
+
+model PromptAnswer {
+  id         Int            @id @default(autoincrement())
+  responseId Int
+  response   PromptResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  questionId Int
+  question   PromptQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  value      String
+
+  @@unique([responseId, questionId])
+}
+
+model PromptAttachment {
+  id         Int            @id @default(autoincrement())
+  responseId Int
+  response   PromptResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  kind       AttachmentKind
+  title      String
+  /// URL statis (data contoh di /public); berkas unggahan peserta memakai `key`.
+  src        String?
+  poster     String?
+  meta       String?
+  /// Kunci objek di bucket R2 (privat; dibaca lewat URL bertanda tangan).
+  key        String?        @unique
+  size       Int?
+
+  @@index([responseId])
+}
+
+model AssessmentItem {
+  id        Int            @id @default(autoincrement())
+  kind      AssessmentKind
+  part      AssessmentPart
+  dimension String
+  text      String
+  position  Int
+
+  answers AssessmentAnswer[]
+
+  @@index([kind, part, position])
+}
+
+model AssessmentResponse {
+  id         Int            @id @default(autoincrement())
+  kind       AssessmentKind
+  userId     Int
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answeredAt DateTime
+
+  answers AssessmentAnswer[]
+
+  @@unique([kind, userId])
+  @@index([userId])
+}
+
+model AssessmentAnswer {
+  responseId Int
+  response   AssessmentResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  itemId     Int
+  item       AssessmentItem     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  /// Skala 1-5.
+  value      Int
+
+  @@id([responseId, itemId])
+}
+
+/// Pengaturan tampil assessment ke peserta. Pre selalu tampil; Post tampil setelah admin menyalakannya.
+model AssessmentSetting {
+  kind    AssessmentKind @id
+  visible Boolean        @default(false)
+}
+
+enum NotificationKind {
+  REFLEKSI
+  PESAN
+  HADIS
+  SISTEM
+}
+
+/// Notifikasi untuk satu peserta; `detail` adalah isi lengkap yang dibuka dari daftar notifikasi.
+model Notification {
+  id          Int              @id @default(autoincrement())
+  userId      Int
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind        NotificationKind
+  title       String
+  /// Ringkasan satu-dua kalimat untuk daftar.
+  body        String
+  /// Isi lengkap (teks, baris baru dipertahankan).
+  detail      String
+  /// Tautan aksi opsional di halaman detail, mis. "/journal/tulis".
+  href        String?
+  actionLabel String?
+  readAt      DateTime?
+  createdAt   DateTime         @default(now())
+
+  @@index([userId, createdAt])
+}

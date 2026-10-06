@@ -1,24 +1,27 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { PROFILE_SKILLS_KEY, parseSkills } from "@/lib/profile-storage";
-import { setStoredValue, useStoredValue } from "@/lib/stored-value";
+import { useState } from "react";
+import { api } from "@/lib/api-client";
 import { Icon } from "./icon";
 import { useToast } from "./toast-provider";
 
 const MAX_SKILLS = 15;
 const MAX_LENGTH = 30;
 
-/** Input multi tag untuk potensi/keahlian; tersimpan otomatis di peramban. */
-export function SkillsCard() {
+/** Input multi tag untuk potensi/keahlian; setiap perubahan langsung disimpan ke server. */
+export function SkillsCard({ initialSkills }: { initialSkills: string[] }) {
   const { showToast } = useToast();
-  const stored = useStoredValue(PROFILE_SKILLS_KEY);
-  const skills = useMemo(() => parseSkills(stored), [stored]);
+  const [skills, setSkills] = useState(initialSkills);
   const [draft, setDraft] = useState("");
 
-  function save(next: string[]) {
-    if (!setStoredValue(PROFILE_SKILLS_KEY, JSON.stringify(next))) {
-      showToast("Perubahan tidak dapat disimpan di peramban ini.");
+  /** Tampilkan perubahan lebih dulu; kembalikan bila server menolak. */
+  async function save(next: string[]) {
+    const previous = skills;
+    setSkills(next);
+    const result = await api<{ skills: string[] }>("/api/profile", "PATCH", { skills: next });
+    if (!result.ok) {
+      setSkills(previous);
+      showToast(result.error);
     }
   }
 

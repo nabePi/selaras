@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { JOURNAL_FEELINGS } from "@/data/member";
 import { SCALE_MAX, type PromptQuestion } from "@/data/journal-prompts";
+import type { AnswerMap } from "@/lib/journal-types";
 
-type Answers = Record<string, string | number>;
+type Answers = AnswerMap;
 
 const choiceClass = (active: boolean) =>
   `t-body-md flex items-center gap-3 rounded-2xl px-4 py-3 text-left shadow-xs transition-all active:scale-[0.99] ${
@@ -12,12 +13,25 @@ const choiceClass = (active: boolean) =>
   }`;
 
 /**
- * Pertanyaan prompt jurnal sesuai tipe yang dibuat admin. Dipakai di /journal/tulis
- * dan di pratinjau form admin; jawaban belum disimpan (static).
+ * Pertanyaan prompt jurnal sesuai tipe yang dibuat admin. Dipakai di form tulis jurnal
+ * (terkendali lewat `answers` + `onAnswer`) dan di pratinjau admin (tanpa props: state lokal,
+ * tidak disimpan).
  */
-export function PromptQuestions({ questions }: { questions: PromptQuestion[] }) {
-  const [answers, setAnswers] = useState<Answers>({});
-  const set = (id: string, value: string | number) => setAnswers((a) => ({ ...a, [id]: value }));
+export function PromptQuestions({
+  questions,
+  answers: controlled,
+  onAnswer,
+  errors,
+}: {
+  questions: PromptQuestion[];
+  answers?: Answers;
+  onAnswer?: (id: string, value: string | number) => void;
+  errors?: Record<string, string>;
+}) {
+  const [local, setLocal] = useState<Answers>({});
+  const answers = controlled ?? local;
+  const set = (id: string, value: string | number) =>
+    onAnswer ? onAnswer(id, value) : setLocal((a) => ({ ...a, [id]: value }));
 
   return (
     <ol className="flex flex-col gap-4">
@@ -125,6 +139,12 @@ export function PromptQuestions({ questions }: { questions: PromptQuestion[] }) 
                 );
               })}
             </div>
+          )}
+
+          {errors?.[q.id] && (
+            <p role="alert" className="t-body-sm text-error">
+              {errors[q.id]}
+            </p>
           )}
         </li>
       ))}

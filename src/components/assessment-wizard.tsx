@@ -1,15 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Icon } from "@/components/icon";
-import { ASSESSMENT_KINDS, ASSESSMENT_PARTS, ASSESSMENT_SETS, type AssessmentKind } from "@/data/assessment";
+import { ASSESSMENT_KINDS, ASSESSMENT_PARTS, type AssessmentItem, type AssessmentKind } from "@/data/assessment";
+import { api } from "@/lib/api-client";
 
-/** Satu pertanyaan per layar dengan indikator progres; jawaban belum disimpan (static). */
-export function AssessmentWizard({ kind }: { kind: AssessmentKind }) {
-  const items = ASSESSMENT_SETS[kind];
+/** Satu pertanyaan per layar dengan indikator progres; jawaban dikirim ke server di soal terakhir. */
+export function AssessmentWizard({ kind, items }: { kind: AssessmentKind; items: AssessmentItem[] }) {
+  const router = useRouter();
   const TOTAL = items.length;
   const [step, setStep] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const [answers, setAnswers] = useState<(number | null)[]>(() => Array(TOTAL).fill(null));
 
   if (step >= TOTAL) {
@@ -38,6 +42,18 @@ export function AssessmentWizard({ kind }: { kind: AssessmentKind }) {
   const part = ASSESSMENT_PARTS[item.part];
   const answer = answers[step];
   const isLast = step === TOTAL - 1;
+
+  async function next() {
+    if (!isLast) return setStep(step + 1);
+    setSaving(true);
+    setError("");
+    const payload = Object.fromEntries(items.map((it, i) => [it.id, answers[i]]));
+    const result = await api("/api/assessment/" + kind, "POST", { answers: payload });
+    setSaving(false);
+    if (!result.ok) return setError(result.error);
+    setStep(TOTAL);
+    router.refresh();
+  }
 
   return (
     <div className="flex w-full flex-col gap-5">
@@ -98,6 +114,12 @@ export function AssessmentWizard({ kind }: { kind: AssessmentKind }) {
         })}
       </div>
 
+      {error && (
+        <p role="alert" className="t-body-sm rounded-xl bg-error-container px-3 py-2 text-error">
+          {error}
+        </p>
+      )}
+
       <div className="flex gap-3 pt-1">
         {step > 0 && (
           <button
@@ -111,11 +133,11 @@ export function AssessmentWizard({ kind }: { kind: AssessmentKind }) {
         )}
         <button
           type="button"
-          disabled={answer === null}
-          onClick={() => setStep(step + 1)}
+          disabled={answer === null || saving}
+          onClick={next}
           className="t-title-sm flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-on-primary shadow-md transition-all active:scale-[0.99] disabled:opacity-40"
         >
-          <span>{isLast ? "Selesai" : "Lanjut"}</span>
+          <span>{saving ? "Menyimpan..." : isLast ? "Selesai" : "Lanjut"}</span>
           <Icon name={isLast ? "check" : "arrow_forward"} size={18} />
         </button>
       </div>

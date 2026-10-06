@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { formatDateId } from "@/data/admin-prompts";
-import { ADMIN_USERS } from "@/data/admin-users";
 import { ASSESSMENT_PARTS } from "@/data/assessment";
-import { JOURNAL_PROMPTS } from "@/data/journal-prompts";
-import { getInsight } from "@/lib/insight";
+import { getDashboard } from "@/server/admin/dashboard";
 import { Icon } from "../icon";
 import { PageHeader } from "./page-header";
 
@@ -71,17 +69,15 @@ function Panel({
   );
 }
 
-export function DashboardOverview() {
-  const insight = getInsight();
-  const pendingUsers = ADMIN_USERS.filter((u) => u.status === "pending");
-  const activeUsers = ADMIN_USERS.length - pendingUsers.length;
+export async function DashboardOverview() {
+  const { insight, pendingUsers, activeUsers, totalUsers, prompts } = await getDashboard();
 
-  const published = [...JOURNAL_PROMPTS]
+  const published = [...prompts]
     .filter((p) => p.status === "terbit")
     .sort((a, b) => b.date.localeCompare(a.date));
   const latest = published[0];
   const latestStats = insight.promptStats.find((p) => p.id === latest?.id);
-  const upcoming = JOURNAL_PROMPTS.filter((p) => p.status !== "terbit").sort(
+  const upcoming = prompts.filter((p) => p.status !== "terbit").sort(
     (a, b) => a.date.localeCompare(b.date),
   );
 
@@ -105,7 +101,7 @@ export function DashboardOverview() {
           href="/admin/users"
           icon="group"
           label="Users"
-          value={String(ADMIN_USERS.length)}
+          value={String(totalUsers)}
           note={`${activeUsers} aktif · ${pendingUsers.length} menunggu aktivasi`}
         />
         <Card

@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Icon } from "@/components/icon";
-import { PRE_ASSESSMENT } from "@/data/assessment";
+import { AssessmentCard } from "@/components/assessment-card";
+import { JournalTodayCard } from "@/components/journal-today-card";
 import { WisdomActions } from "@/components/wisdom-actions";
-import {
-  DAILY_WISDOM,
-  MEMBER,
-  PENDING_REFLECTION as P,
-  WEEK,
-} from "@/data/member";
+import { formatDateId } from "@/data/admin-prompts";
+import { DAILY_WISDOM } from "@/data/member";
+import { requireMemberPage } from "@/lib/server/session";
+import { todayWib } from "@/lib/server/time";
+import { isAssessmentVisible } from "@/server/admin/assessment";
+import { getPromptForDate } from "@/server/admin/prompts";
+import { hasCompletedAssessment } from "@/server/member/assessment";
+import { getTodayEntry, getWeek } from "@/server/member/journal";
 
 export const metadata: Metadata = { title: "Home" };
 
@@ -31,22 +33,41 @@ const DAY_STYLES = {
     badge: "bg-surface-container-high",
     icon: null,
   },
+  empty: {
+    cell: "bg-surface-container-low text-text-muted opacity-70",
+    label: "font-normal",
+    badge: "bg-surface-container-high",
+    icon: null,
+  },
 } as const;
 
 const STATUS_TEXT = {
   done: "selesai",
   pending: "tertunda",
   upcoming: "belum waktunya",
+  empty: "tidak diisi",
 } as const;
 
-export default function HomePage() {
+export default async function HomePage() {
+  const user = await requireMemberPage();
+  const today = todayWib();
+  const prompt = await getPromptForDate(today);
+  const [entry, week, preDone, postVisible, postDone] = await Promise.all([
+    getTodayEntry(user.id, prompt),
+    getWeek(user.id),
+    hasCompletedAssessment(user.id, "pre"),
+    isAssessmentVisible("post"),
+    hasCompletedAssessment(user.id, "post"),
+  ]);
+  const firstName = user.name.split(" ")[0];
+
   return (
     <div className="flex w-full flex-col gap-6">
       {/* 1. Sapaan & streak */}
       <section className="mt-1 flex flex-col gap-1">
         <div className="mt-1">
           <h1 className="t-headline-lg-mobile text-on-surface">
-            Assalamu’alaikum, {MEMBER.firstName} 🌿
+            Assalamu’alaikum, {firstName} 🌿
           </h1>
         </div>
       </section>
@@ -84,35 +105,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Pre assessment (hilang setelah diisi) */}
-      {!PRE_ASSESSMENT.completed && (
-        <section className="flex flex-col gap-4 rounded-4xl bg-sage-tint p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="t-label-sm inline-flex items-center gap-1.5 font-semibold tracking-wider text-primary uppercase">
-              <Icon name="quiz" size={16} filled />
-              Pre Assessment
-            </span>
-            <span className="t-label-sm rounded-full bg-surface-container-lowest px-2.5 py-0.5 font-medium text-tertiary">
-              ~{PRE_ASSESSMENT.minutes} Menit
-            </span>
-          </div>
-          <div className="flex flex-col gap-2">
-            <h2 className="t-headline-sm leading-snug text-on-surface">
-              Mulai dengan mengenali titik awalmu
-            </h2>
-            <p className="t-body-sm text-text-muted">
-              Isi pre assessment singkat agar perjalanan refleksimu bisa dibandingkan
-              dan terasa lebih bermakna.
-            </p>
-          </div>
-          <Link
-            href="/pre-assessment"
-            className="t-title-sm flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 tracking-wide text-on-primary shadow-md transition-all hover:bg-primary-container active:scale-[0.99]"
-          >
-            <span>Isi Pre Assessment</span>
-            <Icon name="arrow_forward" size={18} />
-          </Link>
-        </section>
+      {/* Assessment (hilang setelah diisi). Post hanya tampil bila admin menyalakannya. */}
+      {!preDone && (
+        <AssessmentCard
+          kind="pre"
+          minutes={7}
+          heading="Mulai dengan mengenali titik awalmu"
+          body="Isi pre assessment singkat agar perjalanan refleksimu bisa dibandingkan dan terasa lebih bermakna."
+        />
+      )}
+      {postVisible && !postDone && (
+        <AssessmentCard
+          kind="post"
+          minutes={7}
+          heading="Saatnya melihat perjalanan bertumbuhmu"
+          body="Isi post assessment agar jawabanmu bisa dibandingkan dengan pre assessment dan perubahanmu terlihat."
+        />
       )}
 
       {/* 3. Pita pekan */}
@@ -120,16 +128,16 @@ export default function HomePage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Icon name="calendar_month" size={18} className="text-primary" />
-            <h2 className="t-title-sm text-on-surface">{WEEK.title}</h2>
+            <h2 className="t-title-sm text-on-surface">Pekan Ini</h2>
           </div>
-          <span className="t-label-sm text-text-muted">{WEEK.target}</span>
+          <span className="t-label-sm text-text-muted">{week.doneCount}/7 Hari</span>
         </div>
         <ul className="grid grid-cols-7 gap-1.5 pt-1">
-          {WEEK.days.map((d) => {
+          {week.days.map((d) => {
             const s = DAY_STYLES[d.status];
             return (
               <li
-                key={d.label}
+                key={d.date}
                 className={`flex flex-col items-center gap-1 rounded-2xl p-2 ${s.cell}`}
               >
                 <span className={`t-label-sm ${s.label}`}>
@@ -152,38 +160,15 @@ export default function HomePage() {
         <div className="mt-1 flex items-center gap-1.5 pt-2">
           <Icon name="spa" size={15} className="shrink-0 text-accent-coral" />
           <p className="t-body-sm text-text-muted">
-            Tuntaskan hari tertunda agar ritme refleksi tetap mengalir selaras dan
-            bermakna.
+            Menulis jurnal setiap hari menjaga ritme refleksi tetap mengalir selaras
+            dan bermakna.
           </p>
         </div>
       </section>
 
-      {/* 4. Refleksi tertunda */}
-      <section className="flex flex-col gap-2">
-        <div className="flex flex-col gap-4 rounded-4xl bg-surface-container-low p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <span className="size-2.5 animate-pulse rounded-full bg-accent-coral" />
-              <span className="t-label-sm font-semibold tracking-wider text-secondary uppercase">
-                Sesi {P.session} • Hari ke-{P.day} (Tertunda)
-              </span>
-            </div>
-            <span className="t-label-sm rounded-full bg-surface-container-highest px-2.5 py-0.5 font-medium text-tertiary">
-              ~{P.minutes} Menit
-            </span>
-          </div>
-          <div className="flex flex-col gap-2">
-            <h2 className="t-headline-sm leading-snug text-on-surface">{P.teaser}</h2>
-            <p className="t-body-sm text-text-muted">{P.teaserNote}</p>
-          </div>
-          <Link
-            href="/journal/tulis"
-            className="t-title-sm flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 tracking-wide text-on-primary shadow-md transition-all hover:bg-primary-container active:scale-[0.99]"
-          >
-            <span>Tulis Jurnal Sekarang</span>
-            <Icon name="arrow_forward" size={18} />
-          </Link>
-        </div>
+      {/* 4. Jurnal hari ini */}
+      <section aria-label="Jurnal hari ini" className="flex flex-col gap-2">
+        <JournalTodayCard prompt={prompt} written={entry !== null} todayLabel={formatDateId(today)} />
       </section>
     </div>
   );

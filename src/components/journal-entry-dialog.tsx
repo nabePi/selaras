@@ -1,14 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useRef } from "react";
-import type { JournalEntry } from "@/data/member";
-import { EntryAudio } from "./entry-audio";
+import type { MemberEntry } from "@/lib/journal-types";
 import { Icon } from "./icon";
 
 type Props = {
-  entry: JournalEntry | null;
+  entry: MemberEntry | null;
   onClose: () => void;
 };
 
@@ -44,7 +42,7 @@ function DialogCard({
   titleId,
   onClose,
 }: {
-  entry: JournalEntry;
+  entry: MemberEntry;
   titleId: string;
   onClose: () => void;
 }) {
@@ -72,24 +70,11 @@ function DialogCard({
           Prompt Harian
         </span>
         <h2 id={titleId} className="t-quote leading-snug text-on-surface">
-          “{entry.prompt}”
+          {entry.promptTitle ? `“${entry.promptTitle}”` : "Jurnal Bebas"}
         </h2>
       </div>
 
       <p className="t-body-md line-clamp-4 text-on-surface-variant">{entry.content}</p>
-
-      {entry.photo && (
-        <div className="relative h-28 w-full overflow-hidden rounded-xl shadow-inner">
-          <Image
-            src={entry.photo.src}
-            alt={entry.photo.alt}
-            fill
-            sizes="400px"
-            className="object-cover"
-          />
-        </div>
-      )}
-      {entry.audio && <EntryAudio title={entry.audio.title} meta={entry.audio.meta} />}
 
       <div className="flex items-center justify-between gap-2 pt-1">
         {entry.shared ? (

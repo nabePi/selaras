@@ -2,7 +2,8 @@ import { ADMIN_USERS } from "@/data/admin-users";
 import { ASSESSMENT_SETS, type AssessmentKind, type AssessmentPart } from "@/data/assessment";
 
 /**
- * Data contoh jawaban assessment. Static dan deterministik: ganti dengan API.
+ * Tipe jawaban assessment. `getAssessmentResponses` hanyalah generator data contoh untuk
+ * `prisma/seed.ts`; halaman admin membaca dari database.
  * Peserta = pengguna berstatus aktif.
  */
 export type AssessmentResponse = {

@@ -1,10 +1,9 @@
 /**
- * SIMULASI — belum ada backend.
- *
- * Fungsi-fungsi ini adalah satu-satunya titik yang perlu diganti dengan panggilan API
- * (route handler / server action) saat autentikasi tersedia. Form di
- * `components/auth/*` sudah menangani hasil `{ ok: false, error }` dan keadaan loading.
+ * `signIn` memanggil API sungguhan. `registerAccount` dan `requestPasswordReset` masih
+ * SIMULASI (belum ada backend-nya). Form di `components/auth/*` menangani hasil
+ * `{ ok: false, error }` dan keadaan loading.
  */
+import { api } from "@/lib/api-client";
 
 export type AuthResult = { ok: true } | { ok: false; error: string };
 
@@ -18,9 +17,11 @@ export type SignInInput = {
 };
 
 export async function signIn(input: SignInInput): Promise<AuthResult> {
-  void input;
-  await delay(900);
-  return { ok: true };
+  const result = await api<{ id: number }>("/api/auth/member/login", "POST", {
+    identifier: input.identifier,
+    password: input.password,
+  });
+  return result.ok ? { ok: true } : { ok: false, error: result.error };
 }
 
 export type RegisterInput = {
