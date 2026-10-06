@@ -113,17 +113,18 @@ export async function getAssessmentResponse(kind: AssessmentKind, userId: string
   return (await getAssessmentResponses(kind)).find((r) => r.userId === userId) ?? null;
 }
 
-/** Pre Assessment selalu tampil; Post Assessment tampil ke peserta hanya bila admin menyalakannya. */
+/**
+ * Apakah assessment ditampilkan ke peserta. Bila admin belum pernah mengaturnya: Pre tampil
+ * (default), Post tersembunyi sampai dinyalakan.
+ */
 export async function isAssessmentVisible(kind: AssessmentKind): Promise<boolean> {
-  if (kind === "pre") return true;
   const row = await db.assessmentSetting.findUnique({ where: { kind: KIND_IN[kind] } });
-  return row?.visible ?? false;
+  return row?.visible ?? kind === "pre";
 }
 
 export async function setAssessmentVisible(kind: AssessmentKind, visible: boolean): Promise<void> {
-  if (kind === "pre") throw new ApiError(400, "Pre Assessment selalu tampil ke peserta.");
   if (visible && (await listItems(kind)).length === 0)
-    throw new ApiError(409, "Tambahkan minimal satu soal sebelum menampilkan Post Assessment ke peserta.");
+    throw new ApiError(409, "Tambahkan minimal satu soal sebelum menampilkan assessment ke peserta.");
   await db.assessmentSetting.upsert({
     where: { kind: KIND_IN[kind] },
     create: { kind: KIND_IN[kind], visible },
