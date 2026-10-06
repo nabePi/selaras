@@ -80,6 +80,28 @@ export async function getTodayEntry(userId: number, prompt: JournalPrompt | null
   return { content: row.content, shared: row.shared, answers, attachments: await toAttachmentDtos(row.attachments) };
 }
 
+/**
+ * Streak jurnal: jumlah hari berturut-turut yang ada entrinya. Bila hari ini belum diisi, streak
+ * tetap dihitung dari kemarin (hari ini masih berjalan, belum dianggap putus).
+ */
+export async function getStreak(userId: number): Promise<number> {
+  const today = todayWib();
+  const rows = await db.promptResponse.findMany({
+    where: { userId, date: { lte: new Date(`${today}T00:00:00Z`) } },
+    select: { date: true },
+    orderBy: { date: "desc" },
+    take: 400,
+  });
+  const dates = new Set(rows.map((r) => isoOf(r.date)));
+  let cursor = dates.has(today) ? today : addDays(today, -1);
+  let streak = 0;
+  while (dates.has(cursor)) {
+    streak += 1;
+    cursor = addDays(cursor, -1);
+  }
+  return streak;
+}
+
 /** Status 7 hari (Senin–Minggu) pada pekan yang memuat hari ini. */
 export async function getWeek(userId: number) {
   const today = todayWib();
