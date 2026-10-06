@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# prisma client hasil generate
+/src/generated/
+# contoh env boleh di-commit
+!.env.example

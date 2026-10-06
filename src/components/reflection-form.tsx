@@ -4,58 +4,104 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { Icon } from "./icon";
-import { setStoredValue, useStoredValue } from "@/lib/stored-value";
+import type { PromptQuestion } from "@/data/journal-prompts";
+import type { ResponseAttachment } from "@/data/prompt-responses";
+import { api } from "@/lib/api-client";
+import {
+  attachmentKind,
+  formatSize,
+  MAX_ATTACHMENTS,
+  maxBytesFor,
+  type AttachmentKind,
+} from "@/lib/attachments";
+import type { AnswerMap } from "@/lib/journal-types";
+import { PromptQuestions } from "./prompt-questions";
 import { useToast } from "./toast-provider";
 
-const MB = 1024 * 1024;
-const MAX_IMAGE = 5 * MB;
-const MAX_MEDIA = 100 * MB;
-const MAX_FILES = 10;
+type Initial = { content: string; shared: boolean; answers: AnswerMap; attachments: ResponseAttachment[] };
 
-type Kind = "image" | "video" | "audio";
-type Attachment = { id: string; name: string; size: number; kind: Kind; url: string };
-
-function kindOf(file: File): Kind | null {
-  if (file.type.startsWith("image/")) return "image";
-  if (file.type.startsWith("video/")) return "video";
-  if (file.type.startsWith("audio/")) return "audio";
-  return null;
-}
-
-function formatSize(bytes: number) {
-  return `${(bytes / MB).toFixed(1)} MB`;
-}
+type Attachment = {
+  id: string;
+  /** id lampiran yang sudah tersimpan di server (entri yang sedang disunting) */
+  existingId?: number;
+  /** kunci objek R2 setelah unggahan selesai */
+  key?: string;
+  name: string;
+  size: number;
+  kind: AttachmentKind;
+  previewUrl: string;
+  status: "uploading" | "done" | "error";
+  progress: number;
+  error?: string;
+};
 
 function countWords(text: string) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-export function ReflectionForm({ draftKey }: { draftKey: string }) {
+/** PUT langsung ke R2 lewat URL bertanda tangan, dengan laporan progres. */
+function putFile(url: string, file: File, onProgress: (pct: number) => void, register: (xhr: XMLHttpRequest) => void) {
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    register(xhr);
+    xhr.open("PUT", url);
+    xhr.setRequestHeader("Content-Type", file.type);
+    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100));
+    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("Unggahan ditolak server.")));
+    xhr.onerror = () => reject(new Error("Gagal mengunggah. Periksa koneksi internetmu."));
+    xhr.onabort = () => reject(new Error("aborted"));
+    xhr.send(file);
+  });
+}
+
+function fromExisting(a: ResponseAttachment): Attachment {
+  return {
+    id: `existing-${a.id}`,
+    existingId: a.id,
+    name: a.title,
+    size: 0,
+    kind: a.kind,
+    previewUrl: a.kind === "audio" ? "" : a.src,
+    status: "done",
+    progress: 100,
+  };
+}
+
+export function ReflectionForm({
+  questions = [],
+  initial,
+}: {
+  /** Pertanyaan prompt hari ini; kosong = jurnal bebas. */
+  questions?: PromptQuestion[];
+  /** Entri hari ini yang sudah tersimpan (untuk menyunting). */
+  initial?: Initial | null;
+}) {
   const router = useRouter();
   const { showToast } = useToast();
   const switchLabelId = useId();
 
-  // Teks awal berasal dari draf tersimpan; begitu pengguna mengetik, state lokal yang dipakai.
-  const storedDraft = useStoredValue(draftKey);
-  const [edited, setEdited] = useState<string | null>(null);
-  const text = edited ?? storedDraft ?? "";
-  const [shared, setShared] = useState(true);
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [text, setText] = useState(initial?.content ?? "");
+  const [shared, setShared] = useState(initial?.shared ?? true);
+  const [answers, setAnswers] = useState<AnswerMap>(initial?.answers ?? {});
+  const [answerErrors, setAnswerErrors] = useState<Record<string, string>>({});
+  const [attachments, setAttachments] = useState<Attachment[]>(() => (initial?.attachments ?? []).map(fromExisting));
   const [fileError, setFileError] = useState("");
   const [textError, setTextError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const attachmentsRef = useRef<Attachment[]>([]);
+  const attachmentsRef = useRef<Attachment[]>(attachments);
+  const xhrs = useRef(new Map<string, XMLHttpRequest>());
   const redirectTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(
-    () => () => {
-      attachmentsRef.current.forEach((a) => URL.revokeObjectURL(a.url));
+  useEffect(() => {
+    const running = xhrs.current;
+    return () => {
+      running.forEach((x) => x.abort());
+      attachmentsRef.current.forEach((a) => a.previewUrl.startsWith("blob:") && URL.revokeObjectURL(a.previewUrl));
       clearTimeout(redirectTimer.current);
-    },
-    [],
-  );
+    };
+  }, []);
 
   const words = countWords(text);
   const counter =
@@ -65,74 +111,133 @@ export function ReflectionForm({ draftKey }: { draftKey: string }) {
         ? { text: `${words} kata · Ceritakan sedikit lebih dalam`, tone: "text-text-muted" }
         : { text: `${words} kata · Refleksi bermakna tercapai`, tone: "font-semibold text-primary" };
 
-  function updateAttachments(next: Attachment[]) {
+  const uploading = attachments.some((a) => a.status === "uploading");
+
+  function patch(id: string, change: Partial<Attachment>) {
+    const next = attachmentsRef.current.map((a) => (a.id === id ? { ...a, ...change } : a));
     attachmentsRef.current = next;
     setAttachments(next);
   }
 
+  async function upload(file: File, item: Attachment) {
+    const presigned = await api<{ key: string; uploadUrl: string }>("/api/journal/attachments/presign", "POST", {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+    });
+    if (!presigned.ok) return patch(item.id, { status: "error", error: presigned.error });
+    try {
+      await putFile(
+        presigned.data.uploadUrl,
+        file,
+        (progress) => patch(item.id, { progress }),
+        (xhr) => xhrs.current.set(item.id, xhr),
+      );
+      patch(item.id, { status: "done", progress: 100, key: presigned.data.key });
+    } catch (e) {
+      if ((e as Error).message !== "aborted") patch(item.id, { status: "error", error: (e as Error).message });
+    } finally {
+      xhrs.current.delete(item.id);
+    }
+  }
+
   function addFiles(files: File[]) {
-    const next = [...attachmentsRef.current];
     const errors: string[] = [];
+    const accepted: { file: File; item: Attachment }[] = [];
+    let count = attachmentsRef.current.length;
     for (const file of files) {
-      const kind = kindOf(file);
+      const kind = attachmentKind(file.type);
       if (!kind) {
         errors.push(`${file.name}: format tidak didukung.`);
-      } else if (next.length >= MAX_FILES) {
-        errors.push(`Maksimal ${MAX_FILES} lampiran.`);
+      } else if (count >= MAX_ATTACHMENTS) {
+        errors.push(`Maksimal ${MAX_ATTACHMENTS} lampiran.`);
         break;
-      } else if (file.size > (kind === "image" ? MAX_IMAGE : MAX_MEDIA)) {
-        errors.push(
-          kind === "image"
-            ? `${file.name}: foto melebihi batas 5 MB.`
-            : `${file.name}: melebihi batas 100 MB.`,
-        );
+      } else if (file.size > maxBytesFor(kind)) {
+        errors.push(kind === "image" ? `${file.name}: foto melebihi batas 5 MB.` : `${file.name}: melebihi batas 100 MB.`);
       } else {
-        next.push({
-          id: crypto.randomUUID(),
-          name: file.name,
-          size: file.size,
-          kind,
-          url: URL.createObjectURL(file),
+        count += 1;
+        accepted.push({
+          file,
+          item: {
+            id: crypto.randomUUID(),
+            name: file.name,
+            size: file.size,
+            kind,
+            previewUrl: URL.createObjectURL(file),
+            status: "uploading",
+            progress: 0,
+          },
         });
       }
     }
     setFileError(errors.join(" "));
-    updateAttachments(next);
+    if (!accepted.length) return;
+    const next = [...attachmentsRef.current, ...accepted.map((a) => a.item)];
+    attachmentsRef.current = next;
+    setAttachments(next);
+    accepted.forEach(({ file, item }) => void upload(file, item));
   }
 
   function removeAttachment(id: string) {
     const target = attachmentsRef.current.find((a) => a.id === id);
-    if (target) URL.revokeObjectURL(target.url);
+    if (!target) return;
+    xhrs.current.get(id)?.abort();
+    if (target.previewUrl.startsWith("blob:")) URL.revokeObjectURL(target.previewUrl);
+    // Berkas yang sudah terunggah tapi belum dikirim: hapus dari R2 (lampiran lama dihapus saat jurnal disimpan).
+    if (target.key && target.existingId === undefined) {
+      void api("/api/journal/attachments/delete", "POST", { key: target.key });
+    }
     setFileError("");
-    updateAttachments(attachmentsRef.current.filter((a) => a.id !== id));
+    const next = attachmentsRef.current.filter((a) => a.id !== id);
+    attachmentsRef.current = next;
+    setAttachments(next);
   }
 
-  function saveDraft() {
-    if (!setStoredValue(draftKey, text)) {
-      showToast("Draf tidak dapat disimpan di peramban ini.");
+  async function submit() {
+    const missing: Record<string, string> = {};
+    for (const q of questions) {
+      const v = answers[q.id];
+      if (v === undefined || (typeof v === "string" && !v.trim())) missing[q.id] = "Pertanyaan ini belum dijawab.";
+    }
+    setAnswerErrors(missing);
+    if (Object.keys(missing).length) {
+      showToast("Lengkapi semua pertanyaan prompt hari ini.");
       return;
     }
-    showToast("Lanjutkan kapan saja sebelum pergantian sesi.", {
-      title: "Draf Berhasil Disimpan",
-      tone: "success",
-      duration: 2000,
-    });
-  }
-
-  function submit() {
     if (words === 0) {
       setTextError(true);
       textareaRef.current?.focus();
       return;
     }
+    if (uploading) {
+      showToast("Tunggu sampai semua lampiran selesai diunggah.");
+      return;
+    }
+    if (attachments.some((a) => a.status === "error")) {
+      showToast("Ada lampiran yang gagal diunggah. Hapus lampiran tersebut lalu coba lagi.");
+      return;
+    }
     setSubmitting(true);
-    // Belum ada backend: jurnal belum dikirim ke server. Hubungkan ke API di sini.
-    setStoredValue(draftKey, null);
+    const result = await api("/api/journal/entries", "POST", {
+      content: text,
+      shared,
+      answers,
+      attachments: {
+        keep: attachments.flatMap((a) => (a.existingId !== undefined ? [a.existingId] : [])),
+        added: attachments.flatMap((a) => (a.existingId === undefined && a.key ? [{ key: a.key, name: a.name }] : [])),
+      },
+    });
+    if (!result.ok) {
+      setSubmitting(false);
+      showToast(result.error);
+      return;
+    }
     showToast("Mengarahkan kembali ke Beranda...", {
       title: "Alhamdulillah, jurnal tersimpan!",
       tone: "success",
       duration: 2200,
     });
+    router.refresh();
     redirectTimer.current = setTimeout(() => router.push("/home"), 2200);
   }
 
@@ -145,6 +250,20 @@ export function ReflectionForm({ draftKey }: { draftKey: string }) {
       }}
       className="flex flex-col"
     >
+      {questions.length > 0 && (
+        <div className="mb-4">
+          <PromptQuestions
+            questions={questions}
+            answers={answers}
+            errors={answerErrors}
+            onAnswer={(id, value) => {
+              setAnswers((a) => ({ ...a, [id]: value }));
+              setAnswerErrors((e) => ({ ...e, [id]: "" }));
+            }}
+          />
+        </div>
+      )}
+
       {/* Catatan */}
       <div className="mb-4 flex flex-col gap-1">
         <div className="flex items-center justify-between px-1">
@@ -163,7 +282,7 @@ export function ReflectionForm({ draftKey }: { draftKey: string }) {
             aria-invalid={textError}
             value={text}
             onChange={(e) => {
-              setEdited(e.target.value);
+              setText(e.target.value);
               if (textError) setTextError(false);
             }}
             placeholder="Mulai ceritakan di sini... (teks jawaban wajib)"
@@ -179,7 +298,9 @@ export function ReflectionForm({ draftKey }: { draftKey: string }) {
       <div className="mb-4 flex flex-col gap-1">
         <div className="flex items-center justify-between px-1">
           <span className="t-title-sm text-on-surface">Lampiran Kenangan (Opsional)</span>
-          <span className="t-label-sm font-normal text-text-muted">Foto 5MB · Video/Suara 100MB</span>
+          <span className="t-label-sm font-normal text-text-muted">
+            {attachments.length}/{MAX_ATTACHMENTS} · Foto 5MB · Video/Suara 100MB
+          </span>
         </div>
         <div className="flex flex-col gap-2 rounded-2xl bg-surface-container-low p-3.5">
           {attachments.map((attachment) => (
@@ -192,15 +313,15 @@ export function ReflectionForm({ draftKey }: { draftKey: string }) {
                   {attachment.kind === "image" ? (
                     <Image
                       unoptimized
-                      src={attachment.url}
+                      src={attachment.previewUrl}
                       alt="Pratinjau lampiran"
                       width={56}
                       height={56}
                       className="size-full object-cover"
                     />
-                  ) : attachment.kind === "video" ? (
+                  ) : attachment.kind === "video" && attachment.previewUrl ? (
                     <video
-                      src={`${attachment.url}#t=0.1`}
+                      src={`${attachment.previewUrl}#t=0.1`}
                       muted
                       preload="metadata"
                       className="size-full object-cover"
@@ -211,9 +332,30 @@ export function ReflectionForm({ draftKey }: { draftKey: string }) {
                 </div>
                 <div className="flex min-w-0 flex-col">
                   <span className="t-title-sm truncate text-on-surface">{attachment.name}</span>
-                  <span className="t-body-sm text-text-muted">
-                    {formatSize(attachment.size)} · Siap dilampirkan
-                  </span>
+                  {attachment.status === "uploading" ? (
+                    <div className="flex items-center gap-2">
+                      <div
+                        role="progressbar"
+                        aria-label={`Mengunggah ${attachment.name}`}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={attachment.progress}
+                        className="h-1.5 w-24 overflow-hidden rounded-full bg-surface-container-high"
+                      >
+                        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${attachment.progress}%` }} />
+                      </div>
+                      <span className="t-body-sm text-text-muted">{attachment.progress}%</span>
+                    </div>
+                  ) : attachment.status === "error" ? (
+                    <span role="alert" className="t-body-sm text-error">
+                      {attachment.error ?? "Gagal diunggah."}
+                    </span>
+                  ) : (
+                    <span className="t-body-sm text-text-muted">
+                      {attachment.size ? `${formatSize(attachment.size)} · ` : ""}
+                      {attachment.existingId !== undefined ? "Tersimpan" : "Siap dilampirkan"}
+                    </span>
+                  )}
                 </div>
               </div>
               <button
@@ -248,7 +390,7 @@ export function ReflectionForm({ draftKey }: { draftKey: string }) {
             </p>
           )}
           <p className="t-body-sm px-1 text-center text-text-muted">
-            Otomatis dikompres aman &amp; tersimpan privat dalam cloud jurnalmu.
+            Tersimpan privat di cloud jurnalmu.
           </p>
         </div>
       </div>
@@ -299,20 +441,11 @@ export function ReflectionForm({ draftKey }: { draftKey: string }) {
       <div className="flex flex-col gap-2 pt-2">
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || uploading}
           className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 text-on-primary shadow-sm transition-all duration-200 hover:bg-primary-container active:scale-[0.98] disabled:opacity-80"
         >
           <Icon name="send" size={20} filled />
-          <span className="t-title-sm tracking-wide">Simpan &amp; Kirim Jurnal</span>
-        </button>
-        <button
-          type="button"
-          onClick={saveDraft}
-          disabled={submitting}
-          className="t-label-md flex w-full items-center justify-center gap-2 rounded-full bg-surface-container px-6 py-3.5 text-tertiary transition-all duration-200 hover:bg-surface-container-high active:scale-[0.99]"
-        >
-          <Icon name="bookmark" size={18} />
-          <span>Simpan Draf Saja</span>
+          <span className="t-title-sm tracking-wide">{submitting ? "Menyimpan..." : uploading ? "Mengunggah lampiran..." : initial ? "Perbarui Jurnal" : "Simpan & Kirim Jurnal"}</span>
         </button>
       </div>
     </form>

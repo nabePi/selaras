@@ -1,0 +1,1 @@
+ALTER TABLE "PromptResponse" ALTER COLUMN "updatedAt" DROP DEFAULT;

@@ -4,59 +4,40 @@ import Link from "next/link";
 import { EntryAudio } from "@/components/entry-audio";
 import { EntryVideo } from "@/components/entry-video";
 import { Icon } from "@/components/icon";
+import { JournalTodayCard } from "@/components/journal-today-card";
 import { MonthCalendar } from "@/components/month-calendar";
-import {
-  JOURNAL_ENTRIES,
-  PENDING_REFLECTION as P,
-  type JournalEntry,
-} from "@/data/member";
+import { formatDateId } from "@/data/admin-prompts";
+import type { MemberEntry } from "@/lib/journal-types";
+import { requireMemberPage } from "@/lib/server/session";
+import { todayWib } from "@/lib/server/time";
+import { getPromptForDate } from "@/server/admin/prompts";
+import { listEntries } from "@/server/member/journal";
 
 export const metadata: Metadata = { title: "Journal" };
 
-export default function JournalPage() {
+export default async function JournalPage() {
+  const user = await requireMemberPage();
+  const today = todayWib();
+  const [prompt, entries] = await Promise.all([getPromptForDate(today), listEntries(user.id)]);
+
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="mt-1 flex items-center gap-2">
         <Icon name="auto_stories" size={20} className="text-primary" />
         <h1 className="t-headline-sm text-on-surface">Jurnal Refleksi</h1>
       </div>
-      <WriteCard />
-      <MonthCalendar />
-      <Feed />
+      <JournalTodayCard
+        prompt={prompt}
+        written={entries.some((e) => e.date === today)}
+        todayLabel={formatDateId(today)}
+      />
+      <MonthCalendar entries={entries} today={today} />
+      <Feed entries={entries} />
     </div>
   );
 }
 
-function WriteCard() {
-  return (
-    <div className="flex flex-col gap-4 rounded-4xl bg-surface-container-low p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <span className="size-2.5 animate-pulse rounded-full bg-accent-coral" />
-          <span className="t-label-sm font-semibold tracking-wider text-secondary uppercase">
-            Sesi {P.session} • Hari ke-{P.day} (Tertunda)
-          </span>
-        </div>
-        <span className="t-label-sm rounded-full bg-surface-container-highest px-2.5 py-0.5 font-medium text-tertiary">
-          ~{P.minutes} Menit
-        </span>
-      </div>
-      <div className="flex flex-col gap-2">
-        <h2 className="t-headline-sm leading-snug text-on-surface">{P.teaser}</h2>
-        <p className="t-body-sm text-text-muted">{P.teaserNote}</p>
-      </div>
-      <Link
-        href="/journal/tulis"
-        className="t-title-sm flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 tracking-wide text-on-primary shadow-md transition-all hover:bg-primary-container active:scale-[0.99]"
-      >
-        <span>Tulis Jurnal Sekarang</span>
-        <Icon name="arrow_forward" size={18} />
-      </Link>
-    </div>
-  );
-}
-
-function Feed() {
+function Feed({ entries }: { entries: MemberEntry[] }) {
   return (
     <>
       <div className="flex items-center justify-between pt-1">
@@ -65,58 +46,53 @@ function Feed() {
           <h2 className="t-headline-sm text-on-surface">Riwayat Refleksi</h2>
         </div>
         <span className="t-label-sm rounded-full bg-surface-container-low px-2 py-0.5 font-normal text-text-muted">
-          {JOURNAL_ENTRIES.length} Entri Tersimpan
+          {entries.length} Entri Tersimpan
         </span>
       </div>
-      {JOURNAL_ENTRIES.map((e) => (
+      {entries.length === 0 && (
+        <p className="t-body-md rounded-2xl bg-surface-container-lowest p-4 text-text-muted shadow-sm">
+          Belum ada jurnal. Tulis jurnal pertamamu hari ini.
+        </p>
+      )}
+      {entries.map((e) => (
         <EntryCard key={e.id} entry={e} />
       ))}
     </>
   );
 }
 
-function EntryCard({ entry: e }: { entry: JournalEntry }) {
+function EntryCard({ entry: e }: { entry: MemberEntry }) {
   return (
     <article className="flex w-full flex-col gap-2 rounded-2xl bg-surface-container-lowest p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="t-body-sm text-text-muted">{e.dateLabel}</span>
-        <span
-          aria-label={`Perasaan: ${e.feeling.label}`}
-          className="t-label-sm inline-flex items-center gap-1.5 rounded-full bg-secondary-container/55 px-2.5 py-1 font-medium text-on-secondary-container"
-        >
-          <span aria-hidden="true" className="text-base leading-none">
-            {e.feeling.emoji}
+        {e.feeling && (
+          <span
+            aria-label={`Perasaan: ${e.feeling.label}`}
+            className="t-label-sm inline-flex items-center gap-1.5 rounded-full bg-secondary-container/55 px-2.5 py-1 font-medium text-on-secondary-container"
+          >
+            <span aria-hidden="true" className="text-base leading-none">
+              {e.feeling.emoji}
+            </span>
+            {e.feeling.label}
           </span>
-          {e.feeling.label}
-        </span>
+        )}
       </div>
 
       <div className="flex flex-col gap-1">
         <span className="t-label-sm font-semibold tracking-wider text-primary uppercase">
-          Prompt Harian
+          {e.promptTitle ? "Prompt Harian" : "Tanpa Prompt"}
         </span>
-        <h3 className="t-quote leading-snug text-on-surface">“{e.prompt}”</h3>
+        <h3 className="t-quote leading-snug text-on-surface">
+          {e.promptTitle ? `“${e.promptTitle}”` : "Jurnal Bebas"}
+        </h3>
       </div>
 
       <p className="t-body-md line-clamp-2 text-on-surface-variant">{e.excerpt}</p>
 
-      {e.photo && (
-        <div className="relative h-36 w-full overflow-hidden rounded-xl shadow-inner">
-          <Image
-            src={e.photo.src}
-            alt={e.photo.alt}
-            fill
-            sizes="(max-width: 480px) 100vw, 400px"
-            className="object-cover"
-          />
-          <div className="t-label-sm absolute bottom-2 left-2 flex items-center gap-1 rounded-lg bg-inverse-surface/70 px-2 py-1 text-inverse-on-surface backdrop-blur-sm">
-            <Icon name="photo_camera" size={14} />
-            <span>{e.photo.caption}</span>
-          </div>
-        </div>
-      )}
-      {e.video && <EntryVideo {...e.video} compact />}
-      {e.audio && <EntryAudio title={e.audio.title} meta={e.audio.meta} />}
+      {e.attachments.map((a) => (
+        <Attachment key={a.id ?? `${a.kind}-${a.title}`} attachment={a} />
+      ))}
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-surface-container-low pt-2">
         {e.shared ? (
@@ -141,4 +117,15 @@ function EntryCard({ entry: e }: { entry: JournalEntry }) {
       </div>
     </article>
   );
+}
+
+function Attachment({ attachment: a }: { attachment: MemberEntry["attachments"][number] }) {
+  if (a.kind === "image")
+    return (
+      <div className="relative h-36 w-full overflow-hidden rounded-xl shadow-inner">
+        <Image unoptimized={!a.src.startsWith("/")} src={a.src} alt={a.title} fill sizes="(max-width: 480px) 100vw, 400px" className="object-cover" />
+      </div>
+    );
+  if (a.kind === "video") return <EntryVideo src={a.src} poster={a.poster} title={a.title} compact />;
+  return <EntryAudio title={a.title} meta={a.meta} src={a.src} />;
 }

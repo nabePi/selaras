@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import {
-  CALENDAR_START,
-  CALENDAR_STATUS,
-  JOURNAL_ENTRIES,
-  type DayStatus,
-  type JournalEntry,
-} from "@/data/member";
+import type { MemberEntry } from "@/lib/journal-types";
 import { Icon } from "./icon";
 import { JournalEntryDialog } from "./journal-entry-dialog";
 
@@ -17,8 +11,6 @@ const MONTHS = [
   "Juli", "Agustus", "September", "Oktober", "November", "Desember",
 ];
 const WEEKDAYS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
-
-const ENTRY_BY_DATE = new Map(JOURNAL_ENTRIES.map((e) => [e.date, e]));
 
 type Cell = { iso: string; day: number; inMonth: boolean };
 
@@ -43,6 +35,8 @@ function buildCells(year: number, month: number): Cell[] {
   });
 }
 
+type DayStatus = "done" | "pending" | "upcoming" | "past";
+
 const CELL = "flex h-10 flex-col items-center justify-center rounded-xl";
 
 function DayCell({
@@ -56,7 +50,7 @@ function DayCell({
 }) {
   const date = `${cell.day} ${MONTHS[Number(cell.iso.slice(5, 7)) - 1]}`;
 
-  if (!cell.inMonth || !status) {
+  if (!cell.inMonth || status === "past") {
     return (
       <span className={`${CELL} t-body-sm text-text-muted/40`}>{cell.day}</span>
     );
@@ -90,22 +84,12 @@ function DayCell({
       return (
         <Link
           href="/journal/tulis"
-          aria-label={`${date}, tertunda. Lunasi sekarang`}
+          aria-label={`${date}, hari ini. Tulis jurnal`}
           className={`${CELL} t-title-sm animate-pulse bg-secondary-container text-on-secondary-container shadow-sm`}
         >
           <span>{cell.day}</span>
-          <Icon name="hourglass_top" size={11} />
+          <Icon name="edit" size={11} />
         </Link>
-      );
-    case "locked":
-      return (
-        <span
-          aria-label={`${date}, terkunci sampai hari sebelumnya tuntas`}
-          className={`${CELL} t-title-sm bg-surface-container-high text-tertiary`}
-        >
-          <span>{cell.day}</span>
-          <Icon name="lock" size={10} />
-        </span>
       );
     case "upcoming":
       return (
@@ -119,9 +103,10 @@ function DayCell({
   }
 }
 
-export function MonthCalendar() {
-  const [view, setView] = useState(CALENDAR_START);
-  const [selected, setSelected] = useState<JournalEntry | null>(null);
+export function MonthCalendar({ entries, today }: { entries: MemberEntry[]; today: string }) {
+  const [view, setView] = useState({ year: Number(today.slice(0, 4)), month: Number(today.slice(5, 7)) - 1 });
+  const [selected, setSelected] = useState<MemberEntry | null>(null);
+  const entryByDate = new Map(entries.map((e) => [e.date, e]));
 
   function shift(delta: number) {
     setView(({ year, month }) => {
@@ -174,12 +159,19 @@ export function MonthCalendar() {
 
       <div className="grid grid-cols-7 gap-1.5 text-center">
         {cells.map((c) => {
-          const entry = ENTRY_BY_DATE.get(c.iso);
+          const entry = entryByDate.get(c.iso);
+          const status: DayStatus = entry
+            ? "done"
+            : c.iso === today
+              ? "pending"
+              : c.iso > today
+                ? "upcoming"
+                : "past";
           return (
             <DayCell
               key={c.iso}
               cell={c}
-              status={CALENDAR_STATUS[c.iso]}
+              status={status}
               onOpen={entry ? () => setSelected(entry) : undefined}
             />
           );
@@ -193,11 +185,11 @@ export function MonthCalendar() {
         </li>
         <li className="flex items-center gap-1.5">
           <span className="size-2.5 rounded-full bg-accent-coral" />
-          Tertunda (Pelunasan)
+          Hari Ini (Belum Diisi)
         </li>
         <li className="flex items-center gap-1.5">
           <span className="size-2.5 rounded-full bg-canvas-sand" />
-          Belum Waktunya / Terkunci
+          Belum Waktunya
         </li>
       </ul>
 

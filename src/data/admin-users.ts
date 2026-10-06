@@ -1,9 +1,8 @@
 import { MEMBER } from "@/data/member";
 
 /**
- * Data contoh pengguna untuk halaman admin Users. Ganti dengan API.
- * Baris `current` adalah akun di /profil: nama, foto, dan keahliannya dibaca dari
- * penyimpanan peramban sehingga ikut berubah saat profil diedit.
+ * Tipe pengguna untuk halaman admin Users. `ADMIN_USERS` hanyalah data contoh yang dipakai
+ * `prisma/seed.ts`; halaman admin membaca dari database.
  */
 export type AdminUser = {
   id: string;
@@ -12,9 +11,10 @@ export type AdminUser = {
   whatsapp: string;
   email: string;
   skills: string[];
+  /** Kegiatan sehari-hari / kesibukan dari profil peserta. */
+  activities?: string;
   joined: string;
   status: "active" | "pending";
-  current?: boolean;
 };
 
 export const ADMIN_USERS: AdminUser[] = [
@@ -27,7 +27,6 @@ export const ADMIN_USERS: AdminUser[] = [
     skills: [],
     joined: "2026-09-24",
     status: "active",
-    current: true,
   },
   {
     id: "U-002",

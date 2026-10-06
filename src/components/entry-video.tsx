@@ -2,7 +2,7 @@ import { Icon } from "./icon";
 
 type Props = {
   src: string;
-  poster: string;
+  poster?: string;
   title: string;
   compact?: boolean;
 };
@@ -12,7 +12,7 @@ export function EntryVideo({ src, poster, title, compact = false }: Props) {
     <div className="relative overflow-hidden rounded-xl bg-inverse-surface shadow-inner">
       <video
         src={src}
-        poster={poster}
+        poster={poster || undefined}
         controls
         muted
         playsInline

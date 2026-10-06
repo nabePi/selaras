@@ -1,0 +1,1 @@
+ALTER TABLE "User" ADD COLUMN "activities" TEXT NOT NULL DEFAULT '';

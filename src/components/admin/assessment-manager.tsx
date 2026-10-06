@@ -7,14 +7,13 @@ import { formatDateId } from "@/data/admin-prompts";
 import {
   ASSESSMENT_KINDS,
   ASSESSMENT_PARTS,
-  ASSESSMENT_SETS,
   scoreBand,
   type AssessmentItem,
   type AssessmentKind,
   type AssessmentPart,
 } from "@/data/assessment";
 import type { AssessmentResponse } from "@/data/assessment-responses";
-import { deleteAssessmentItem, saveAssessmentItem } from "@/lib/admin-actions";
+import { deleteAssessmentItem, saveAssessmentItem, setAssessmentVisibility } from "@/lib/admin-actions";
 import { Dialog, DialogActions, FieldLabel, fieldClass } from "../dialog";
 import { Icon } from "../icon";
 import { useToast } from "../toast-provider";
@@ -25,19 +24,25 @@ const PARTS: AssessmentPart[] = ["mindset", "habit"];
 
 export function AssessmentManager({
   kind,
+  items: initialItems,
   responses,
+  visible: initialVisible,
 }: {
   kind: AssessmentKind;
+  items: AssessmentItem[];
   responses: AssessmentResponse[];
+  visible: boolean;
 }) {
   const { showToast } = useToast();
   const meta = ASSESSMENT_KINDS[kind];
   const [tab, setTab] = useState<Tab>("soal");
-  const [items, setItems] = useState<AssessmentItem[]>(ASSESSMENT_SETS[kind]);
+  const [items, setItems] = useState<AssessmentItem[]>(initialItems);
   // `null` = dialog tertutup; `{}` tanpa id = soal baru.
   const [editing, setEditing] = useState<Partial<AssessmentItem> | null>(null);
   const [deleting, setDeleting] = useState<AssessmentItem | null>(null);
   const [busy, setBusy] = useState(false);
+  const [visible, setVisible] = useState(initialVisible);
+  const [togglingVisible, setTogglingVisible] = useState(false);
 
   const done = responses.filter((r) => r.answeredAt).length;
 
@@ -47,17 +52,30 @@ export function AssessmentManager({
       ...values,
     });
     if (!result.ok) return showToast(result.error);
+    const saved = result.data;
     if (editing?.id) {
-      setItems((list) =>
-        list.map((it) => (it.id === editing.id ? { ...it, ...values } : it)),
-      );
+      setItems((list) => list.map((it) => (it.id === saved.id ? saved : it)));
       showToast("Soal berhasil diperbarui.", { tone: "success" });
     } else {
-      const id = `${values.part === "mindset" ? "m" : "h"}${Date.now().toString(36)}`;
-      setItems((list) => [...list, { id, ...values }]);
+      setItems((list) => [...list, saved]);
       showToast(`Soal baru ditambahkan ke ${meta.title}.`, { tone: "success" });
     }
     setEditing(null);
+  }
+
+  async function toggleVisible() {
+    const next = !visible;
+    setTogglingVisible(true);
+    const result = await setAssessmentVisibility(kind, next);
+    setTogglingVisible(false);
+    if (!result.ok) return showToast(result.error);
+    setVisible(next);
+    showToast(
+      next
+        ? `${meta.title} sekarang tampil di halaman Home peserta.`
+        : `${meta.title} disembunyikan dari peserta.`,
+      { tone: "success" },
+    );
   }
 
   async function confirmDelete() {
@@ -92,6 +110,43 @@ export function AssessmentManager({
           )
         }
       />
+
+      {kind === "post" && (
+        <section className="flex items-center justify-between gap-4 rounded-3xl bg-canvas-ivory p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-sage-tint text-primary">
+              <Icon name={visible ? "visibility" : "visibility_off"} size={20} />
+            </span>
+            <div>
+              <h2 id="visible-label" className="t-title-sm text-on-surface">
+                Tampilkan ke peserta
+              </h2>
+              <p className={`t-body-sm ${visible ? "font-medium text-primary" : "text-text-muted"}`}>
+                {visible
+                  ? "Aktif · section Post Assessment tampil di Home peserta yang belum mengisi."
+                  : "Nonaktif · peserta belum melihat Post Assessment."}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={visible}
+            aria-labelledby="visible-label"
+            disabled={togglingVisible}
+            onClick={toggleVisible}
+            className={`relative h-7 w-12 shrink-0 rounded-full p-0.5 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60 ${
+              visible ? "bg-primary" : "bg-canvas-sand"
+            }`}
+          >
+            <span
+              className={`block size-6 rounded-full bg-surface-container-lowest shadow-sm transition-transform duration-300 ${
+                visible ? "translate-x-5" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </section>
+      )}
 
       <div role="tablist" aria-label="Bagian halaman" className="flex gap-2">
         {(

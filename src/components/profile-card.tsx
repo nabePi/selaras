@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { MEMBER } from "@/data/member";
-import { PROFILE_AVATAR_KEY, PROFILE_NAME_KEY } from "@/lib/profile-storage";
-import { setStoredValue, useStoredValue } from "@/lib/stored-value";
+import { api } from "@/lib/api-client";
+import type { Profile } from "@/server/member/profile";
 import { Dialog, DialogActions, FieldLabel, fieldClass } from "./dialog";
 import { Icon } from "./icon";
 import { useToast } from "./toast-provider";
@@ -57,16 +57,48 @@ async function prepareAvatar(file: File) {
   return canvas.toDataURL("image/webp", 0.84);
 }
 
-export function ProfileCard() {
-  const { showToast } = useToast();
-  const storedName = useStoredValue(PROFILE_NAME_KEY);
-  const storedAvatar = useStoredValue(PROFILE_AVATAR_KEY);
-  const fullName = storedName ?? MEMBER.fullName;
-  const avatar = storedAvatar ?? MEMBER.avatar;
+const initialsOf = (name: string) =>
+  name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
 
+function Avatar({ src, name, size, className }: { src: string | null; name: string; size: number; className: string }) {
+  if (src) {
+    return (
+      <Image
+        unoptimized={src.startsWith("data:")}
+        src={src}
+        alt={`Foto profil ${name}`}
+        width={size}
+        height={size}
+        className={`size-full rounded-full object-cover ${className}`}
+      />
+    );
+  }
+  return (
+    <span
+      role="img"
+      aria-label={`Foto profil ${name}`}
+      className="t-headline-md flex size-full items-center justify-center rounded-full bg-sage-tint text-primary"
+    >
+      {initialsOf(name)}
+    </span>
+  );
+}
+
+export function ProfileCard({ profile }: { profile: Profile }) {
+  const router = useRouter();
+  const { showToast } = useToast();
+  const fullName = profile.name;
+  const avatar = profile.avatar;
+
+  const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(fullName);
-  const [draftAvatar, setDraftAvatar] = useState(avatar);
+  const [draftAvatar, setDraftAvatar] = useState<string | null>(avatar);
   const [nameError, setNameError] = useState("");
   const [photoError, setPhotoError] = useState("");
   const [processingPhoto, setProcessingPhoto] = useState(false);
@@ -103,7 +135,7 @@ export function ProfileCard() {
     }
   }
 
-  function saveProfile() {
+  async function saveProfile() {
     const nextName = draftName.trim().replace(/\s+/g, " ");
     if (nextName.length < 2) {
       setNameError("Nama lengkap minimal 2 karakter.");
@@ -116,18 +148,21 @@ export function ProfileCard() {
       return;
     }
 
-    const nameSaved = setStoredValue(PROFILE_NAME_KEY, nextName);
-    const avatarSaved =
-      draftAvatar === avatar || setStoredValue(PROFILE_AVATAR_KEY, draftAvatar);
-
-    if (!nameSaved || !avatarSaved) {
-      setStoredValue(PROFILE_NAME_KEY, storedName);
-      setStoredValue(PROFILE_AVATAR_KEY, storedAvatar);
-      showToast("Perubahan tidak dapat disimpan di peramban ini.");
+    setSaving(true);
+    const result = await api<Profile>("/api/profile", "PATCH", {
+      name: nextName,
+      ...(draftAvatar && draftAvatar !== avatar ? { avatar: draftAvatar } : {}),
+    });
+    setSaving(false);
+    if (!result.ok) {
+      if (result.fields?.name) setNameError(result.fields.name);
+      else if (result.fields?.avatar) setPhotoError(result.fields.avatar);
+      showToast(result.error);
       return;
     }
 
     setEditing(false);
+    router.refresh();
     showToast("Nama dan foto profil Anda sudah diperbarui.", {
       title: "Profil berhasil disimpan",
       tone: "success",
@@ -141,14 +176,7 @@ export function ProfileCard() {
         <div className="relative z-10 flex flex-col items-center text-center">
           <div className="relative mb-2">
             <div className="flex size-20 items-center justify-center rounded-full bg-surface-bright p-1 shadow-sm">
-              <Image
-                unoptimized={avatar.startsWith("data:")}
-                src={avatar}
-                alt={`Foto profil ${fullName}`}
-                width={72}
-                height={72}
-                className="size-full rounded-full object-cover"
-              />
+              <Avatar src={avatar} name={fullName} size={72} className="" />
             </div>
             <button
               type="button"
@@ -163,11 +191,11 @@ export function ProfileCard() {
           <div className="mt-3 flex w-full flex-col gap-1.5">
             <div className="t-body-sm flex items-center justify-center gap-1.5 text-text-muted">
               <Icon name="chat" size={15} />
-              {MEMBER.whatsapp}
+              {profile.whatsapp}
             </div>
             <div className="t-body-sm flex items-center justify-center gap-1.5 text-text-muted">
               <Icon name="mail" size={15} />
-              {MEMBER.email}
+              {profile.email}
             </div>
           </div>
           <button
@@ -198,14 +226,7 @@ export function ProfileCard() {
         >
           <div className="flex flex-col items-center gap-3">
             <div className="relative size-24 overflow-hidden rounded-full bg-surface-container p-1 shadow-sm">
-              <Image
-                unoptimized={draftAvatar.startsWith("data:")}
-                src={draftAvatar}
-                alt="Pratinjau foto profil"
-                width={88}
-                height={88}
-                className="size-full rounded-full object-cover"
-              />
+              <Avatar src={draftAvatar} name={fullName} size={88} className="" />
             </div>
             <label className="t-title-sm flex cursor-pointer items-center gap-1.5 rounded-full bg-sage-tint px-4 py-2 text-primary transition-colors hover:bg-primary-fixed focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
               <input
@@ -260,7 +281,7 @@ export function ProfileCard() {
           <DialogActions
             onCancel={() => setEditing(false)}
             submitLabel="Simpan Perubahan"
-            submitting={processingPhoto}
+            submitting={processingPhoto || saving}
           />
         </form>
       </Dialog>

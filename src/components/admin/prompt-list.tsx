@@ -1,18 +1,18 @@
 import Link from "next/link";
 import { formatDateId } from "@/data/admin-prompts";
-import { JOURNAL_PROMPTS, PROMPT_STATUS, QUESTION_TYPES, isEditable } from "@/data/journal-prompts";
+import { PROMPT_STATUS, QUESTION_TYPES, isEditable, type JournalPrompt } from "@/data/journal-prompts";
 import { Icon } from "../icon";
 import { PageHeader, btnPrimary } from "./page-header";
 
 const TYPE_BY_VALUE = Object.fromEntries(QUESTION_TYPES.map((t) => [t.value, t]));
 
-export function PromptList() {
+export function PromptList({ prompts }: { prompts: JournalPrompt[] }) {
   return (
     <div className="mx-auto w-full max-w-[1720px] space-y-8 px-4 py-8 sm:px-8 lg:p-10">
       <PageHeader
         pill="Prompt Jurnal"
         pulse={false}
-        meta={`${JOURNAL_PROMPTS.length} prompt`}
+        meta={`${prompts.length} prompt`}
         title="Kelola Prompt Jurnal"
         description="Prompt yang muncul di halaman tulis jurnal peserta sesuai tanggal yang dijadwalkan."
         actions={
@@ -37,7 +37,7 @@ export function PromptList() {
               </tr>
             </thead>
             <tbody className="t-body-md divide-y divide-surface-container">
-              {JOURNAL_PROMPTS.map((p) => {
+              {prompts.map((p) => {
                 const status = PROMPT_STATUS[p.status];
                 return (
                   <tr key={p.id} className="align-top">

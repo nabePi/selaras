@@ -3,20 +3,24 @@ import { JOURNAL_FEELINGS } from "@/data/member";
 import type { JournalPrompt, QuestionType } from "@/data/journal-prompts";
 
 /**
- * Data contoh jawaban peserta per prompt. Static dan deterministik: ganti dengan API.
+ * Tipe jawaban peserta per prompt. Fungsi `getPromptResponses` di bawah hanyalah generator data
+ * contoh yang dipakai `prisma/seed.ts`; halaman admin membaca dari database.
  * Peserta = pengguna berstatus aktif.
  */
 export type ResponseAnswer = {
+  /** id pertanyaan pada prompt (PromptQuestion.id). */
+  questionId?: string;
   label: string;
   type: QuestionType;
   value: string;
 };
 
 /** Lampiran yang diunggah peserta di jurnal. Static: video memakai berkas contoh. */
-export type ResponseAttachment =
+export type ResponseAttachment = { id?: number } & (
   | { kind: "image"; title: string; src: string }
-  | { kind: "audio"; title: string; meta: string }
-  | { kind: "video"; title: string; src: string; poster: string };
+  | { kind: "audio"; title: string; meta: string; src?: string }
+  | { kind: "video"; title: string; src: string; poster: string }
+);
 
 export type PromptResponse = {
   userId: string;
