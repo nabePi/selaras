@@ -3,6 +3,7 @@ import { cache } from "react";
 import type { Prisma } from "@/generated/prisma/client";
 import type { JournalPrompt, PromptQuestion, PromptStatus, QuestionType } from "@/data/journal-prompts";
 import type { PromptResponse, ResponseAnswer } from "@/data/prompt-responses";
+import { avatarSrc } from "@/server/avatar";
 import { toAttachmentDtos } from "@/server/member/attachments";
 import { db } from "@/lib/db";
 import { promptCode, userCode } from "@/lib/codes";
@@ -177,7 +178,7 @@ async function toResponse(
   prompt: JournalPrompt,
   row: ResponseRow | undefined,
 ): Promise<PromptResponse> {
-  const base = { userId: userCode.format(user.id), name: user.name, avatar: user.avatarUrl ?? undefined };
+  const base = { userId: userCode.format(user.id), name: user.name, avatar: await avatarSrc(user.avatarUrl) };
   if (!row) return { ...base, answeredAt: null, answers: [], attachments: [] };
 
   // Entri yang tidak dibagikan ke coach: teks tidak boleh terbaca admin (jawaban skala/pilihan/mood

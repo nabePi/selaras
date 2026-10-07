@@ -47,6 +47,7 @@ export default async function ResponseDetailPage({ params }: { params: Params })
       <header className="flex max-w-3xl items-center gap-4">
         {response.avatar ? (
           <Image
+            unoptimized={!response.avatar.startsWith("/")}
             src={response.avatar}
             alt=""
             width={56}

@@ -124,6 +124,7 @@ export function PromptStats({
                     <div className="flex items-center gap-3">
                       {r.avatar ? (
                         <Image
+                          unoptimized={!r.avatar.startsWith("/")}
                           src={r.avatar}
                           alt=""
                           width={36}

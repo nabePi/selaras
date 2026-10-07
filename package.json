@@ -17,6 +17,7 @@
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
     "r2:cors": "tsx scripts/r2-cors.ts",
+    "avatars:migrate": "tsx scripts/migrate-avatars-to-r2.ts",
     "hash-password": "tsx scripts/hash-password.ts"
   },
   "dependencies": {

@@ -438,6 +438,7 @@ export async function InsightDashboard() {
                       <div className="flex items-center gap-3">
                         {p.avatar ? (
                           <Image
+                            unoptimized={!p.avatar.startsWith("/")}
                             src={p.avatar}
                             alt=""
                             width={36}

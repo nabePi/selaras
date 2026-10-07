@@ -193,3 +193,12 @@ Versi dan `CHANGELOG.md` dibuat otomatis oleh [release-please](https://github.co
 
 Contoh: `feat: tambah filter prompt jurnal`, `fix(auth): perbaiki redirect setelah login`.
 Repo ini di-merge dengan merge commit, jadi **setiap commit di dalam PR** ikut dibaca; bila memakai squash merge, **judul PR** yang dibaca.
+
+## Foto profil di R2
+
+Foto profil disimpan di R2 (`avatars/<userId>/…`); kolom `User.avatarUrl` berisi key-nya. Foto lama yang masih berupa data URL di database tetap tampil, dan bisa dipindahkan per lingkungan:
+
+```bash
+npm run avatars:migrate            # dry-run: hanya melaporkan
+npm run avatars:migrate -- --apply # unggah ke R2 dan perbarui database
+```

@@ -12,6 +12,7 @@ import { useToast } from "./toast-provider";
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 const AVATAR_SIZE = 512;
+const AVATAR_TYPE = "image/webp";
 
 function loadImage(file: File) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -30,7 +31,8 @@ function loadImage(file: File) {
   });
 }
 
-async function prepareAvatar(file: File) {
+/** Foto dipotong persegi 512px dan dikonversi ke WebP: `preview` untuk tampilan, `blob` untuk diunggah ke R2. */
+async function prepareAvatar(file: File): Promise<{ preview: string; blob: Blob }> {
   const image = await loadImage(file);
   const canvas = document.createElement("canvas");
   canvas.width = AVATAR_SIZE;
@@ -55,7 +57,25 @@ async function prepareAvatar(file: File) {
     AVATAR_SIZE,
   );
 
-  return canvas.toDataURL("image/webp", 0.84);
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, AVATAR_TYPE, 0.84));
+  if (!blob) throw new Error("Foto tidak dapat diproses.");
+  return { preview: URL.createObjectURL(blob), blob };
+}
+
+/** Mengunggah foto ke R2 lewat URL bertanda tangan; mengembalikan key objek. */
+async function uploadAvatar(blob: Blob): Promise<{ ok: true; key: string } | { ok: false; error: string }> {
+  const presigned = await api<{ key: string; uploadUrl: string }>("/api/profile/avatar/presign", "POST", {
+    type: AVATAR_TYPE,
+    size: blob.size,
+  });
+  if (!presigned.ok) return presigned;
+  try {
+    const res = await fetch(presigned.data.uploadUrl, { method: "PUT", headers: { "Content-Type": AVATAR_TYPE }, body: blob });
+    if (!res.ok) return { ok: false, error: "Unggahan foto ditolak server." };
+  } catch {
+    return { ok: false, error: "Gagal mengunggah foto. Periksa koneksi internetmu." };
+  }
+  return { ok: true, key: presigned.data.key };
 }
 
 const initialsOf = (name: string) =>
@@ -70,7 +90,7 @@ function Avatar({ src, name, size, className }: { src: string | null; name: stri
   if (src) {
     return (
       <Image
-        unoptimized={src.startsWith("data:")}
+        unoptimized={!src.startsWith("/")}
         src={src}
         alt={`Foto profil ${name}`}
         width={size}
@@ -100,6 +120,7 @@ export function ProfileCard({ profile }: { profile: Profile }) {
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(fullName);
   const [draftAvatar, setDraftAvatar] = useState<string | null>(avatar);
+  const [draftBlob, setDraftBlob] = useState<Blob | null>(null);
   const [draftEmail, setDraftEmail] = useState(profile.email ?? "");
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -110,6 +131,7 @@ export function ProfileCard({ profile }: { profile: Profile }) {
   function openEditor() {
     setDraftName(fullName);
     setDraftAvatar(avatar);
+    setDraftBlob(null);
     setDraftEmail(profile.email ?? "");
     setEmailError("");
     setNameError("");
@@ -132,7 +154,12 @@ export function ProfileCard({ profile }: { profile: Profile }) {
 
     setProcessingPhoto(true);
     try {
-      setDraftAvatar(await prepareAvatar(file));
+      const prepared = await prepareAvatar(file);
+      setDraftAvatar((prev) => {
+        if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+        return prepared.preview;
+      });
+      setDraftBlob(prepared.blob);
     } catch {
       setPhotoError("Foto tidak dapat dibaca. Coba pilih foto lain.");
     } finally {
@@ -160,10 +187,21 @@ export function ProfileCard({ profile }: { profile: Profile }) {
     }
 
     setSaving(true);
+    let avatarKey: string | undefined;
+    if (draftBlob) {
+      const uploaded = await uploadAvatar(draftBlob);
+      if (!uploaded.ok) {
+        setSaving(false);
+        setPhotoError(uploaded.error);
+        showToast(uploaded.error);
+        return;
+      }
+      avatarKey = uploaded.key;
+    }
     const result = await api<Profile>("/api/profile", "PATCH", {
       name: nextName,
       email: nextEmail,
-      ...(draftAvatar && draftAvatar !== avatar ? { avatar: draftAvatar } : {}),
+      ...(avatarKey ? { avatarKey } : {}),
     });
     setSaving(false);
     if (!result.ok) {
@@ -175,6 +213,7 @@ export function ProfileCard({ profile }: { profile: Profile }) {
     }
 
     setEditing(false);
+    setDraftBlob(null);
     router.refresh();
     showToast("Data profil Anda sudah diperbarui.", {
       title: "Profil berhasil disimpan",
