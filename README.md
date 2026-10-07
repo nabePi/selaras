@@ -174,3 +174,22 @@ npm run hash-password -- 'passwordAdmin'   # cetak hash scrypt
 INSERT INTO "User" ("name","email","whatsapp","passwordHash","role","status","skills","activatedAt","updatedAt")
 VALUES ('Nama Admin','admin@domain.com','-','<hash dari langkah di atas>','ADMIN','ACTIVE','{}',NOW(),NOW());
 ```
+
+## Commit & PR (rilis otomatis)
+
+Versi dan `CHANGELOG.md` dibuat otomatis oleh [release-please](https://github.com/googleapis/release-please-action) dari pesan commit, jadi **judul PR dan pesan commit wajib berformat [Conventional Commits](https://www.conventionalcommits.org/)**. CI (`lint-commits`) menolak yang tidak sesuai.
+
+```
+<type>(<scope opsional>): <ringkasan singkat>
+```
+
+| type | efek | tampil di CHANGELOG |
+| --- | --- | --- |
+| `feat` | versi minor | Fitur Baru |
+| `fix` | versi patch | Perbaikan Bug |
+| `perf`, `refactor`, `docs` | patch | Performa / Perapian Kode / Dokumentasi |
+| `build`, `ci`, `chore`, `style`, `test` | tidak menaikkan versi | disembunyikan |
+| `feat!:` / `fix!:` atau footer `BREAKING CHANGE:` | versi major | ditandai breaking |
+
+Contoh: `feat: tambah filter prompt jurnal`, `fix(auth): perbaiki redirect setelah login`.
+Repo ini di-merge dengan merge commit, jadi **setiap commit di dalam PR** ikut dibaca; bila memakai squash merge, **judul PR** yang dibaca.

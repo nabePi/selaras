@@ -5,7 +5,19 @@
       "release-type": "node",
       "package-name": "selaras",
       "include-component-in-tag": false,
-      "changelog-path": "CHANGELOG.md"
+      "changelog-path": "CHANGELOG.md",
+      "changelog-sections": [
+        { "type": "feat", "section": "Fitur Baru" },
+        { "type": "fix", "section": "Perbaikan Bug" },
+        { "type": "perf", "section": "Performa" },
+        { "type": "refactor", "section": "Perapian Kode" },
+        { "type": "docs", "section": "Dokumentasi" },
+        { "type": "build", "section": "Build & Dependensi", "hidden": true },
+        { "type": "ci", "section": "CI", "hidden": true },
+        { "type": "chore", "section": "Lain-lain", "hidden": true },
+        { "type": "style", "section": "Gaya Kode", "hidden": true },
+        { "type": "test", "section": "Pengujian", "hidden": true }
+      ]
     }
   }
 }
