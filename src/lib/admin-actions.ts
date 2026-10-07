@@ -38,6 +38,10 @@ export type PromptPayload = {
   questions: Pick<PromptQuestion, "type" | "label" | "options">[];
 };
 
+/** Menghapus prompt beserta semua jawaban pesertanya (tidak bisa dibatalkan). */
+export const deletePromptJurnal = (id: string) =>
+  api<{ deletedResponses: number }>(`/api/admin/prompts/${id}`, "DELETE");
+
 /** Tanpa `id` membuat prompt baru; dengan `id` mengubah prompt yang belum terbit. */
 export const savePromptJurnal = (input: PromptPayload, id?: string) =>
   id
