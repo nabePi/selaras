@@ -10,8 +10,13 @@ export type MemberEntry = {
   dayLabel: string;
   /** Judul prompt hari itu; null untuk jurnal bebas. */
   promptTitle: string | null;
+  /** Subjudul prompt (bila ada); null untuk jurnal bebas atau prompt tanpa subjudul. */
+  promptSubtitle: string | null;
   excerpt: string;
+  /** Teks untuk ringkasan/kartu: Catatan Rasa, atau jawaban pertama bila catatan kosong. */
   content: string;
+  /** Catatan Rasa yang benar-benar ditulis peserta (kosong untuk entri berprompt tanpa catatan). */
+  note: string;
   feeling: { emoji: string; label: string } | null;
   shared: boolean;
   answers: { label: string; type: string; value: string }[];
