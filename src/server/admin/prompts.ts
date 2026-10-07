@@ -17,6 +17,8 @@ type PromptRow = Prisma.JournalPromptGetPayload<{ include: typeof withQuestions 
 
 const TYPE_OUT = { TEXT: "text", SCALE: "scale", CHOICE: "choice", MOOD: "mood" } as const;
 const TYPE_IN = { text: "TEXT", scale: "SCALE", choice: "CHOICE", mood: "MOOD" } as const;
+const AUDIENCE_OUT = { SEMUA: "semua", MENIKAH: "menikah", BELUM_MENIKAH: "belum-menikah" } as const;
+const AUDIENCE_IN = { semua: "SEMUA", menikah: "MENIKAH", "belum-menikah": "BELUM_MENIKAH" } as const;
 const STATUS_OUT = { DRAF: "draf", TERJADWAL: "terjadwal", TERBIT: "terbit" } as const;
 
 /** Prompt terjadwal otomatis berstatus terbit begitu tanggal tayangnya tiba (WIB). */
@@ -37,6 +39,7 @@ function toPrompt(row: PromptRow): JournalPrompt {
         id: String(q.id),
         type: TYPE_OUT[q.type],
         label: q.label,
+        audience: AUDIENCE_OUT[q.audience],
         ...(q.type === "TEXT" ? { required: q.required } : {}),
         ...(q.type === "CHOICE" || (q.type === "MOOD" && q.options.length) ? { options: q.options } : {}),
       }),
@@ -64,15 +67,22 @@ export const getPrompt = cache(async (code: string): Promise<JournalPrompt | nul
 
 /**
  * Prompt yang tayang pada tanggal itu untuk peserta: bukan draf dan tanggalnya sudah tiba (WIB).
- * Dipakai sisi member; null berarti hari itu tidak ada prompt (peserta boleh menulis jurnal bebas).
+ * Dipakai sisi member, hanya berisi pertanyaan yang sesuai status pernikahan peserta; null berarti hari itu tidak ada prompt (peserta boleh menulis jurnal bebas).
  */
-export async function getPromptForDate(date: string): Promise<JournalPrompt | null> {
+export async function getPromptForDate(date: string, userId: number): Promise<JournalPrompt | null> {
   if (date > todayWib()) return null;
-  const row = await db.journalPrompt.findFirst({
-    where: { date: new Date(`${date}T00:00:00Z`), status: { not: "DRAF" } },
-    include: withQuestions,
-  });
-  return row ? toPrompt(row) : null;
+  const [row, user] = await Promise.all([
+    db.journalPrompt.findFirst({
+      where: { date: new Date(`${date}T00:00:00Z`), status: { not: "DRAF" } },
+      include: withQuestions,
+    }),
+    db.user.findUnique({ where: { id: userId }, select: { maritalStatus: true } }),
+  ]);
+  if (!row) return null;
+  // Pertanyaan khusus menikah/belum menikah hanya tampil bagi peserta dengan status itu.
+  const status = user?.maritalStatus === "MENIKAH" || user?.maritalStatus === "BELUM_MENIKAH" ? user.maritalStatus : null;
+  const prompt = toPrompt({ ...row, questions: row.questions.filter((q) => q.audience === "SEMUA" || q.audience === status) });
+  return prompt.questions.length ? prompt : null;
 }
 
 /** Jumlah jawaban peserta per prompt (kode prompt -> jumlah); prompt tanpa jawaban tidak ada di peta. */
@@ -103,6 +113,7 @@ const questionData = (questions: PromptInput["questions"]) =>
     type: TYPE_IN[q.type],
     label: q.label,
     required: q.type === "text" ? q.required : true,
+    audience: AUDIENCE_IN[q.audience],
     options: q.type === "choice" || q.type === "mood" ? (q.options ?? []).map((o) => o.trim()).filter(Boolean) : [],
   }));
 
