@@ -84,7 +84,7 @@ const SOPS: Sop[] = [
       "Tombol join Zoom di aplikasi pasutri aktif 15 menit sebelum sesi.",
       "Bank soal post-test terkunci formatnya saat peserta pertama membukanya di hari ke-21.",
     ],
-    href: { label: "Buka Manajemen Kelas & Sesi", to: "/admin/kelas" },
+    href: { label: "Buka Manajemen Kelas & Sesi", to: "/admin/kurikulum" },
   },
   {
     id: "privasi",

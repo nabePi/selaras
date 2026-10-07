@@ -6,6 +6,7 @@
  * isinya saat API tersedia. UI menangani hasil `{ ok: false, error }` dan keadaan loading.
  */
 import type { AssessmentItem, AssessmentKind } from "@/data/assessment";
+import type { Course, Participant } from "@/data/courses";
 import type { JournalPrompt, PromptQuestion } from "@/data/journal-prompts";
 import { api } from "@/lib/api-client";
 
@@ -73,3 +74,38 @@ export const archiveQuestion = (id: string) => (void id, simulate(400));
 export const rescheduleSession = (sessionId: string, input: object) => (void sessionId, void input, simulate(600));
 export const finalizeCoachNote = (coupleId: string, note: string) => (void coupleId, void note, simulate(500));
 export const saveAllCoachNotes = (count: number) => (void count, simulate(1000));
+
+type FilePayload = { key: string; name: string; size: number };
+
+export type CoursePayload = {
+  title: string;
+  description: string;
+  posters: FilePayload[];
+  sessions: {
+    title: string;
+    date: string;
+    time: string;
+    meetingUrl: string;
+    instructorName: string;
+    instructorBio: string;
+    instructorPhoto: FilePayload | null;
+    recording: FilePayload | null;
+    documents: FilePayload[];
+  }[];
+};
+
+/** Tanpa `id` membuat kelas baru; dengan `id` mengganti isi kelas (termasuk seluruh sesinya). */
+export const saveCourse = (input: CoursePayload, id?: string) =>
+  id ? api<Course>(`/api/admin/courses/${id}`, "PATCH", input) : api<Course>("/api/admin/courses", "POST", input);
+
+/** Menghapus kelas beserta semua sesi dan berkasnya (tidak bisa dibatalkan). */
+export const deleteCourse = (id: string) => api<{ deletedFiles: number }>(`/api/admin/courses/${id}`, "DELETE");
+
+type Enrollments = { enrolled: Participant[]; available: Participant[] };
+
+export const getCourseEnrollments = (courseId: string) =>
+  api<Enrollments>(`/api/admin/courses/${courseId}/enrollments`, "GET");
+export const enrollParticipant = (courseId: string, userId: number) =>
+  api<Enrollments>(`/api/admin/courses/${courseId}/enrollments`, "POST", { userId });
+export const unenrollParticipant = (courseId: string, userId: number) =>
+  api<Enrollments>(`/api/admin/courses/${courseId}/enrollments/${userId}`, "DELETE");
