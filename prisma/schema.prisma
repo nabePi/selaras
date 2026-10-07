@@ -47,22 +47,25 @@ enum AssessmentPart {
 }
 
 model User {
-  id           Int        @id @default(autoincrement())
-  name         String
-  email        String     @unique
-  whatsapp     String
-  passwordHash String
-  role         Role       @default(MEMBER)
-  status       UserStatus @default(PENDING)
-  avatarUrl    String?
+  id                 Int        @id @default(autoincrement())
+  name               String
+  /// Opsional: akun yang dibuat admin hanya punya nama dan WhatsApp.
+  email              String?    @unique
+  whatsapp           String
+  passwordHash       String
+  /// True untuk akun buatan admin yang masih memakai password default; harus diganti sebelum bisa masuk.
+  mustChangePassword Boolean    @default(false)
+  role               Role       @default(MEMBER)
+  status             UserStatus @default(PENDING)
+  avatarUrl          String?
   /// Potensi & keahlian yang diisi peserta di halaman profil.
-  skills       String[]
+  skills             String[]
   /// Kegiatan sehari-hari / kesibukan yang diisi peserta di halaman profil.
-  activities   String     @default("")
-  joinedAt     DateTime   @default(now())
-  activatedAt  DateTime?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  activities         String     @default("")
+  joinedAt           DateTime   @default(now())
+  activatedAt        DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]

@@ -18,7 +18,7 @@ export type MemberEntry = {
   attachments: ResponseAttachment[];
 };
 
-export type WeekDayStatus = "done" | "pending" | "upcoming" | "empty";
+export type WeekDayStatus = "done" | "pending" | "missed" | "upcoming" | "empty";
 
 /** Jawaban per id pertanyaan: teks, angka skala, opsi, atau label mood. */
 export type AnswerMap = Record<string, string | number>;

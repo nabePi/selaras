@@ -39,7 +39,7 @@ export function AdminLoginForm() {
             setEmail(e.target.value);
             setError("");
           }}
-          className={fieldClass}
+          className={`${fieldClass} border border-outline-variant focus-visible:border-sage-medium`}
         />
       </div>
       <div className="space-y-1">
@@ -53,7 +53,7 @@ export function AdminLoginForm() {
             setPassword(e.target.value);
             setError("");
           }}
-          className={fieldClass}
+          className={`${fieldClass} border border-outline-variant focus-visible:border-sage-medium`}
         />
       </div>
       {error && (

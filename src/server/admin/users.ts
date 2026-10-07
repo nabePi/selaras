@@ -6,7 +6,12 @@ import { db } from "@/lib/db";
 import { userCode } from "@/lib/codes";
 import { ApiError, notFound } from "@/lib/server/errors";
 import { isoDateWib } from "@/lib/server/time";
+import { normalizeWhatsApp } from "@/lib/validation";
+import { hashPassword } from "@/lib/server/password";
 import { sendPasswordResetEmail } from "@/server/mailer";
+import { findMemberByIdentifier } from "@/server/member/credentials";
+import type { z } from "zod";
+import type { createUserSchema } from "./schemas";
 
 const RESET_TTL_MS = 60 * 60 * 1000;
 
@@ -32,6 +37,42 @@ async function findMember(code: string) {
   return user;
 }
 
+/** Password awal akun buatan admin: 4 huruf pertama nama + 4 digit terakhir WhatsApp, mis. "wahy7890". */
+export function defaultPasswordFor(name: string, nationalWhatsApp: string): string {
+  const letters = name
+    .normalize("NFD")
+    .replace(/[^a-zA-Z]/g, "")
+    .slice(0, 4)
+    .toLowerCase();
+  return letters + nationalWhatsApp.slice(-4);
+}
+
+/**
+ * Admin membuat akun peserta (aktif langsung) hanya dari nama dan WhatsApp. Password default
+ * dikembalikan sekali agar admin bisa menyampaikannya lewat WhatsApp; peserta wajib menggantinya
+ * saat login pertama.
+ */
+export async function createUser(input: z.output<typeof createUserSchema>) {
+  const national = normalizeWhatsApp(input.whatsapp);
+  if (!national)
+    throw new ApiError(400, "Nomor WhatsApp tidak valid (contoh: 0812 3456 7890).", { whatsapp: "Nomor WhatsApp tidak valid." });
+  if (await findMemberByIdentifier(national))
+    throw new ApiError(409, "Nomor WhatsApp ini sudah terdaftar.", { whatsapp: "Nomor WhatsApp sudah terdaftar." });
+
+  const defaultPassword = defaultPasswordFor(input.name, national);
+  const user = await db.user.create({
+    data: {
+      name: input.name,
+      whatsapp: `0${national}`,
+      passwordHash: await hashPassword(defaultPassword),
+      mustChangePassword: true,
+      status: "ACTIVE",
+      activatedAt: new Date(),
+    },
+  });
+  return { id: userCode.format(user.id), name: user.name, whatsapp: user.whatsapp, defaultPassword };
+}
+
 export async function activateUser(code: string) {
   const user = await findMember(code);
   if (user.status === "ACTIVE") throw new ApiError(409, `Akun ${user.name} sudah aktif.`);
@@ -44,6 +85,8 @@ export async function activateUser(code: string) {
 /** Membuat token reset sekali pakai (berlaku 1 jam) dan mengirim tautannya ke email pengguna. */
 export async function requestPasswordReset(code: string, origin: string) {
   const user = await findMember(code);
+  if (!user.email)
+    throw new ApiError(400, `${user.name} tidak punya email. Sampaikan password baru lewat WhatsApp.`);
   const token = randomBytes(32).toString("base64url");
   await db.$transaction([
     db.passwordResetToken.deleteMany({ where: { userId: user.id, usedAt: null } }),

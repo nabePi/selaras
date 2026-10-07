@@ -59,15 +59,9 @@ export default function MasukPage() {
         </figure>
 
         <div className="mt-7 flex flex-col items-center gap-3 text-center">
-          <div className="t-body-md text-text-muted">
-            Belum memiliki akun?
-            <Link
-              href="/daftar"
-              className="t-title-sm ml-1 font-semibold text-primary underline decoration-primary/40 underline-offset-4 hover:text-on-primary-fixed-variant"
-            >
-              Daftar Sekarang
-            </Link>
-          </div>
+          <p className="t-body-md text-text-muted">
+            Akun dibuat oleh tim Selaras. Masuk dengan nomor WhatsApp yang terdaftar.
+          </p>
           <Link
             href={buildWhatsappLink(
               "Halo Selaras Life, saya butuh bantuan untuk masuk ke akun saya.",

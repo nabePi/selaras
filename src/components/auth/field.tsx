@@ -6,6 +6,8 @@ type FieldProps = {
   /** Teks kecil di kanan label */
   hint?: React.ReactNode;
   icon?: string;
+  /** Ikon kustom (mis. logo merek) di kiri input; menggantikan `icon` */
+  leading?: React.ReactNode;
   /** Konten di kiri input (mis. awalan +62); menggantikan ikon */
   prefix?: React.ReactNode;
   trailing?: React.ReactNode;
@@ -19,6 +21,7 @@ export function Field({
   label,
   hint,
   icon,
+  leading,
   prefix,
   trailing,
   error,
@@ -43,6 +46,8 @@ export function Field({
           <div className="pointer-events-none absolute left-3.5 flex items-center border-r border-canvas-sand pr-2.5 text-text-muted">
             {prefix}
           </div>
+        ) : leading ? (
+          <span className="pointer-events-none absolute left-3.5 flex items-center text-text-muted">{leading}</span>
         ) : (
           icon && (
             <Icon

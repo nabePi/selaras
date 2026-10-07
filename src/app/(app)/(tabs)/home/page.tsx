@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { AssessmentCard } from "@/components/assessment-card";
 import { JournalTodayCard } from "@/components/journal-today-card";
+import { ProfileReminder } from "@/components/profile-reminder";
 import { WisdomActions } from "@/components/wisdom-actions";
 import { formatDateId } from "@/data/admin-prompts";
 import { DAILY_WISDOM } from "@/data/member";
@@ -10,7 +12,8 @@ import { todayWib } from "@/lib/server/time";
 import { isAssessmentVisible } from "@/server/admin/assessment";
 import { getPromptForDate } from "@/server/admin/prompts";
 import { hasCompletedAssessment } from "@/server/member/assessment";
-import { getStreak, getTodayEntry, getWeek } from "@/server/member/journal";
+import { getProfile, isProfileComplete } from "@/server/member/profile";
+import { getMissedDates, getStreak, getTodayEntry, getWeek } from "@/server/member/journal";
 
 export const metadata: Metadata = { title: "Home" };
 
@@ -33,6 +36,12 @@ const DAY_STYLES = {
     badge: "bg-surface-container-high",
     icon: null,
   },
+  missed: {
+    cell: "bg-error-container text-error",
+    label: "font-semibold text-error",
+    badge: "bg-error text-on-error shadow-xs",
+    icon: "priority_high",
+  },
   empty: {
     cell: "bg-surface-container-low text-text-muted opacity-70",
     label: "font-normal",
@@ -45,6 +54,7 @@ const STATUS_TEXT = {
   done: "selesai",
   pending: "belum diisi, sedang berjalan",
   upcoming: "belum waktunya",
+  missed: "prompt belum diisi",
   empty: "tidak diisi",
 } as const;
 
@@ -56,24 +66,35 @@ function shortRange(from: string, to: string) {
   return `${start} – ${td} ${tm} ${ty}`;
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const user = await requireMemberPage();
+  const { minggu } = await searchParams;
+  const weeksBack = Math.max(0, Number.parseInt(typeof minggu === "string" ? minggu : "", 10) || 0);
   const today = todayWib();
-  const prompt = await getPromptForDate(today);
-  const [entry, week, streak, preVisible, preDone, postVisible, postDone] = await Promise.all([
-    getTodayEntry(user.id, prompt),
-    getWeek(user.id),
+  const missedDates = await getMissedDates(user.id);
+  const activeDate = missedDates[0] ?? today;
+  const prompt = await getPromptForDate(activeDate);
+  const [entry, week, streak, preVisible, preDone, postVisible, postDone, profile] = await Promise.all([
+    getTodayEntry(user.id, prompt, activeDate),
+    getWeek(user.id, weeksBack),
     getStreak(user.id),
     isAssessmentVisible("pre"),
     hasCompletedAssessment(user.id, "pre"),
     isAssessmentVisible("post"),
     hasCompletedAssessment(user.id, "post"),
+    getProfile(user.id),
   ]);
   const firstName = user.name.split(" ")[0];
   const weekRange = shortRange(week.days[0].date, week.days[6].date);
 
   return (
     <div className="flex w-full flex-col gap-6">
+      {!isProfileComplete(profile) && <ProfileReminder />}
+
       {/* 1. Sapaan & streak */}
       <section className="mt-1 flex flex-col gap-1">
         <div className="mt-1">
@@ -145,9 +166,39 @@ export default async function HomePage() {
               <Icon name="calendar_month" size={18} className="text-primary" />
               <h2 className="t-title-sm text-on-surface">Streak Jurnal</h2>
             </div>
-            <span className="t-label-sm text-text-muted">
-              {weekRange} · {week.doneCount}/7 hari
-            </span>
+            <div className="flex items-center gap-1">
+              {week.canGoBack ? (
+                <Link
+                  href={`/home?minggu=${week.offset + 1}`}
+                  scroll={false}
+                  aria-label="Pekan sebelumnya"
+                  className="flex size-6 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-low"
+                >
+                  <Icon name="chevron_left" size={18} />
+                </Link>
+              ) : (
+                <span aria-hidden="true" className="flex size-6 items-center justify-center rounded-full text-text-muted/30">
+                  <Icon name="chevron_left" size={18} />
+                </span>
+              )}
+              <span aria-live="polite" className="t-label-sm text-text-muted">
+                {weekRange} · {week.doneCount}/7 hari
+              </span>
+              {week.offset > 0 ? (
+                <Link
+                  href={week.offset === 1 ? "/home" : `/home?minggu=${week.offset - 1}`}
+                  scroll={false}
+                  aria-label="Pekan berikutnya"
+                  className="flex size-6 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-low"
+                >
+                  <Icon name="chevron_right" size={18} />
+                </Link>
+              ) : (
+                <span aria-hidden="true" className="flex size-6 items-center justify-center rounded-full text-text-muted/30">
+                  <Icon name="chevron_right" size={18} />
+                </span>
+              )}
+            </div>
           </div>
           <span
             className={`t-label-md inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 font-semibold ${
@@ -195,7 +246,9 @@ export default async function HomePage() {
         <div className="mt-1 flex items-center gap-1.5 pt-2">
           <Icon name="spa" size={15} className="shrink-0 text-accent-coral" />
           <p className="t-body-sm text-text-muted">
-            {entry
+            {activeDate !== today
+              ? `Prompt ${formatDateId(activeDate)} belum diisi. Selesaikan dulu sebelum lanjut ke prompt hari ini.`
+              : entry
               ? streak > 1
                 ? `Alhamdulillah, streak ${streak} harimu terjaga. Sampai jumpa besok.`
                 : "Alhamdulillah, jurnal hari ini sudah tersimpan. Sampai jumpa besok."
@@ -208,7 +261,13 @@ export default async function HomePage() {
 
       {/* 4. Jurnal hari ini */}
       <section aria-label="Jurnal hari ini" className="flex flex-col gap-2">
-        <JournalTodayCard prompt={prompt} written={entry !== null} todayLabel={formatDateId(today)} />
+        <JournalTodayCard
+          prompt={prompt}
+          written={entry !== null}
+          todayLabel={formatDateId(activeDate)}
+          isToday={activeDate === today}
+          missedCount={missedDates.length}
+        />
       </section>
     </div>
   );
