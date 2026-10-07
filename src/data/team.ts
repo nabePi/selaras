@@ -18,7 +18,7 @@ export const TEAM: TeamMember[] = [
   },
   {
     slug: "anggit",
-    name: "Anggit Oktafiani, S.T.",
+    name: "Anggit Oktafiania, S.T.",
     role: "Co-founder Selaras Life",
     credentials:
       "Certified marriage & family counselor, alumnus Inspire-Psy (Imanic Spiritual Education Psychology), alumnus Sekolah Pemberdayaan Aktivis Muslimah Jurusan Penggerak Opini Islam dan Geostrategi Dakwah Islam, aktivis dakwah",

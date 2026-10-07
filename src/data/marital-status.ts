@@ -2,8 +2,6 @@
 export const MARITAL_STATUSES = [
   { value: "menikah", label: "Menikah" },
   { value: "belum-menikah", label: "Belum Menikah" },
-  { value: "cerai-hidup", label: "Cerai Hidup" },
-  { value: "cerai-mati", label: "Cerai Mati" },
 ] as const;
 
 export type MaritalStatus = (typeof MARITAL_STATUSES)[number]["value"];

@@ -48,7 +48,7 @@ export const MAIN_PROGRAM: MainProgram = {
     "Because after “I do”... there’s still so much to navigate together. Coaching & journaling bersama dua konselor keluarga untuk pasangan yang ingin terus bertumbuh setelah menikah.",
   facilitators: [
     {
-      name: "Ershy Rafanti, S.Psi. (Ezie)",
+      name: "Ershy Rafanti, S.Psi., LCPC (Ezie)",
       role: "Wellness coach, essence of life practitioner, certified family counselor",
       photo: "/images/tim/ezie.jpg",
     },
