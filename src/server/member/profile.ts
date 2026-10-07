@@ -20,8 +20,9 @@ export type Profile = {
 };
 
 type DbMaritalStatus = "MENIKAH" | "BELUM_MENIKAH" | "CERAI_HIDUP" | "CERAI_MATI";
-const MARITAL_OUT = { MENIKAH: "menikah", BELUM_MENIKAH: "belum-menikah", CERAI_HIDUP: "cerai-hidup", CERAI_MATI: "cerai-mati" } as const;
-const MARITAL_IN = { menikah: "MENIKAH", "belum-menikah": "BELUM_MENIKAH", "cerai-hidup": "CERAI_HIDUP", "cerai-mati": "CERAI_MATI" } as const;
+// Enum DB masih punya CERAI_*, tetapi UI hanya dua pilihan; nilai lama dianggap belum diisi.
+const MARITAL_OUT = { MENIKAH: "menikah", BELUM_MENIKAH: "belum-menikah", CERAI_HIDUP: null, CERAI_MATI: null } as const;
+const MARITAL_IN = { menikah: "MENIKAH", "belum-menikah": "BELUM_MENIKAH" } as const;
 
 export const MAX_SKILLS = 15;
 const MAX_SKILL_LENGTH = 30;
