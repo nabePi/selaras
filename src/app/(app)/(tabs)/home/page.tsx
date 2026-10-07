@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { AssessmentCard } from "@/components/assessment-card";
 import { JournalTodayCard } from "@/components/journal-today-card";
+import { HomeCourseInfo, type HomeCourse } from "@/components/home-course-info";
 import { ProfileReminder } from "@/components/profile-reminder";
 import { formatDateId } from "@/data/admin-prompts";
 import { quoteForDate } from "@/data/member";
@@ -11,6 +12,7 @@ import { todayWib } from "@/lib/server/time";
 import { isAssessmentVisible } from "@/server/admin/assessment";
 import { getPromptForDate } from "@/server/admin/prompts";
 import { hasCompletedAssessment } from "@/server/member/assessment";
+import { listMyCourses } from "@/server/member/courses";
 import { getProfile, isProfileComplete } from "@/server/member/profile";
 import { getMissedDates, getStreak, getTodayEntry, getWeek } from "@/server/member/journal";
 
@@ -77,7 +79,7 @@ export default async function HomePage({
   const missedDates = await getMissedDates(user.id);
   const activeDate = missedDates[0] ?? today;
   const prompt = await getPromptForDate(activeDate, user.id);
-  const [entry, week, streak, preVisible, preDone, postVisible, postDone, profile] = await Promise.all([
+  const [entry, week, streak, preVisible, preDone, postVisible, postDone, profile, courses] = await Promise.all([
     getTodayEntry(user.id, prompt, activeDate),
     getWeek(user.id, weeksBack),
     getStreak(user.id),
@@ -86,7 +88,21 @@ export default async function HomePage({
     isAssessmentVisible("post"),
     hasCompletedAssessment(user.id, "post"),
     getProfile(user.id),
+    listMyCourses(user.id),
   ]);
+  // Kelas yang masih punya sesi mendatang, diurutkan dari sesi yang paling dekat.
+  const activeCourses: HomeCourse[] = courses
+    .flatMap((c) => {
+      const next = c.sessions
+        .map((s, i) => ({ s, i }))
+        .filter(({ s }) => s.date >= today)
+        .sort((a, b) => a.s.date.localeCompare(b.s.date) || a.s.time.localeCompare(b.s.time))[0];
+      return next
+        ? [{ id: c.id, title: c.title, posterUrl: c.posters[0]?.url ?? null, sessionNumber: next.i + 1, sessionCount: c.sessions.length, session: next.s }]
+        : [];
+    })
+    .sort((a, b) => a.session.date.localeCompare(b.session.date))
+    .slice(0, 3);
   const firstName = user.name.split(" ")[0];
   const weekRange = shortRange(week.days[0].date, week.days[6].date);
 
@@ -251,6 +267,9 @@ export default async function HomePage({
           missedCount={missedDates.length}
         />
       </section>
+
+      {/* 5. Info kelas yang sedang diikuti */}
+      {activeCourses.length > 0 && <HomeCourseInfo courses={activeCourses} today={today} />}
     </div>
   );
 }

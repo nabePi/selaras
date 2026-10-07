@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import { CurriculumManager } from "@/components/admin/curriculum-manager";
+import { CourseList } from "@/components/admin/course-list";
+import { requireAdminPage } from "@/lib/server/session";
+import { listCourses } from "@/server/admin/courses";
 
-export const metadata: Metadata = { title: "Manajemen Kelas & Sesi" };
+export const metadata: Metadata = { title: "Kelola Kelas" };
 
-export default function KelasPage() {
-  return <CurriculumManager />;
+export default async function KelasPage() {
+  await requireAdminPage();
+  return <CourseList courses={await listCourses()} />;
 }

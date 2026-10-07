@@ -88,6 +88,7 @@ model User {
   promptResponses     PromptResponse[]
   assessmentResponses AssessmentResponse[]
   notifications       Notification[]
+  courseEnrollments   CourseEnrollment[]
 
   @@index([role, status])
 }
@@ -133,16 +134,16 @@ model JournalPrompt {
 }
 
 model PromptQuestion {
-  id       Int           @id @default(autoincrement())
+  id       Int              @id @default(autoincrement())
   promptId Int
-  prompt   JournalPrompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  prompt   JournalPrompt    @relation(fields: [promptId], references: [id], onDelete: Cascade)
   position Int
   type     QuestionType
   label    String
   /// Hanya dipakai tipe CHOICE.
   options  String[]
   /// False: peserta boleh mengosongkan jawaban (hanya berlaku untuk tipe TEXT).
-  required Boolean       @default(true)
+  required Boolean          @default(true)
   /// Siapa yang melihat pertanyaan ini; peserta yang belum mengisi status hanya melihat SEMUA.
   audience QuestionAudience @default(SEMUA)
 
@@ -272,4 +273,65 @@ model Notification {
   createdAt   DateTime         @default(now())
 
   @@index([userId, createdAt])
+}
+
+/// Kelas buatan admin (mis. Mirrage Life) yang terdiri dari beberapa sesi.
+model Course {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @default("")
+  /// Kunci objek poster di bucket R2 (boleh lebih dari satu, urut tampil).
+  posterKeys  String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sessions    CourseSession[]
+  enrollments CourseEnrollment[]
+}
+
+model CourseSession {
+  id         Int      @id @default(autoincrement())
+  courseId   Int
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  position   Int
+  title      String
+  date       DateTime @db.Date
+  /// Jam mulai (WIB) format HH:MM; kosong bila belum ditentukan.
+  time       String   @default("")
+  /// Tautan Zoom / Google Meet sesi ini.
+  meetingUrl String   @default("")
+
+  instructorName     String  @default("")
+  instructorBio      String  @default("")
+  instructorPhotoKey String?
+
+  recordingKey  String?
+  recordingName String?
+  recordingSize Int?
+
+  documents CourseDocument[]
+
+  @@unique([courseId, position])
+}
+
+model CourseDocument {
+  id        Int           @id @default(autoincrement())
+  sessionId Int
+  session   CourseSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  name      String
+  key       String        @unique
+  size      Int
+}
+
+/// Peserta yang didaftarkan admin ke sebuah kelas.
+model CourseEnrollment {
+  id        Int      @id @default(autoincrement())
+  courseId  Int
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([courseId, userId])
+  @@index([userId])
 }
