@@ -7,6 +7,7 @@ import { toAttachmentDtos } from "@/server/member/attachments";
 import { db } from "@/lib/db";
 import { promptCode, userCode } from "@/lib/codes";
 import { ApiError, notFound } from "@/lib/server/errors";
+import { deleteObjects } from "@/lib/server/r2";
 import { isoDate, timeWib, todayWib } from "@/lib/server/time";
 import type { PromptInput } from "./schemas";
 
@@ -71,6 +72,28 @@ export async function getPromptForDate(date: string): Promise<JournalPrompt | nu
     include: withQuestions,
   });
   return row ? toPrompt(row) : null;
+}
+
+/** Jumlah jawaban peserta per prompt (kode prompt -> jumlah); prompt tanpa jawaban tidak ada di peta. */
+export async function getResponseCounts(): Promise<Record<string, number>> {
+  const rows = await db.promptResponse.groupBy({ by: ["promptId"], _count: { _all: true }, where: { promptId: { not: null } } });
+  return Object.fromEntries(rows.flatMap((r) => (r.promptId === null ? [] : [[promptCode.format(r.promptId), r._count._all]])));
+}
+
+/**
+ * Menghapus prompt beserta pertanyaan dan SEMUA jawaban peserta (entri jurnal berprompt itu,
+ * jawaban per pertanyaan, dan lampirannya; berkas lampiran di R2 ikut dihapus). Tidak bisa dibatalkan.
+ */
+export async function deletePrompt(code: string): Promise<{ deletedResponses: number }> {
+  const existing = await findRow(code);
+  const attachments = await db.promptAttachment.findMany({
+    where: { response: { promptId: existing.id }, key: { not: null } },
+    select: { key: true },
+  });
+  const deletedResponses = await db.promptResponse.count({ where: { promptId: existing.id } });
+  await db.journalPrompt.delete({ where: { id: existing.id } }); // cascade: pertanyaan, jawaban, entri, lampiran
+  await deleteObjects(attachments.flatMap((a) => (a.key ? [a.key] : [])));
+  return { deletedResponses };
 }
 
 const questionData = (questions: PromptInput["questions"]) =>

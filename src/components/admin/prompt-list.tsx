@@ -2,11 +2,19 @@ import Link from "next/link";
 import { formatDateId } from "@/data/admin-prompts";
 import { PROMPT_STATUS, QUESTION_TYPES, isEditable, type JournalPrompt } from "@/data/journal-prompts";
 import { Icon } from "../icon";
+import { DeletePromptButton } from "./delete-prompt-button";
 import { PageHeader, btnPrimary } from "./page-header";
 
 const TYPE_BY_VALUE = Object.fromEntries(QUESTION_TYPES.map((t) => [t.value, t]));
 
-export function PromptList({ prompts }: { prompts: JournalPrompt[] }) {
+export function PromptList({
+  prompts,
+  responseCounts,
+}: {
+  prompts: JournalPrompt[];
+  /** Jumlah jawaban peserta per kode prompt (untuk peringatan hapus). */
+  responseCounts: Record<string, number>;
+}) {
   return (
     <div className="mx-auto w-full max-w-[1720px] space-y-8 px-4 py-8 sm:px-8 lg:p-10">
       <PageHeader
@@ -94,6 +102,7 @@ export function PromptList({ prompts }: { prompts: JournalPrompt[] }) {
                             Edit
                           </Link>
                         )}
+                        <DeletePromptButton prompt={p} responseCount={responseCounts[p.id] ?? 0} />
                       </div>
                     </td>
                   </tr>
