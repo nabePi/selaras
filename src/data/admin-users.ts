@@ -14,6 +14,8 @@ export type AdminUser = {
   skills: string[];
   /** Kegiatan sehari-hari / kesibukan dari profil peserta. */
   activities?: string;
+  /** Status pernikahan dari profil peserta; belum diisi bila kosong. */
+  maritalStatus?: string;
   joined: string;
   status: "active" | "pending";
 };

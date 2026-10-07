@@ -2,6 +2,7 @@ import "server-only";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { ApiError, notFound } from "@/lib/server/errors";
+import { MARITAL_STATUSES, type MaritalStatus } from "@/data/marital-status";
 import { isEmail } from "@/lib/validation";
 import { avatarSrc, deleteStoredAvatar, verifyAvatarKey } from "@/server/avatar";
 
@@ -14,7 +15,13 @@ export type Profile = {
   skills: string[];
   /** Kegiatan sehari-hari / kesibukan (teks bebas). */
   activities: string;
+  /** Status pernikahan; null bila belum diisi. */
+  maritalStatus: MaritalStatus | null;
 };
+
+type DbMaritalStatus = "MENIKAH" | "BELUM_MENIKAH" | "CERAI_HIDUP" | "CERAI_MATI";
+const MARITAL_OUT = { MENIKAH: "menikah", BELUM_MENIKAH: "belum-menikah", CERAI_HIDUP: "cerai-hidup", CERAI_MATI: "cerai-mati" } as const;
+const MARITAL_IN = { menikah: "MENIKAH", "belum-menikah": "BELUM_MENIKAH", "cerai-hidup": "CERAI_HIDUP", "cerai-mati": "CERAI_MATI" } as const;
 
 export const MAX_SKILLS = 15;
 const MAX_SKILL_LENGTH = 30;
@@ -34,6 +41,9 @@ const profileSchema = z.object({
     .optional(),
   /** Key R2 foto baru, hasil unggah lewat `/api/profile/avatar/presign`. */
   avatarKey: z.string().min(1).max(300).optional(),
+  maritalStatus: z
+    .enum(MARITAL_STATUSES.map((s) => s.value) as [MaritalStatus, ...MaritalStatus[]], { error: "Pilih status pernikahan yang tersedia." })
+    .optional(),
   activities: z
     .string()
     .transform((v) => v.replace(/\r\n/g, "\n").trim())
@@ -51,7 +61,7 @@ const profileSchema = z.object({
     .optional(),
 });
 
-const select = { name: true, email: true, whatsapp: true, avatarUrl: true, skills: true, activities: true } as const;
+const select = { name: true, email: true, whatsapp: true, avatarUrl: true, skills: true, activities: true, maritalStatus: true } as const;
 
 async function toProfile(u: {
   name: string;
@@ -60,6 +70,7 @@ async function toProfile(u: {
   avatarUrl: string | null;
   skills: string[];
   activities: string;
+  maritalStatus: DbMaritalStatus | null;
 }): Promise<Profile> {
   return {
     name: u.name,
@@ -68,6 +79,7 @@ async function toProfile(u: {
     avatar: (await avatarSrc(u.avatarUrl)) ?? null,
     skills: u.skills,
     activities: u.activities,
+    maritalStatus: u.maritalStatus ? MARITAL_OUT[u.maritalStatus] : null,
   };
 }
 
@@ -101,6 +113,7 @@ export async function updateProfile(userId: number, body: unknown): Promise<Prof
       ...(input.avatarKey !== undefined && { avatarUrl: input.avatarKey }),
       ...(input.skills !== undefined && { skills: input.skills }),
       ...(input.activities !== undefined && { activities: input.activities }),
+      ...(input.maritalStatus !== undefined && { maritalStatus: MARITAL_IN[input.maritalStatus] }),
     },
     select,
   }).catch((error: unknown) => {

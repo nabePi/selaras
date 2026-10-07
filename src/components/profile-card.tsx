@@ -6,61 +6,13 @@ import { useRef, useState } from "react";
 import { api } from "@/lib/api-client";
 import { isEmail } from "@/lib/validation";
 import type { Profile } from "@/server/member/profile";
+import { AvatarCropper } from "./avatar-cropper";
 import { Dialog, DialogActions, FieldLabel, fieldClass } from "./dialog";
 import { Icon } from "./icon";
 import { useToast } from "./toast-provider";
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
-const AVATAR_SIZE = 512;
 const AVATAR_TYPE = "image/webp";
-
-function loadImage(file: File) {
-  return new Promise<HTMLImageElement>((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const image = new window.Image();
-
-    image.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(image);
-    };
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Foto tidak dapat dibaca."));
-    };
-    image.src = url;
-  });
-}
-
-/** Foto dipotong persegi 512px dan dikonversi ke WebP: `preview` untuk tampilan, `blob` untuk diunggah ke R2. */
-async function prepareAvatar(file: File): Promise<{ preview: string; blob: Blob }> {
-  const image = await loadImage(file);
-  const canvas = document.createElement("canvas");
-  canvas.width = AVATAR_SIZE;
-  canvas.height = AVATAR_SIZE;
-
-  const context = canvas.getContext("2d");
-  if (!context) throw new Error("Foto tidak dapat diproses.");
-
-  const sourceSize = Math.min(image.naturalWidth, image.naturalHeight);
-  const sourceX = (image.naturalWidth - sourceSize) / 2;
-  const sourceY = (image.naturalHeight - sourceSize) / 2;
-
-  context.drawImage(
-    image,
-    sourceX,
-    sourceY,
-    sourceSize,
-    sourceSize,
-    0,
-    0,
-    AVATAR_SIZE,
-    AVATAR_SIZE,
-  );
-
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, AVATAR_TYPE, 0.84));
-  if (!blob) throw new Error("Foto tidak dapat diproses.");
-  return { preview: URL.createObjectURL(blob), blob };
-}
 
 /** Mengunggah foto ke R2 lewat URL bertanda tangan; mengembalikan key objek. */
 async function uploadAvatar(blob: Blob): Promise<{ ok: true; key: string } | { ok: false; error: string }> {
@@ -125,7 +77,7 @@ export function ProfileCard({ profile }: { profile: Profile }) {
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [photoError, setPhotoError] = useState("");
-  const [processingPhoto, setProcessingPhoto] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   function openEditor() {
@@ -136,6 +88,7 @@ export function ProfileCard({ profile }: { profile: Profile }) {
     setEmailError("");
     setNameError("");
     setPhotoError("");
+    setCropFile(null);
     setEditing(true);
   }
 
@@ -152,19 +105,17 @@ export function ProfileCard({ profile }: { profile: Profile }) {
       return;
     }
 
-    setProcessingPhoto(true);
-    try {
-      const prepared = await prepareAvatar(file);
-      setDraftAvatar((prev) => {
-        if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
-        return prepared.preview;
-      });
-      setDraftBlob(prepared.blob);
-    } catch {
-      setPhotoError("Foto tidak dapat dibaca. Coba pilih foto lain.");
-    } finally {
-      setProcessingPhoto(false);
-    }
+    // Foto dipotong dulu di AvatarCropper (geser + zoom) sebelum dipakai.
+    setCropFile(file);
+  }
+
+  function applyCrop({ preview, blob }: { preview: string; blob: Blob }) {
+    setDraftAvatar((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return preview;
+    });
+    setDraftBlob(blob);
+    setCropFile(null);
   }
 
   async function saveProfile() {
@@ -269,9 +220,12 @@ export function ProfileCard({ profile }: { profile: Profile }) {
         open={editing}
         onClose={() => setEditing(false)}
         eyebrow="Akun Saya"
-        title="Edit Profil"
+        title={cropFile ? "Atur Foto Profil" : "Edit Profil"}
         size="sm"
       >
+        {cropFile ? (
+          <AvatarCropper file={cropFile} onApply={applyCrop} onCancel={() => setCropFile(null)} />
+        ) : (
         <form
           noValidate
           onSubmit={(event) => {
@@ -289,14 +243,13 @@ export function ProfileCard({ profile }: { profile: Profile }) {
                 type="file"
                 accept="image/*"
                 className="sr-only"
-                disabled={processingPhoto}
                 onChange={(event) => {
                   void pickPhoto(event.target.files?.[0]);
                   event.target.value = "";
                 }}
               />
               <Icon name="add_a_photo" size={17} />
-              {processingPhoto ? "Memproses foto..." : "Pilih Foto Baru"}
+              Pilih Foto Baru
             </label>
             <p className="t-body-sm text-center text-text-muted">
               JPG, PNG, atau WebP · Maksimal 5 MB
@@ -362,9 +315,10 @@ export function ProfileCard({ profile }: { profile: Profile }) {
           <DialogActions
             onCancel={() => setEditing(false)}
             submitLabel="Simpan Perubahan"
-            submitting={processingPhoto || saving}
+            submitting={saving}
           />
         </form>
+        )}
       </Dialog>
     </>
   );

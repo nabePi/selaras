@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { LogoutButton } from "@/components/logout-button";
 import { ProfileCard } from "@/components/profile-card";
+import { MaritalStatusCard } from "@/components/marital-status-card";
 import { ActivitiesCard } from "@/components/activities-card";
 import { SkillsCard } from "@/components/skills-card";
 import { buildWhatsappLink } from "@/data/programs";
@@ -20,13 +21,16 @@ export default async function ProfilPage() {
       {/* 1. Kartu profil */}
       <ProfileCard profile={profile} />
 
-      {/* 2. Potensi & keahlian */}
+      {/* 2. Status pernikahan */}
+      <MaritalStatusCard initial={profile.maritalStatus} />
+
+      {/* 3. Potensi & keahlian */}
       <SkillsCard initialSkills={profile.skills} />
 
-      {/* 3. Kegiatan sehari-hari */}
+      {/* 4. Kegiatan sehari-hari */}
       <ActivitiesCard initial={profile.activities} />
 
-      {/* 4. Bantuan & keluar */}
+      {/* 5. Bantuan & keluar */}
       <section className="mt-1 flex flex-col gap-1">
         <Link
           href={buildWhatsappLink(

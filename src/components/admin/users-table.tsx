@@ -47,7 +47,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
   const q = query.trim().toLowerCase();
   const rows = q
     ? users.filter((u) =>
-        [u.name, u.email ?? "", u.whatsapp, u.id, u.activities ?? "", ...u.skills].some((v) => v.toLowerCase().includes(q)),
+        [u.name, u.email ?? "", u.whatsapp, u.id, u.activities ?? "", u.maritalStatus ?? "", ...u.skills].some((v) => v.toLowerCase().includes(q)),
       )
     : users;
 
@@ -96,6 +96,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
                 <th scope="col" className="py-4 pr-4 pl-6">Pengguna</th>
                 <th scope="col" className="px-4 py-4">WhatsApp</th>
                 <th scope="col" className="px-4 py-4">Email</th>
+                <th scope="col" className="px-4 py-4">Status Pernikahan</th>
                 <th scope="col" className="px-4 py-4">Potensi &amp; Keahlian</th>
                 <th scope="col" className="px-4 py-4">Kegiatan Sehari-hari</th>
                 <th scope="col" className="px-4 py-4">Bergabung</th>
@@ -106,7 +107,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
             <tbody className="t-body-md divide-y divide-surface-container">
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-text-muted">
+                  <td colSpan={9} className="px-6 py-12 text-center text-text-muted">
                     Tidak ada pengguna yang cocok dengan “{query}”.
                   </td>
                 </tr>
@@ -201,6 +202,9 @@ function UserRow({
       </td>
       <td className="t-body-sm px-4 py-4 whitespace-nowrap text-on-surface">{u.whatsapp}</td>
       <td className="t-body-sm px-4 py-4 text-on-surface">{u.email ?? <span className="text-text-muted">—</span>}</td>
+      <td className="t-body-sm px-4 py-4 whitespace-nowrap text-on-surface">
+        {u.maritalStatus ?? <span className="text-text-muted">Belum diisi</span>}
+      </td>
       <td className="px-4 py-4">
         {u.skills.length === 0 ? (
           <span className="t-body-sm text-text-muted">Belum diisi</span>
