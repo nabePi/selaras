@@ -27,13 +27,22 @@ export const PENDING_REFLECTION = {
   promptNote: "Tuliskan dengan jujur dan tanpa filter. Setiap rasa berharga untuk diselaraskan.",
 };
 
-export const DAILY_WISDOM = {
-  quote: "Sebaik-baik kalian adalah yang paling baik terhadap keluarganya.",
-  source: "HR. Tirmidzi",
-  theme: "Refleksi Kelembutan",
-  shareText:
-    "“Sebaik-baik kalian adalah yang paling baik terhadap keluarganya.” (HR. Tirmidzi)",
-};
+/** Kutipan penenang di Home; satu per hari (bergilir menurut tanggal). */
+export const DAILY_QUOTES = [
+  "Tarik napas pelan-pelan. Tidak semua hal harus selesai hari ini.",
+  "Hati yang tenang bermula dari langkah kecil yang dilakukan dengan sepenuh rasa.",
+  "Kamu tidak sedang tertinggal. Kamu sedang bertumbuh dengan ritmemu sendiri.",
+  "Di dalam diam, kita belajar mendengar apa yang sebenarnya hati butuhkan.",
+  "Syukuri hal kecil hari ini; di sanalah ketenangan biasanya bersembunyi.",
+  "Berhenti sejenak bukan berarti menyerah, kadang itu cara terbaik untuk melangkah.",
+  "Biarkan hari ini cukup. Kamu sudah melakukan yang terbaik yang kamu bisa.",
+] as const;
+
+/** Kutipan untuk tanggal ISO (yyyy-mm-dd): berganti tiap hari, urut berulang. */
+export function quoteForDate(iso: string): string {
+  const day = Math.floor(new Date(`${iso}T00:00:00Z`).getTime() / 86_400_000);
+  return DAILY_QUOTES[day % DAILY_QUOTES.length];
+}
 
 export type DayStatus = "done" | "pending" | "locked" | "upcoming";
 
