@@ -26,7 +26,7 @@ export const TEAM: TeamMember[] = [
   },
   {
     slug: "ezie",
-    name: "Ershy Rafanti, S.Psi",
+    name: "Ershy Rafanti, S.Psi., LCPC",
     nickname: "Ezie",
     role: "Konselor Pernikahan & Keluarga",
     credentials:
@@ -49,5 +49,27 @@ export const TEAM: TeamMember[] = [
     credentials:
       "Certified prenatal yoga teacher, breastfeeding counselor, doula, hypnobirthing practitioner",
     photo: "/images/tim/embun.jpg",
+  },
+  {
+    slug: "andini",
+    name: "Andini Lestari, S.Si.",
+    role: "Business Operations",
+    credentials: "Finance lead, strategic partnership",
+    photo: "/images/tim/andini.jpg",
+  },
+  {
+    slug: "mei",
+    name: "Meidivira Halimatussa'diyah",
+    nickname: "Mei",
+    role: "Creative Impact Strategist",
+    credentials: "Photographer, videographer, editor, content creator",
+    photo: "/images/tim/mei.jpg",
+  },
+  {
+    slug: "fiqih",
+    name: "Fiqih Utami Lesmantary",
+    role: "Visual Designer",
+    credentials: "Customer engagement lead",
+    photo: "/images/tim/fiqih.jpg",
   },
 ];
