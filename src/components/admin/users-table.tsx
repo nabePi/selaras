@@ -9,7 +9,8 @@ import { formatDateId } from "@/data/admin-prompts";
 import { Dialog, DialogActions } from "../dialog";
 import { Icon } from "../icon";
 import { useToast } from "../toast-provider";
-import { PageHeader } from "./page-header";
+import { AddUserDialog } from "./add-user-dialog";
+import { btnPrimary, PageHeader } from "./page-header";
 
 const STATUS = {
   active: { label: "Aktif", tone: "bg-sage-tint text-primary" },
@@ -22,6 +23,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [resetTarget, setResetTarget] = useState<AdminUser | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   async function activate(u: AdminUser) {
     setBusy(u.id);
@@ -38,14 +40,14 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
     const result = await resetUserPassword(resetTarget.id);
     setBusy(null);
     if (!result.ok) return showToast(result.error);
-    showToast(`Tautan reset password dikirim ke ${resetTarget.email}.`, { tone: "success" });
+    showToast(`Tautan reset password dikirim ke ${resetTarget.email ?? resetTarget.name}.`, { tone: "success" });
     setResetTarget(null);
   }
 
   const q = query.trim().toLowerCase();
   const rows = q
     ? users.filter((u) =>
-        [u.name, u.email, u.whatsapp, u.id, u.activities ?? "", ...u.skills].some((v) => v.toLowerCase().includes(q)),
+        [u.name, u.email ?? "", u.whatsapp, u.id, u.activities ?? "", ...u.skills].some((v) => v.toLowerCase().includes(q)),
       )
     : users;
 
@@ -58,24 +60,30 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
         title="Users"
         description="Data akun pengguna beserta profil dan potensi/keahlian yang mereka isi di halaman profil."
         actions={
-          <div className="relative">
-            <Icon
-              name="search"
-              size={18}
-              className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-text-muted"
-            />
-            <label htmlFor="users-search" className="sr-only">
-              Cari pengguna
-            </label>
-            <input
-              id="users-search"
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari nama, email, keahlian, kegiatan..."
-              className="t-body-sm w-72 max-w-full rounded-full bg-canvas-ivory py-2.5 pr-4 pl-9 text-on-surface shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-sage-medium"
-            />
-          </div>
+          <>
+            <div className="relative">
+              <Icon
+                name="search"
+                size={18}
+                className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-text-muted"
+              />
+              <label htmlFor="users-search" className="sr-only">
+                Cari pengguna
+              </label>
+              <input
+                id="users-search"
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Cari nama, email, keahlian, kegiatan..."
+                className="t-body-sm w-72 max-w-full rounded-full bg-canvas-ivory py-2.5 pr-4 pl-9 text-on-surface shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-sage-medium"
+              />
+            </div>
+            <button type="button" onClick={() => setAddOpen(true)} className={btnPrimary}>
+              <Icon name="person_add" size={18} />
+              Tambah User
+            </button>
+          </>
         }
       />
 
@@ -117,6 +125,8 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
         </div>
       </div>
 
+      <AddUserDialog open={addOpen} onClose={() => setAddOpen(false)} onCreated={() => router.refresh()} />
+
       <Dialog
         open={resetTarget !== null}
         onClose={() => setResetTarget(null)}
@@ -133,7 +143,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
         >
           <p className="t-body-md text-text-muted">
             Tautan untuk membuat password baru akan dikirim ke{" "}
-            <span className="font-semibold text-on-surface">{resetTarget?.email}</span>. Password lama
+            <span className="font-semibold text-on-surface">{resetTarget?.email ?? "(belum ada email)"}</span>. Password lama
             tidak berlaku lagi setelah {resetTarget?.name} membuat yang baru.
           </p>
           <DialogActions
@@ -190,7 +200,7 @@ function UserRow({
         </div>
       </td>
       <td className="t-body-sm px-4 py-4 whitespace-nowrap text-on-surface">{u.whatsapp}</td>
-      <td className="t-body-sm px-4 py-4 text-on-surface">{u.email}</td>
+      <td className="t-body-sm px-4 py-4 text-on-surface">{u.email ?? <span className="text-text-muted">—</span>}</td>
       <td className="px-4 py-4">
         {u.skills.length === 0 ? (
           <span className="t-body-sm text-text-muted">Belum diisi</span>

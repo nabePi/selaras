@@ -63,9 +63,13 @@ export async function getEntry(userId: number, id: string): Promise<MemberEntry 
 /** Jawaban tersimpan hari ini dalam bentuk yang dipakai form (untuk menyunting entri hari ini). */
 export type TodayEntry = { content: string; shared: boolean; answers: AnswerMap; attachments: ResponseAttachment[] };
 
-export async function getTodayEntry(userId: number, prompt: JournalPrompt | null): Promise<TodayEntry | null> {
+export async function getTodayEntry(
+  userId: number,
+  prompt: JournalPrompt | null,
+  date = todayWib(),
+): Promise<TodayEntry | null> {
   const row = await db.promptResponse.findUnique({
-    where: { userId_date: { userId, date: new Date(`${todayWib()}T00:00:00Z`) } },
+    where: { userId_date: { userId, date: new Date(`${date}T00:00:00Z`) } },
     include: { answers: true, attachments: true },
   });
   if (!row) return null;
@@ -78,6 +82,25 @@ export async function getTodayEntry(userId: number, prompt: JournalPrompt | null
     else answers[q.id] = a.value;
   }
   return { content: row.content, shared: row.shared, answers, attachments: await toAttachmentDtos(row.attachments) };
+}
+
+/**
+ * Tanggal prompt admin yang tertinggal (belum diisi) milik peserta: semua prompt sejak yang pertama
+ * dibuat admin sampai kemarin, urut dari yang terlama. Draf dan hari tanpa prompt tidak dihitung.
+ */
+export async function getMissedDates(userId: number): Promise<string[]> {
+  const before = { lt: new Date(`${todayWib()}T00:00:00Z`) };
+  const [prompts, done] = await Promise.all([
+    db.journalPrompt.findMany({ where: { date: before, status: { not: "DRAF" } }, select: { date: true }, orderBy: { date: "asc" } }),
+    db.promptResponse.findMany({ where: { userId, date: before }, select: { date: true } }),
+  ]);
+  const filled = new Set(done.map((r) => isoOf(r.date)));
+  return prompts.map((p) => isoOf(p.date)).filter((d) => !filled.has(d));
+}
+
+/** Tanggal "aktif" untuk peserta: prompt tertinggal terlama, atau hari ini bila tidak ada. */
+export async function getActiveDate(userId: number): Promise<string> {
+  return (await getMissedDates(userId))[0] ?? todayWib();
 }
 
 /**
@@ -102,23 +125,39 @@ export async function getStreak(userId: number): Promise<number> {
   return streak;
 }
 
-/** Status 7 hari (Senin–Minggu) pada pekan yang memuat hari ini. */
-export async function getWeek(userId: number) {
+const mondayOf = (iso: string) => addDays(iso, -((new Date(`${iso}T00:00:00Z`).getUTCDay() + 6) % 7));
+const weeksBetween = (from: string, to: string) =>
+  Math.round((new Date(`${to}T00:00:00Z`).getTime() - new Date(`${from}T00:00:00Z`).getTime()) / (7 * 86_400_000));
+
+/**
+ * Status 7 hari (Senin–Minggu) pada pekan berjalan, atau `weeksBack` pekan sebelumnya. Mundur dibatasi
+ * sampai pekan prompt admin pertama / jurnal pertama peserta.
+ */
+export async function getWeek(userId: number, weeksBack = 0) {
   const today = todayWib();
-  const dow = (new Date(`${today}T00:00:00Z`).getUTCDay() + 6) % 7; // Senin = 0
-  const monday = addDays(today, -dow);
+  const currentMonday = mondayOf(today);
+  const [firstPrompt, firstEntry] = await Promise.all([
+    db.journalPrompt.aggregate({ _min: { date: true }, where: { status: { not: "DRAF" } } }),
+    db.promptResponse.aggregate({ _min: { date: true }, where: { userId } }),
+  ]);
+  const earliest = [firstPrompt._min.date, firstEntry._min.date].flatMap((d) => (d ? [isoOf(d)] : [])).sort()[0] ?? today;
+  const maxBack = Math.max(0, weeksBetween(mondayOf(earliest), currentMonday));
+  const offset = Math.min(Math.max(0, weeksBack), maxBack);
+
+  const monday = addDays(currentMonday, -7 * offset);
   const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
   const rows = await db.promptResponse.findMany({
     where: { userId, date: { gte: new Date(`${days[0]}T00:00:00Z`), lte: new Date(`${days[6]}T00:00:00Z`) } },
     select: { date: true },
   });
   const done = new Set(rows.map((r) => isoOf(r.date)));
+  const missed = new Set(await getMissedDates(userId));
   const labels = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
   const week = days.map((date, i) => {
-    const status: WeekDayStatus = done.has(date) ? "done" : date > today ? "upcoming" : date === today ? "pending" : "empty";
+    const status: WeekDayStatus = done.has(date) ? "done" : date > today ? "upcoming" : date === today ? "pending" : missed.has(date) ? "missed" : "empty";
     return { date, label: labels[i], status };
   });
-  return { days: week, doneCount: done.size };
+  return { days: week, doneCount: done.size, offset, canGoBack: offset < maxBack };
 }
 
 const submitSchema = z.object({
@@ -157,16 +196,16 @@ function serializeAnswers(prompt: JournalPrompt, answers: AnswerMap): { question
 }
 
 /**
- * Menyimpan jurnal hari ini (WIB). Satu entri per hari: mengirim lagi pada hari yang sama
- * memperbarui entri tersebut. Ada prompt hari ini → semua pertanyaan wajib dijawab; tanpa
+ * Menyimpan jurnal untuk tanggal aktif (lihat `getActiveDate`: prompt tertinggal dulu, lalu hari
+ * ini, WIB). Satu entri per hari: mengirim lagi pada hari yang sama memperbarui entri tersebut. Ada prompt hari ini → semua pertanyaan wajib dijawab; tanpa
  * prompt → jurnal bebas (hanya Catatan Rasa).
  */
 export async function submitEntry(userId: number, body: unknown): Promise<{ id: string }> {
   const input = submitSchema.parse(body);
-  const today = todayWib();
-  const prompt = await getPromptForDate(today);
+  const activeDate = await getActiveDate(userId);
+  const prompt = await getPromptForDate(activeDate);
   const answers = prompt ? serializeAnswers(prompt, input.answers) : [];
-  const date = new Date(`${today}T00:00:00Z`);
+  const date = new Date(`${activeDate}T00:00:00Z`);
   const added: NewAttachment[] = input.attachments.added;
   if (input.attachments.keep.length + added.length > MAX_ATTACHMENTS)
     throw new ApiError(400, `Maksimal ${MAX_ATTACHMENTS} lampiran.`);

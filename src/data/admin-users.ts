@@ -9,7 +9,8 @@ export type AdminUser = {
   name: string;
   avatar?: string;
   whatsapp: string;
-  email: string;
+  /** Null untuk akun yang dibuat admin tanpa email. */
+  email: string | null;
   skills: string[];
   /** Kegiatan sehari-hari / kesibukan dari profil peserta. */
   activities?: string;

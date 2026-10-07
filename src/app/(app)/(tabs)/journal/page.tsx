@@ -11,14 +11,16 @@ import type { MemberEntry } from "@/lib/journal-types";
 import { requireMemberPage } from "@/lib/server/session";
 import { todayWib } from "@/lib/server/time";
 import { getPromptForDate } from "@/server/admin/prompts";
-import { listEntries } from "@/server/member/journal";
+import { getMissedDates, listEntries } from "@/server/member/journal";
 
 export const metadata: Metadata = { title: "Journal" };
 
 export default async function JournalPage() {
   const user = await requireMemberPage();
   const today = todayWib();
-  const [prompt, entries] = await Promise.all([getPromptForDate(today), listEntries(user.id)]);
+  const missedDates = await getMissedDates(user.id);
+  const activeDate = missedDates[0] ?? today;
+  const [prompt, entries] = await Promise.all([getPromptForDate(activeDate), listEntries(user.id)]);
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -28,10 +30,12 @@ export default async function JournalPage() {
       </div>
       <JournalTodayCard
         prompt={prompt}
-        written={entries.some((e) => e.date === today)}
-        todayLabel={formatDateId(today)}
+        written={entries.some((e) => e.date === activeDate)}
+        todayLabel={formatDateId(activeDate)}
+        isToday={activeDate === today}
+        missedCount={missedDates.length}
       />
-      <MonthCalendar entries={entries} today={today} />
+      <MonthCalendar entries={entries} today={today} missedDates={missedDates} />
       <Feed entries={entries} />
     </div>
   );

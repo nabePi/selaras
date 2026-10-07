@@ -21,7 +21,7 @@ const SESSION_DAYS = 7;
 export type SessionUser = {
   id: number;
   name: string;
-  email: string;
+  email: string | null;
   role: "MEMBER" | "ADMIN";
   status: "PENDING" | "ACTIVE";
 };

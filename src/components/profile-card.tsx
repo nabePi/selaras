@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { api } from "@/lib/api-client";
+import { isEmail } from "@/lib/validation";
 import type { Profile } from "@/server/member/profile";
 import { Dialog, DialogActions, FieldLabel, fieldClass } from "./dialog";
 import { Icon } from "./icon";
@@ -99,7 +100,9 @@ export function ProfileCard({ profile }: { profile: Profile }) {
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(fullName);
   const [draftAvatar, setDraftAvatar] = useState<string | null>(avatar);
+  const [draftEmail, setDraftEmail] = useState(profile.email ?? "");
   const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [photoError, setPhotoError] = useState("");
   const [processingPhoto, setProcessingPhoto] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -107,6 +110,8 @@ export function ProfileCard({ profile }: { profile: Profile }) {
   function openEditor() {
     setDraftName(fullName);
     setDraftAvatar(avatar);
+    setDraftEmail(profile.email ?? "");
+    setEmailError("");
     setNameError("");
     setPhotoError("");
     setEditing(true);
@@ -148,14 +153,22 @@ export function ProfileCard({ profile }: { profile: Profile }) {
       return;
     }
 
+    const nextEmail = draftEmail.trim().toLowerCase();
+    if (nextEmail && !isEmail(nextEmail)) {
+      setEmailError("Format email tidak valid.");
+      return;
+    }
+
     setSaving(true);
     const result = await api<Profile>("/api/profile", "PATCH", {
       name: nextName,
+      email: nextEmail,
       ...(draftAvatar && draftAvatar !== avatar ? { avatar: draftAvatar } : {}),
     });
     setSaving(false);
     if (!result.ok) {
       if (result.fields?.name) setNameError(result.fields.name);
+      else if (result.fields?.email) setEmailError(result.fields.email);
       else if (result.fields?.avatar) setPhotoError(result.fields.avatar);
       showToast(result.error);
       return;
@@ -163,7 +176,7 @@ export function ProfileCard({ profile }: { profile: Profile }) {
 
     setEditing(false);
     router.refresh();
-    showToast("Nama dan foto profil Anda sudah diperbarui.", {
+    showToast("Data profil Anda sudah diperbarui.", {
       title: "Profil berhasil disimpan",
       tone: "success",
     });
@@ -195,7 +208,11 @@ export function ProfileCard({ profile }: { profile: Profile }) {
             </div>
             <div className="t-body-sm flex items-center justify-center gap-1.5 text-text-muted">
               <Icon name="mail" size={15} />
-              {profile.email}
+              {profile.email ?? (
+                <button type="button" onClick={openEditor} className="font-medium text-primary underline-offset-2 hover:underline">
+                  Tambah email
+                </button>
+              )}
             </div>
           </div>
           <button
@@ -274,6 +291,31 @@ export function ProfileCard({ profile }: { profile: Profile }) {
             {nameError && (
               <p id="profile-name-error" role="alert" className="t-body-sm px-1 text-error">
                 {nameError}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <FieldLabel htmlFor="profile-email">Email</FieldLabel>
+            <input
+              id="profile-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              maxLength={120}
+              placeholder="nama@email.com"
+              value={draftEmail}
+              aria-invalid={Boolean(emailError)}
+              aria-describedby={emailError ? "profile-email-error" : undefined}
+              onChange={(event) => {
+                setDraftEmail(event.target.value);
+                if (emailError) setEmailError("");
+              }}
+              className={`${fieldClass} ${emailError ? "ring-2 ring-error" : ""}`}
+            />
+            {emailError && (
+              <p id="profile-email-error" role="alert" className="t-body-sm px-1 text-error">
+                {emailError}
               </p>
             )}
           </div>

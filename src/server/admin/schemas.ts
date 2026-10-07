@@ -48,3 +48,17 @@ export const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email("Email tidak valid."),
   password: z.string().min(1, "Isi password.").max(200),
 });
+
+export const createUserSchema = z.object({
+  name: z
+    .string()
+    .transform((v) => v.trim().replace(/\s+/g, " "))
+    .pipe(z.string().min(2, "Nama lengkap minimal 2 karakter.").max(80, "Nama lengkap maksimal 80 karakter.")),
+  whatsapp: z.string().trim().min(1, "Isi nomor WhatsApp.").max(30),
+});
+
+export const changePasswordSchema = z.object({
+  identifier: z.string().trim().min(1).max(200),
+  currentPassword: z.string().min(1, "Isi password sementara.").max(200),
+  newPassword: z.string().min(8, "Password baru minimal 8 karakter.").max(200),
+});

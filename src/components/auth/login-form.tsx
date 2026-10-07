@@ -2,11 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { buildWhatsappLink } from "@/data/programs";
 import { signIn } from "@/lib/auth";
+import { normalizeWhatsApp } from "@/lib/validation";
 import { Icon } from "../icon";
+import { WhatsAppIcon } from "../whatsapp-icon";
 import { useToast } from "../toast-provider";
 import { Field } from "./field";
-import { ForgotPasswordDialog } from "./forgot-password-dialog";
+import { ChangePasswordDialog } from "./change-password-dialog";
 import { PasswordField } from "./password-field";
 
 type Errors = { identifier?: string; password?: string; form?: string };
@@ -21,12 +24,13 @@ export function LoginForm() {
   const [remember, setRemember] = useState(true);
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
-  const [forgotOpen, setForgotOpen] = useState(false);
+  const [changeOpen, setChangeOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const next: Errors = {};
-    if (!identifier.trim()) next.identifier = "Isi email atau nomor WhatsApp Anda.";
+    if (!identifier.trim()) next.identifier = "Isi nomor WhatsApp Anda.";
+    else if (!normalizeWhatsApp(identifier)) next.identifier = "Nomor WhatsApp tidak valid (contoh: 0812 3456 7890).";
     if (!password) next.password = "Isi kata sandi Anda.";
     setErrors(next);
     if (next.identifier || next.password) {
@@ -41,6 +45,11 @@ export function LoginForm() {
       setErrors({ form: result.error });
       return;
     }
+    if (result.mustChangePassword) {
+      setSubmitting(false);
+      setChangeOpen(true);
+      return;
+    }
     showToast("Alhamdulillah, selamat kembali ke ruang refleksi Anda.", { tone: "success" });
     router.push("/home");
   }
@@ -51,12 +60,13 @@ export function LoginForm() {
         <Field
           id="identifierInput"
           name="identifier"
-          label="Email atau WhatsApp"
+          label="Nomor WhatsApp"
           hint={<span className="t-body-sm font-normal text-text-muted">Terdaftar di program</span>}
-          icon="mark_email_read"
-          type="text"
+          leading={<WhatsAppIcon />}
+          type="tel"
+          inputMode="tel"
           autoComplete="username"
-          placeholder="nama@email.com atau 0812xxxxxxx"
+          placeholder="0812xxxxxxxx"
           value={identifier}
           onChange={(e) => {
             setIdentifier(e.target.value);
@@ -71,13 +81,14 @@ export function LoginForm() {
             name="password"
             label="Kata Sandi"
             hint={
-              <button
-                type="button"
-                onClick={() => setForgotOpen(true)}
+              <a
+                href={buildWhatsappLink("Halo Selaras Life, saya lupa kata sandi akun saya.")}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="t-label-md font-medium text-primary transition-colors hover:text-on-primary-fixed-variant"
               >
                 Lupa Kata Sandi?
-              </button>
+              </a>
             }
             autoComplete="current-password"
             placeholder="Masukkan kata sandi akun"
@@ -118,10 +129,17 @@ export function LoginForm() {
         </button>
       </form>
 
-      <ForgotPasswordDialog
-        open={forgotOpen}
-        onClose={() => setForgotOpen(false)}
-        defaultTarget={identifier.trim()}
+      <ChangePasswordDialog
+        open={changeOpen}
+        onClose={() => setChangeOpen(false)}
+        identifier={identifier.trim()}
+        currentPassword={password}
+        onChanged={() => {
+          setChangeOpen(false);
+          setPassword("");
+          showToast("Password berhasil diganti. Silakan masuk kembali dengan password baru.", { tone: "success" });
+          formRef.current?.querySelector<HTMLInputElement>("#passwordInput")?.focus();
+        }}
       />
     </>
   );

@@ -4,18 +4,19 @@ import { Icon } from "@/components/icon";
 import { ReflectionForm } from "@/components/reflection-form";
 import { formatDateId } from "@/data/admin-prompts";
 import { requireMemberPage } from "@/lib/server/session";
-import { todayWib, weekdayId } from "@/lib/server/time";
+import { weekdayId } from "@/lib/server/time";
 import { getPromptForDate } from "@/server/admin/prompts";
-import { getTodayEntry } from "@/server/member/journal";
+import { getActiveDate, getTodayEntry } from "@/server/member/journal";
 
 export const metadata: Metadata = { title: "Tulis Jurnal" };
 
 export default async function TulisJurnalPage() {
   const user = await requireMemberPage();
-  const today = todayWib();
-  // Prompt dipilih menurut tanggal hari ini (WIB); tanpa prompt, peserta menulis jurnal bebas.
-  const prompt = await getPromptForDate(today);
-  const entry = await getTodayEntry(user.id, prompt);
+  // Prompt tertinggal (pekan ini) diisi lebih dulu; bila tidak ada, prompt hari ini (WIB).
+  // Tanpa prompt, peserta menulis jurnal bebas.
+  const activeDate = await getActiveDate(user.id);
+  const prompt = await getPromptForDate(activeDate);
+  const entry = await getTodayEntry(user.id, prompt, activeDate);
 
   return (
     <>
@@ -24,7 +25,7 @@ export default async function TulisJurnalPage() {
         <div className="mb-4 flex flex-col gap-2 pt-2">
           <div className="flex items-center justify-between">
             <span className="t-label-md font-semibold tracking-wide text-primary uppercase">
-              {weekdayId(today)} · {formatDateId(today)}
+              {weekdayId(activeDate)} · {formatDateId(activeDate)}
             </span>
             {entry && (
               <span className="t-label-sm inline-flex items-center gap-1 rounded-full bg-sage-tint px-2.5 py-1 text-primary">
@@ -51,7 +52,7 @@ export default async function TulisJurnalPage() {
         </section>
 
         <ReflectionForm
-          key={`${today}-${entry ? "edit" : "baru"}`}
+          key={`${activeDate}-${entry ? "edit" : "baru"}`}
           questions={prompt?.questions}
           initial={entry}
         />
