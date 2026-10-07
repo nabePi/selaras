@@ -7,7 +7,7 @@ import { buildWhatsappLink } from "@/data/programs";
 import { MENTOR_QUOTE } from "@/data/stories";
 
 export const metadata: Metadata = {
-  title: "Cerita",
+  title: "Cerita Keluarga: Pernikahan, Kehamilan & Persalinan Fitrah",
   description:
     "Kisah nyata yang dibagikan langsung di Instagram Selaras Life & Selaras Laktasi — tentang kehamilan, persalinan, dan perjalanan menjemput fitrah.",
   alternates: { canonical: "/cerita" },

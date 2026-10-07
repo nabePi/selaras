@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Icon } from "@/components/icon";
+import { JsonLd } from "@/components/json-ld";
 import { ProgramCatalog } from "@/components/program-catalog";
 import { SectionHeading } from "@/components/section-heading";
 import { buildWhatsappLink } from "@/data/programs";
+import { coursesJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Program",
+  title: "Program Kelas Pernikahan, Kehamilan, Melahirkan & Menyusui",
   description:
-    "Katalog program Selaras Life: kelas, coaching, dan pendampingan bersama konselor pernikahan-keluarga, aktivis dakwah, serta praktisi kehamilan & menyusui bersertifikat, agar keluarga kembali kepada fitrah.",
+    "Katalog program Selaras Life: Marriage Life, Birth in Fitrah, Prenatal Flow, dan kelas menyusui bersama konselor pernikahan-keluarga dan praktisi kehamilan & menyusui bersertifikat, agar keluarga hidup selaras wahyu dan kembali kepada fitrah.",
   alternates: { canonical: "/program" },
 };
 
@@ -36,6 +38,7 @@ const METHODS = [
 export default function ProgramPage() {
   return (
     <div className="flex w-full flex-col">
+      <JsonLd data={coursesJsonLd()} />
       <section className="flex flex-col pt-3 pb-6">
         <h1 className="t-headline-lg-mobile mb-3 leading-snug font-medium text-on-surface">
           Tumbuh Selaras Menuju Keluarga yang Diridhai Allah
