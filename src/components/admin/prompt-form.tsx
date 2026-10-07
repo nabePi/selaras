@@ -38,6 +38,9 @@ const EMOJI_PALETTE = [
   "💔", "✨", "🔥", "🕊️", "🤲", "🌙",
 ];
 
+/** Input dengan border agar terlihat sebagai kolom isian (latar `fieldClass` sama dengan latar kartu). */
+const INPUT = `${fieldClass} border border-outline-variant focus-visible:border-sage-medium`;
+
 const MOOD_INPUT =
   "t-body-sm w-full rounded-2xl border border-outline-variant bg-surface-container-lowest px-3 text-on-surface outline-none placeholder:text-text-muted/60 focus-visible:border-sage-medium focus-visible:ring-2 focus-visible:ring-sage-medium";
 
@@ -330,7 +333,7 @@ export function PromptForm({ initial }: { initial?: JournalPrompt }) {
                   maxLength={80}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="cth: Hal Kecil yang Dihargai"
-                  className={`${fieldClass} ${errors.title ? "ring-2 ring-error" : ""}`}
+                  className={`${INPUT} ${errors.title ? "ring-2 ring-error" : ""}`}
                 />
                 {errorText(errors.title)}
               </div>
@@ -342,7 +345,7 @@ export function PromptForm({ initial }: { initial?: JournalPrompt }) {
                   maxLength={140}
                   onChange={(e) => setSubtitle(e.target.value)}
                   placeholder="Catatan singkat di bawah judul (opsional)"
-                  className={fieldClass}
+                  className={INPUT}
                 />
               </div>
               <div className="space-y-1">
@@ -352,7 +355,7 @@ export function PromptForm({ initial }: { initial?: JournalPrompt }) {
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className={`${fieldClass} ${errors.date ? "ring-2 ring-error" : ""}`}
+                  className={`${INPUT} ${errors.date ? "ring-2 ring-error" : ""}`}
                 />
                 {errorText(errors.date)}
               </div>
@@ -481,7 +484,7 @@ export function PromptForm({ initial }: { initial?: JournalPrompt }) {
                               })
                             }
                             placeholder={`Pilihan ${oi + 1}`}
-                            className={fieldClass}
+                            className={INPUT}
                           />
                           <button
                             type="button"
