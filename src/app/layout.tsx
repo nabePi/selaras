@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Serif, Plus_Jakarta_Sans } from "next/font/google";
+import { JsonLd } from "@/components/json-ld";
+import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE, SITE_URL, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import { ToastProvider } from "@/components/toast-provider";
 import "./globals.css";
 
@@ -19,19 +21,38 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://selaras.life"),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Selaras Life — Your companion for every season of life",
-    template: "%s · Selaras Life",
+    default: SITE_TITLE,
+    template: `%s · ${SITE_NAME}`,
   },
-  description:
-    "Your companion for every season of life. Kelas dan konseling keluarga (Selaras Life), pendampingan kehamilan hingga menyusui (Selaras Laktasi), dan dokumentasi momen keluarga (Selaras Moments).",
-  applicationName: "Selaras Life",
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
+  applicationName: SITE_NAME,
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: "family",
+  alternates: { canonical: "/" },
+  formatDetection: { telephone: false, email: false, address: false },
   openGraph: {
     type: "website",
-    siteName: "Selaras Life",
+    siteName: SITE_NAME,
     locale: "id_ID",
     url: "/",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
+  },
+  // Isi lewat env agar tidak perlu mengubah kode: kode dari Google Search Console / Bing Webmaster.
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    other: process.env.BING_SITE_VERIFICATION ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION } : undefined,
   },
 };
 
@@ -60,6 +81,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="antialiased">
+        <JsonLd data={organizationJsonLd()} />
+        <JsonLd data={websiteJsonLd()} />
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>

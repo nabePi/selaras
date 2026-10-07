@@ -23,6 +23,17 @@ const LAKTASI_SERVICES = [
   { icon: "volunteer_activism", text: "Konseling menyusui privat & pijat laktasi" },
 ];
 
+const TOPICS = [
+  { icon: "favorite", title: "Pernikahan", text: "Kelas dan konseling pernikahan untuk calon pengantin hingga pasangan yang ingin bertumbuh bersama." },
+  { icon: "family_restroom", title: "Keluarga & Menjadi Orang Tua", text: "Pendampingan keluarga muslim dalam mendidik anak dan menjadi orang tua yang selaras fitrah." },
+  { icon: "pregnant_woman", title: "Kehamilan", text: "Kelas edukasi kehamilan dan prenatal yoga untuk ibu hamil dan pasangannya." },
+  { icon: "child_friendly", title: "Melahirkan", text: "Birth in Fitrah: mempersiapkan persalinan dengan ilmu, ikhtiar, dan tawakal." },
+  { icon: "volunteer_activism", title: "Menyusui", text: "Konseling menyusui, kelas menyusui, dan pijat laktasi bersama konselor bersertifikat." },
+  { icon: "psychology", title: "Kesehatan Mental", text: "Ruang aman untuk menenangkan hati, mengelola emosi, dan menjaga kesehatan mental keluarga." },
+  { icon: "self_improvement", title: "Women Wellness", text: "Kesejahteraan perempuan lahir dan batin di setiap fase: sebelum menikah, hamil, hingga menjadi ibu." },
+  { icon: "auto_stories", title: "Hidup Selaras Wahyu", text: "Kajian aqidah dan fitrah agar hidup selaras dengan wahyu, dari rumah tangga hingga peradaban." },
+];
+
 const MOMENTS_SERVICES = ["Birth", "Family", "Event", "Creative Branding", "Corporate"];
 
 const PERAN = [
@@ -250,6 +261,33 @@ export default async function HomePage() {
         />
       </section>
 
+      {/* Topik yang didampingi (konten untuk pencarian) */}
+      <section aria-labelledby="topik-heading" className="flex w-full flex-col gap-3">
+        <SectionHeading
+          eyebrow="Pendampingan Selaras"
+          title="Topik yang kami dampingi"
+          description="Dari pernikahan, kehamilan, melahirkan, dan menyusui hingga kesehatan mental: Selaras Life membersamai keluarga muslim di setiap musim kehidupan."
+        />
+        <ul className="mt-1 grid grid-cols-1 gap-3">
+          {TOPICS.map((t) => (
+            <li key={t.title}>
+              <Link
+                href="/program"
+                className="flex w-full items-start gap-3.5 rounded-2xl bg-surface-container-low p-4 shadow-sm transition-colors hover:bg-surface-container"
+              >
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-sage-tint text-primary">
+                  <Icon name={t.icon} size={20} />
+                </span>
+                <span className="flex flex-col">
+                  <h3 className="t-title-sm text-on-surface">{t.title}</h3>
+                  <span className="t-body-sm text-text-muted">{t.text}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* 5. Tim */}
       <section className="flex w-full flex-col gap-3">
         <SectionHeading
@@ -265,7 +303,7 @@ export default async function HomePage() {
             >
               <Image
                 src={m.photo}
-                alt={m.name}
+                alt={`${m.name}, ${m.role} Selaras`}
                 width={640}
                 height={800}
                 sizes="128px"
