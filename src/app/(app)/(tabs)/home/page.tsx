@@ -76,7 +76,7 @@ export default async function HomePage({
   const today = todayWib();
   const missedDates = await getMissedDates(user.id);
   const activeDate = missedDates[0] ?? today;
-  const prompt = await getPromptForDate(activeDate);
+  const prompt = await getPromptForDate(activeDate, user.id);
   const [entry, week, streak, preVisible, preDone, postVisible, postDone, profile] = await Promise.all([
     getTodayEntry(user.id, prompt, activeDate),
     getWeek(user.id, weeksBack),

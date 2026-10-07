@@ -15,7 +15,7 @@ export default async function TulisJurnalPage() {
   // Prompt tertinggal (pekan ini) diisi lebih dulu; bila tidak ada, prompt hari ini (WIB).
   // Tanpa prompt, peserta menulis jurnal bebas.
   const activeDate = await getActiveDate(user.id);
-  const prompt = await getPromptForDate(activeDate);
+  const prompt = await getPromptForDate(activeDate, user.id);
   const entry = await getTodayEntry(user.id, prompt, activeDate);
 
   return (

@@ -202,7 +202,7 @@ function serializeAnswers(prompt: JournalPrompt, answers: AnswerMap): { question
 export async function submitEntry(userId: number, body: unknown): Promise<{ id: string }> {
   const input = submitSchema.parse(body);
   const activeDate = await getActiveDate(userId);
-  const prompt = await getPromptForDate(activeDate);
+  const prompt = await getPromptForDate(activeDate, userId);
   // Jurnal bebas butuh Catatan Rasa; dengan prompt admin, jawaban pertanyaan sudah cukup.
   if (!prompt && !input.content)
     throw new ApiError(400, "Catatan Rasa wajib diisi.", { content: "Catatan Rasa wajib diisi." });

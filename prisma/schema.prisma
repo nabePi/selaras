@@ -24,6 +24,13 @@ enum MaritalStatus {
   CERAI_MATI
 }
 
+/// Peserta yang melihat sebuah pertanyaan prompt, menurut status pernikahannya.
+enum QuestionAudience {
+  SEMUA
+  MENIKAH
+  BELUM_MENIKAH
+}
+
 enum PromptStatus {
   DRAF
   TERJADWAL
@@ -136,6 +143,8 @@ model PromptQuestion {
   options  String[]
   /// False: peserta boleh mengosongkan jawaban (hanya berlaku untuk tipe TEXT).
   required Boolean       @default(true)
+  /// Siapa yang melihat pertanyaan ini; peserta yang belum mengisi status hanya melihat SEMUA.
+  audience QuestionAudience @default(SEMUA)
 
   answers PromptAnswer[]
 

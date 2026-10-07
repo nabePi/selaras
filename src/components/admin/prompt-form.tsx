@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import {
+  QUESTION_AUDIENCES,
   QUESTION_TYPES,
   type JournalPrompt,
+  type QuestionAudience,
   type PromptQuestion,
   type QuestionType,
 } from "@/data/journal-prompts";
@@ -259,7 +261,7 @@ export function PromptForm({ initial }: { initial?: JournalPrompt }) {
         title,
         subtitle,
         date,
-        questions: questions.map(({ type, label, options, required }) => ({ type, label, options, required })),
+        questions: questions.map(({ type, label, options, required, audience }) => ({ type, label, options, required, audience })),
       },
       initial?.id,
     );
@@ -447,6 +449,22 @@ export function PromptForm({ initial }: { initial?: JournalPrompt }) {
                       invalid={!!errors.questions[q.id]}
                     />
                     {errorText(errors.questions[q.id])}
+                  </div>
+
+                  <div className="space-y-1">
+                    <FieldLabel htmlFor={`audience-${q.id}`}>Ditampilkan untuk</FieldLabel>
+                    <select
+                      id={`audience-${q.id}`}
+                      value={q.audience ?? "semua"}
+                      onChange={(e) => update(q.id, { audience: e.target.value as QuestionAudience })}
+                      className={`${INPUT} cursor-pointer`}
+                    >
+                      {QUESTION_AUDIENCES.map((a) => (
+                        <option key={a.value} value={a.value}>
+                          {a.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   {q.type === "text" && (

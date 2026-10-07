@@ -20,7 +20,7 @@ export default async function JournalPage() {
   const today = todayWib();
   const missedDates = await getMissedDates(user.id);
   const activeDate = missedDates[0] ?? today;
-  const [prompt, entries] = await Promise.all([getPromptForDate(activeDate), listEntries(user.id)]);
+  const [prompt, entries] = await Promise.all([getPromptForDate(activeDate, user.id), listEntries(user.id)]);
 
   return (
     <div className="flex w-full flex-col gap-4">

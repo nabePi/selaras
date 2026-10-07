@@ -2,6 +2,14 @@
 
 export type QuestionType = "text" | "scale" | "choice" | "mood";
 
+export type QuestionAudience = "semua" | "menikah" | "belum-menikah";
+
+export const QUESTION_AUDIENCES: { value: QuestionAudience; label: string }[] = [
+  { value: "semua", label: "Semua peserta (menikah & belum menikah)" },
+  { value: "menikah", label: "Peserta yang menikah" },
+  { value: "belum-menikah", label: "Peserta yang belum menikah" },
+];
+
 export type PromptQuestion = {
   id: string;
   type: QuestionType;
@@ -10,6 +18,8 @@ export type PromptQuestion = {
   options?: string[];
   /** Hanya berlaku untuk `text`: false = peserta boleh mengosongkan. Default true. */
   required?: boolean;
+  /** Default `semua`. */
+  audience?: QuestionAudience;
 };
 
 export type PromptStatus = "terbit" | "terjadwal" | "draf";
