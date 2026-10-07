@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Icon } from "@/components/icon";
 import { SectionHeading } from "@/components/section-heading";
 import { VideoReel } from "@/components/video-reel";
 import { TEAM } from "@/data/team";
+import { getSessionUser } from "@/lib/server/session";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -29,7 +31,11 @@ const PERAN = [
   { title: "Ruh", icon: "spa" },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Peserta yang masih login langsung diarahkan ke beranda member.
+  const user = await getSessionUser("member");
+  if (user?.status === "ACTIVE") redirect("/home");
+
   return (
     <div className="flex w-full flex-col gap-y-6">
       {/* 1. Hero */}
