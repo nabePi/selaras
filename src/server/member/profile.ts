@@ -3,12 +3,13 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { ApiError, notFound } from "@/lib/server/errors";
 import { isEmail } from "@/lib/validation";
+import { avatarSrc, deleteStoredAvatar, verifyAvatarKey } from "@/server/avatar";
 
 export type Profile = {
   name: string;
   email: string | null;
   whatsapp: string;
-  /** URL atau data URL gambar; null bila belum punya foto. */
+  /** URL gambar (URL baca bertanda tangan dari R2, atau data URL lama); null bila belum punya foto. */
   avatar: string | null;
   skills: string[];
   /** Kegiatan sehari-hari / kesibukan (teks bebas). */
@@ -18,7 +19,6 @@ export type Profile = {
 export const MAX_SKILLS = 15;
 const MAX_SKILL_LENGTH = 30;
 export const MAX_ACTIVITIES = 500;
-const MAX_AVATAR_CHARS = 400_000;
 
 const profileSchema = z.object({
   name: z
@@ -32,11 +32,8 @@ const profileSchema = z.object({
     .transform((v) => v.trim().toLowerCase())
     .pipe(z.string().max(120, "Email maksimal 120 karakter.").refine((v) => v === "" || isEmail(v), "Format email tidak valid."))
     .optional(),
-  avatar: z
-    .string()
-    .max(MAX_AVATAR_CHARS, "Ukuran foto terlalu besar.")
-    .regex(/^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/=]+$/, "Format foto tidak didukung.")
-    .optional(),
+  /** Key R2 foto baru, hasil unggah lewat `/api/profile/avatar/presign`. */
+  avatarKey: z.string().min(1).max(300).optional(),
   activities: z
     .string()
     .transform((v) => v.replace(/\r\n/g, "\n").trim())
@@ -56,15 +53,22 @@ const profileSchema = z.object({
 
 const select = { name: true, email: true, whatsapp: true, avatarUrl: true, skills: true, activities: true } as const;
 
-function toProfile(u: {
+async function toProfile(u: {
   name: string;
   email: string | null;
   whatsapp: string;
   avatarUrl: string | null;
   skills: string[];
   activities: string;
-}): Profile {
-  return { name: u.name, email: u.email, whatsapp: u.whatsapp, avatar: u.avatarUrl, skills: u.skills, activities: u.activities };
+}): Promise<Profile> {
+  return {
+    name: u.name,
+    email: u.email,
+    whatsapp: u.whatsapp,
+    avatar: (await avatarSrc(u.avatarUrl)) ?? null,
+    skills: u.skills,
+    activities: u.activities,
+  };
 }
 
 /** Profil dianggap lengkap bila foto, keahlian, dan kegiatan sehari-hari sudah diisi. */
@@ -84,12 +88,17 @@ export async function updateProfile(userId: number, body: unknown): Promise<Prof
     const clash = await db.user.findFirst({ where: { email: input.email, id: { not: userId } }, select: { id: true } });
     if (clash) throw emailTaken();
   }
+  const previous =
+    input.avatarKey !== undefined
+      ? (await db.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } }))?.avatarUrl
+      : undefined;
+  if (input.avatarKey !== undefined) await verifyAvatarKey(userId, input.avatarKey);
   const user = await db.user.update({
     where: { id: userId },
     data: {
       ...(input.name !== undefined && { name: input.name }),
       ...(input.email !== undefined && { email: input.email || null }),
-      ...(input.avatar !== undefined && { avatarUrl: input.avatar }),
+      ...(input.avatarKey !== undefined && { avatarUrl: input.avatarKey }),
       ...(input.skills !== undefined && { skills: input.skills }),
       ...(input.activities !== undefined && { activities: input.activities }),
     },
@@ -99,6 +108,8 @@ export async function updateProfile(userId: number, body: unknown): Promise<Prof
     if (typeof error === "object" && error && (error as { code?: string }).code === "P2002") throw emailTaken();
     throw error;
   });
+  // Foto lama (R2) dibuang setelah yang baru tersimpan, agar tidak ada berkas yatim.
+  if (previous && previous !== input.avatarKey) await deleteStoredAvatar(previous);
   return toProfile(user);
 }
 

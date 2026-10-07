@@ -9,6 +9,7 @@ import { isoDateWib } from "@/lib/server/time";
 import { normalizeWhatsApp } from "@/lib/validation";
 import { hashPassword } from "@/lib/server/password";
 import { sendPasswordResetEmail } from "@/server/mailer";
+import { avatarSrc } from "@/server/avatar";
 import { findMemberByIdentifier } from "@/server/member/credentials";
 import type { z } from "zod";
 import type { createUserSchema } from "./schemas";
@@ -17,17 +18,17 @@ const RESET_TTL_MS = 60 * 60 * 1000;
 
 export const listUsers = cache(async (): Promise<AdminUser[]> => {
   const rows = await db.user.findMany({ where: { role: "MEMBER" }, orderBy: { id: "asc" } });
-  return rows.map((u) => ({
+  return Promise.all(rows.map(async (u) => ({
     id: userCode.format(u.id),
     name: u.name,
-    avatar: u.avatarUrl ?? undefined,
+    avatar: await avatarSrc(u.avatarUrl),
     whatsapp: u.whatsapp,
     email: u.email,
     skills: u.skills,
     activities: u.activities,
     joined: isoDateWib(u.joinedAt),
-    status: u.status === "ACTIVE" ? "active" : "pending",
-  }));
+    status: u.status === "ACTIVE" ? ("active" as const) : ("pending" as const),
+  })));
 });
 
 async function findMember(code: string) {

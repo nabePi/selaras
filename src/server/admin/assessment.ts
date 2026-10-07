@@ -1,4 +1,5 @@
 import "server-only";
+import { avatarSrc } from "@/server/avatar";
 import { cache } from "react";
 import {
   ASSESSMENT_PARTS,
@@ -106,7 +107,8 @@ export const getAssessmentResponses = cache(async (kind: AssessmentKind): Promis
     }),
   ]);
   const byUser = new Map(rows.map((r) => [r.userId, r]));
-  return users.map((u) => toResponse(u, byUser.get(u.id), items));
+  const withAvatars = await Promise.all(users.map(async (u) => ({ ...u, avatarUrl: (await avatarSrc(u.avatarUrl)) ?? null })));
+  return withAvatars.map((u) => toResponse(u, byUser.get(u.id), items));
 });
 
 export async function getAssessmentResponse(kind: AssessmentKind, userId: string) {

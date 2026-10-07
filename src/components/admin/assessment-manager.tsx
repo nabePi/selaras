@@ -552,6 +552,7 @@ export function Avatar({
   if (src) {
     return (
       <Image
+        unoptimized={!src.startsWith("/")}
         src={src}
         alt=""
         width={size}

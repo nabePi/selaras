@@ -182,7 +182,7 @@ function UserRow({
         <div className="flex items-center gap-3">
           {u.avatar ? (
             <Image
-              unoptimized={u.avatar.startsWith("data:")}
+              unoptimized={!u.avatar.startsWith("/")}
               src={u.avatar}
               alt=""
               width={40}
