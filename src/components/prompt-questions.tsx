@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { JOURNAL_FEELINGS } from "@/data/member";
+import { moodOptionsOf } from "@/lib/mood";
+import { richToPlain } from "@/lib/rich-text";
+import { RichText } from "./rich-text";
 import { SCALE_MAX, type PromptQuestion } from "@/data/journal-prompts";
 import type { AnswerMap } from "@/lib/journal-types";
 
@@ -37,25 +39,30 @@ export function PromptQuestions({
     <ol className="flex flex-col gap-4">
       {questions.map((q, i) => (
         <li key={q.id} className="flex flex-col gap-3 rounded-3xl bg-surface-container-low p-5 shadow-sm">
-          <h3 className="t-title-md leading-snug text-on-surface">
-            <span className="mr-2 text-primary">{i + 1}.</span>
-            {q.label.trim() || "Tulis pertanyaan…"}
-          </h3>
+          <div role="heading" aria-level={3} className="t-title-md flex gap-2 leading-snug text-on-surface">
+            <span className="text-primary">{i + 1}.</span>
+            <div className="min-w-0 flex-1">
+              {richToPlain(q.label) ? <RichText value={q.label} /> : "Tulis pertanyaan…"}
+              {q.type === "text" && q.required === false && (
+                <span className="t-label-md font-normal text-text-muted">(opsional)</span>
+              )}
+            </div>
+          </div>
 
           {q.type === "text" && (
             <textarea
               rows={3}
               value={(answers[q.id] as string) ?? ""}
               onChange={(e) => set(q.id, e.target.value)}
-              aria-label={q.label}
-              placeholder="Tulis jawabanmu di sini…"
+              aria-label={richToPlain(q.label)}
+              placeholder={q.required === false ? "Boleh dikosongkan…" : "Tulis jawabanmu di sini…"}
               className="t-body-md w-full resize-none rounded-2xl bg-surface-container-lowest p-3.5 text-on-surface shadow-xs outline-none placeholder:text-text-muted focus-visible:ring-2 focus-visible:ring-primary"
             />
           )}
 
           {q.type === "scale" && (
             <div>
-              <div role="radiogroup" aria-label={q.label} className="grid grid-cols-5 gap-2">
+              <div role="radiogroup" aria-label={richToPlain(q.label)} className="grid grid-cols-5 gap-2">
                 {Array.from({ length: SCALE_MAX }, (_, n) => n + 1).map((n) => {
                   const active = answers[q.id] === n;
                   return (
@@ -82,7 +89,7 @@ export function PromptQuestions({
           )}
 
           {q.type === "choice" && (
-            <div role="radiogroup" aria-label={q.label} className="flex flex-col gap-2">
+            <div role="radiogroup" aria-label={richToPlain(q.label)} className="flex flex-col gap-2">
               {(q.options ?? [])
                 .filter((o) => o.trim())
                 .map((o) => {
@@ -111,10 +118,10 @@ export function PromptQuestions({
           {q.type === "mood" && (
             <div
               role="radiogroup"
-              aria-label={q.label}
-              className="flex items-stretch justify-between gap-1.5 rounded-2xl bg-surface-bright p-2.5 shadow-xs"
+              aria-label={richToPlain(q.label)}
+              className="flex flex-wrap items-stretch justify-between gap-1.5 rounded-2xl bg-surface-bright p-2.5 shadow-xs"
             >
-              {JOURNAL_FEELINGS.map((m) => {
+              {moodOptionsOf(q).map((m) => {
                 const active = answers[q.id] === m.label;
                 return (
                   <button
@@ -123,7 +130,7 @@ export function PromptQuestions({
                     role="radio"
                     aria-checked={active}
                     onClick={() => set(q.id, m.label)}
-                    className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2.5 transition-all active:scale-95 ${
+                    className={`flex min-w-14 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-2.5 transition-all active:scale-95 ${
                       active ? "bg-primary shadow-sm" : "hover:bg-surface-container-low"
                     }`}
                   >

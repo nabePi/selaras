@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RichText } from "@/components/rich-text";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -76,9 +77,10 @@ export default async function ResponseDetailPage({ params }: { params: Params })
           <ol className="space-y-4">
             {response.answers.map((a, i) => (
               <li key={a.label} className="space-y-2 rounded-3xl bg-canvas-ivory p-5 shadow-sm">
-                <p className="t-label-md text-text-muted">
-                  {i + 1}. {a.label}
-                </p>
+                <div className="t-label-md flex gap-1 text-text-muted">
+                  <span>{i + 1}.</span>
+                  <RichText value={a.label} className="min-w-0 flex-1" />
+                </div>
                 <p className={`t-body-md text-on-surface ${a.type === "text" ? "leading-relaxed" : "font-semibold"}`}>
                   {a.value}
                 </p>

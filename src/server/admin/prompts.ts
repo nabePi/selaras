@@ -35,7 +35,8 @@ function toPrompt(row: PromptRow): JournalPrompt {
         id: String(q.id),
         type: TYPE_OUT[q.type],
         label: q.label,
-        ...(q.type === "CHOICE" ? { options: q.options } : {}),
+        ...(q.type === "TEXT" ? { required: q.required } : {}),
+        ...(q.type === "CHOICE" || (q.type === "MOOD" && q.options.length) ? { options: q.options } : {}),
       }),
     ),
   };
@@ -77,7 +78,8 @@ const questionData = (questions: PromptInput["questions"]) =>
     position,
     type: TYPE_IN[q.type],
     label: q.label,
-    options: q.type === "choice" ? (q.options ?? []).filter(Boolean) : [],
+    required: q.type === "text" ? q.required : true,
+    options: q.type === "choice" || q.type === "mood" ? (q.options ?? []).map((o) => o.trim()).filter(Boolean) : [],
   }));
 
 async function assertDateFree(date: string, exceptId?: number) {

@@ -8,6 +8,8 @@ export type PromptQuestion = {
   label: string;
   /** Hanya untuk `choice`. */
   options?: string[];
+  /** Hanya berlaku untuk `text`: false = peserta boleh mengosongkan. Default true. */
+  required?: boolean;
 };
 
 export type PromptStatus = "terbit" | "terjadwal" | "draf";

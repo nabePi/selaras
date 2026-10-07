@@ -92,17 +92,16 @@ export function ReflectionForm({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const attachmentsRef = useRef<Attachment[]>(attachments);
   const xhrs = useRef(new Map<string, XMLHttpRequest>());
-  const redirectTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     const running = xhrs.current;
     return () => {
       running.forEach((x) => x.abort());
       attachmentsRef.current.forEach((a) => a.previewUrl.startsWith("blob:") && URL.revokeObjectURL(a.previewUrl));
-      clearTimeout(redirectTimer.current);
     };
   }, []);
 
+  const hasPrompt = questions.length > 0;
   const words = countWords(text);
   const counter =
     words === 0
@@ -204,7 +203,8 @@ export function ReflectionForm({
       showToast("Lengkapi semua pertanyaan prompt hari ini.");
       return;
     }
-    if (words === 0) {
+    // Catatan Rasa hanya wajib untuk jurnal bebas; dengan prompt admin, jawaban pertanyaan sudah cukup.
+    if (!hasPrompt && words === 0) {
       setTextError(true);
       textareaRef.current?.focus();
       return;
@@ -219,7 +219,8 @@ export function ReflectionForm({
     }
     setSubmitting(true);
     const result = await api("/api/journal/entries", "POST", {
-      content: text,
+      // Dengan prompt, catatan lama (bila ada) dipertahankan agar tidak terhapus saat menyunting.
+      content: hasPrompt ? (initial?.content ?? "") : text,
       shared,
       answers,
       attachments: {
@@ -232,13 +233,12 @@ export function ReflectionForm({
       showToast(result.error);
       return;
     }
-    showToast("Mengarahkan kembali ke Beranda...", {
+    showToast("Jurnalmu sudah tersimpan.", {
       title: "Alhamdulillah, jurnal tersimpan!",
       tone: "success",
-      duration: 2200,
     });
+    router.push("/journal");
     router.refresh();
-    redirectTimer.current = setTimeout(() => router.push("/home"), 2200);
   }
 
   return (
@@ -264,35 +264,37 @@ export function ReflectionForm({
         </div>
       )}
 
-      {/* Catatan */}
-      <div className="mb-4 flex flex-col gap-1">
-        <div className="flex items-center justify-between px-1">
-          <label htmlFor="reflectionText" className="t-title-sm flex items-center gap-1.5 text-on-surface">
-            Catatan Rasa
-            <span aria-hidden="true" className="text-accent-coral">*</span>
-          </label>
-          <span className={`t-label-sm font-normal ${counter.tone}`}>{counter.text}</span>
-        </div>
-        <div className="rounded-2xl bg-surface-container-lowest p-4 shadow-sm transition-shadow focus-within:shadow-md">
-          <textarea
-            id="reflectionText"
-            ref={textareaRef}
-            rows={7}
-            required
-            aria-invalid={textError}
-            value={text}
-            onChange={(e) => {
-              setText(e.target.value);
-              if (textError) setTextError(false);
-            }}
-            placeholder="Mulai ceritakan di sini... (teks jawaban wajib)"
-            className="t-body-lg w-full resize-none border-0 bg-transparent leading-relaxed text-on-surface outline-none placeholder:text-text-muted/60"
-          />
-          <div className="flex justify-end pt-2">
-            <Icon name="edit_note" size={18} className="text-surface-container-highest" />
+      {/* Catatan: hanya untuk jurnal bebas (tanpa prompt admin) */}
+      {!hasPrompt && (
+        <div className="mb-4 flex flex-col gap-1">
+          <div className="flex items-center justify-between px-1">
+            <label htmlFor="reflectionText" className="t-title-sm flex items-center gap-1.5 text-on-surface">
+              Catatan Rasa
+              <span aria-hidden="true" className="text-accent-coral">*</span>
+            </label>
+            <span className={`t-label-sm font-normal ${counter.tone}`}>{counter.text}</span>
+          </div>
+          <div className="rounded-2xl bg-surface-container-lowest p-4 shadow-sm transition-shadow focus-within:shadow-md">
+            <textarea
+              id="reflectionText"
+              ref={textareaRef}
+              rows={7}
+              required
+              aria-invalid={textError}
+              value={text}
+              onChange={(e) => {
+                setText(e.target.value);
+                if (textError) setTextError(false);
+              }}
+              placeholder="Mulai ceritakan di sini... (teks jawaban wajib)"
+              className="t-body-lg w-full resize-none border-0 bg-transparent leading-relaxed text-on-surface outline-none placeholder:text-text-muted/60"
+            />
+            <div className="flex justify-end pt-2">
+              <Icon name="edit_note" size={18} className="text-surface-container-highest" />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Lampiran */}
       <div className="mb-4 flex flex-col gap-1">
@@ -444,8 +446,8 @@ export function ReflectionForm({
           disabled={submitting || uploading}
           className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 text-on-primary shadow-sm transition-all duration-200 hover:bg-primary-container active:scale-[0.98] disabled:opacity-80"
         >
-          <Icon name="send" size={20} filled />
-          <span className="t-title-sm tracking-wide">{submitting ? "Menyimpan..." : uploading ? "Mengunggah lampiran..." : initial ? "Perbarui Jurnal" : "Simpan & Kirim Jurnal"}</span>
+          <Icon name="save" size={20} filled />
+          <span className="t-title-sm tracking-wide">{submitting ? "Menyimpan..." : uploading ? "Mengunggah lampiran..." : "Simpan Jurnal"}</span>
         </button>
       </div>
     </form>

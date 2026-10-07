@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { JournalPrompt } from "@/data/journal-prompts";
+import { richFirstLine } from "@/lib/rich-text";
 import { Icon } from "./icon";
 
 /**
@@ -29,7 +30,7 @@ export function JournalTodayCard({
   const note = written
     ? "Kamu masih bisa memperbarui catatanmu sebelum hari berganti."
     : prompt
-      ? prompt.subtitle || prompt.questions[0]?.label
+      ? prompt.subtitle || (prompt.questions[0] && richFirstLine(prompt.questions[0].label))
       : "Belum ada prompt untuk hari ini, jadi kamu bebas menulis jurnal tanpa prompt.";
 
   return (
