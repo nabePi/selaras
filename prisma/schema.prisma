@@ -125,6 +125,8 @@ model PromptQuestion {
   label    String
   /// Hanya dipakai tipe CHOICE.
   options  String[]
+  /// False: peserta boleh mengosongkan jawaban (hanya berlaku untuk tipe TEXT).
+  required Boolean       @default(true)
 
   answers PromptAnswer[]
 

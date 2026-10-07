@@ -3,9 +3,9 @@ import { z } from "zod";
 import type { Prisma } from "@/generated/prisma/client";
 import { formatDateId } from "@/data/admin-prompts";
 import { SCALE_MAX, type JournalPrompt } from "@/data/journal-prompts";
-import { JOURNAL_FEELINGS } from "@/data/member";
 import type { ResponseAttachment } from "@/data/prompt-responses";
 import { MAX_ATTACHMENTS } from "@/lib/attachments";
+import { encodeMood, moodOptionsOf, parseMood } from "@/lib/mood";
 import { deleteObjects } from "@/lib/server/r2";
 import { toAttachmentDtos, verifyNewAttachments, type NewAttachment } from "./attachments";
 import { db } from "@/lib/db";
@@ -23,15 +23,11 @@ type EntryRow = Prisma.PromptResponseGetPayload<{ include: typeof withDetail }>;
 
 const isoOf = (d: Date) => d.toISOString().slice(0, 10);
 
-function moodOf(value: string) {
-  return JOURNAL_FEELINGS.find((f) => value.endsWith(f.label)) ?? null;
-}
-
 function toEntry(row: EntryRow, attachments: ResponseAttachment[]): MemberEntry {
   const date = isoOf(row.date);
   const answers = row.answers.map((a) => ({ label: a.question.label, type: a.question.type.toLowerCase(), value: a.value }));
   const mood = answers.find((a) => a.type === "mood");
-  const firstText = answers.find((a) => a.type === "text")?.value ?? "";
+  const firstText = (answers.find((a) => a.type === "text") ?? answers[0])?.value ?? "";
   const body = row.content.trim() || firstText;
   return {
     id: String(row.id),
@@ -41,7 +37,7 @@ function toEntry(row: EntryRow, attachments: ResponseAttachment[]): MemberEntry 
     promptTitle: row.prompt?.title ?? null,
     excerpt: body.length > 160 ? `${body.slice(0, 157).trimEnd()}...` : body,
     content: body,
-    feeling: mood ? moodOf(mood.value) : null,
+    feeling: mood ? parseMood(mood.value) : null,
     shared: row.shared,
     answers,
     attachments,
@@ -78,7 +74,7 @@ export async function getTodayEntry(
     const a = row.answers.find((x) => String(x.questionId) === q.id);
     if (!a) continue;
     if (q.type === "scale") answers[q.id] = Number.parseInt(a.value, 10);
-    else if (q.type === "mood") answers[q.id] = moodOf(a.value)?.label ?? "";
+    else if (q.type === "mood") answers[q.id] = parseMood(a.value)?.label ?? "";
     else answers[q.id] = a.value;
   }
   return { content: row.content, shared: row.shared, answers, attachments: await toAttachmentDtos(row.attachments) };
@@ -161,7 +157,7 @@ export async function getWeek(userId: number, weeksBack = 0) {
 }
 
 const submitSchema = z.object({
-  content: z.string().trim().min(1, "Catatan Rasa wajib diisi.").max(5000, "Catatan terlalu panjang."),
+  content: z.string().trim().max(5000, "Catatan terlalu panjang.").default(""),
   shared: z.boolean(),
   answers: z.record(z.string(), z.union([z.string().max(2000), z.number()])).default({}),
   /** `keep`: id lampiran lama yang dipertahankan; `added`: berkas baru yang sudah diunggah ke R2. */
@@ -185,9 +181,10 @@ function serializeAnswers(prompt: JournalPrompt, answers: AnswerMap): { question
       value = typeof raw === "number" && Number.isInteger(raw) && raw >= 1 && raw <= SCALE_MAX ? `${raw} / ${SCALE_MAX}` : null;
     else if (q.type === "choice") value = typeof raw === "string" && (q.options ?? []).includes(raw) ? raw : null;
     else {
-      const m = JOURNAL_FEELINGS.find((f) => f.label === raw);
-      value = m ? `${m.emoji} ${m.label}` : null;
+      const m = moodOptionsOf(q).find((f) => f.label === raw);
+      value = m ? encodeMood(m) : null;
     }
+    if (value === null && q.type === "text" && q.required === false) continue;
     if (value === null) fields[`answers.${q.id}`] = "Pertanyaan ini belum dijawab.";
     else out.push({ questionId: Number(q.id), value });
   }
@@ -204,6 +201,9 @@ export async function submitEntry(userId: number, body: unknown): Promise<{ id: 
   const input = submitSchema.parse(body);
   const activeDate = await getActiveDate(userId);
   const prompt = await getPromptForDate(activeDate);
+  // Jurnal bebas butuh Catatan Rasa; dengan prompt admin, jawaban pertanyaan sudah cukup.
+  if (!prompt && !input.content)
+    throw new ApiError(400, "Catatan Rasa wajib diisi.", { content: "Catatan Rasa wajib diisi." });
   const answers = prompt ? serializeAnswers(prompt, input.answers) : [];
   const date = new Date(`${activeDate}T00:00:00Z`);
   const added: NewAttachment[] = input.attachments.added;

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RichText } from "@/components/rich-text";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { EntryAudio } from "@/components/entry-audio";
@@ -58,7 +59,7 @@ export default async function JournalEntryPage({ params }: { params: Params }) {
           <ol className="flex flex-col gap-3">
             {answers.map((a) => (
               <li key={a.label} className="flex flex-col gap-1 rounded-2xl bg-surface-container-low p-4">
-                <span className="t-label-md text-text-muted">{a.label}</span>
+                <RichText value={a.label} className="t-label-md text-text-muted" />
                 <span className="t-body-md text-on-surface">{a.value}</span>
               </li>
             ))}

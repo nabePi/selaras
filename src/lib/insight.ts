@@ -6,6 +6,8 @@ import type {
 import type { AssessmentResponse } from "@/data/assessment-responses";
 import type { JournalPrompt } from "@/data/journal-prompts";
 import { JOURNAL_FEELINGS } from "@/data/member";
+import { parseMood } from "@/lib/mood";
+import { richToPlain } from "@/lib/rich-text";
 import type { PromptResponse } from "@/data/prompt-responses";
 
 /**
@@ -108,14 +110,18 @@ export function computeInsight({ participants, items, pre, post, prompts }: Insi
       });
       if (q.type === "mood") {
         for (const a of answers) {
-          const m = moodCounts.find((f) => a.value.endsWith(f.label));
+          // Admin boleh membuat pilihan mood sendiri: perasaan di luar bawaan ikut dihitung.
+          const parsed = parseMood(a.value);
+          if (!parsed) continue;
+          const m = moodCounts.find((f) => f.label === parsed.label);
           if (m) m.count += 1;
+          else moodCounts.push({ ...parsed, count: 1 } as (typeof moodCounts)[number]);
         }
       }
       if (q.type === "scale" && answers.length) {
         scaleRows.push({
           promptTitle: ps.title,
-          label: q.label,
+          label: richToPlain(q.label),
           avg: mean(answers.map((a) => Number.parseInt(a.value, 10)))!,
           n: answers.length,
         });
