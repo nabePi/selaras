@@ -14,6 +14,8 @@ import { findMemberByIdentifier } from "@/server/member/credentials";
 import type { z } from "zod";
 import type { createUserSchema } from "./schemas";
 
+import { maritalLabel } from "@/data/marital-status";
+
 const RESET_TTL_MS = 60 * 60 * 1000;
 
 export const listUsers = cache(async (): Promise<AdminUser[]> => {
@@ -26,6 +28,7 @@ export const listUsers = cache(async (): Promise<AdminUser[]> => {
     email: u.email,
     skills: u.skills,
     activities: u.activities,
+    maritalStatus: u.maritalStatus ? (maritalLabel(u.maritalStatus.toLowerCase().replace("_", "-")) ?? undefined) : undefined,
     joined: isoDateWib(u.joinedAt),
     status: u.status === "ACTIVE" ? ("active" as const) : ("pending" as const),
   })));

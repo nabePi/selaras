@@ -17,6 +17,13 @@ enum UserStatus {
   ACTIVE
 }
 
+enum MaritalStatus {
+  MENIKAH
+  BELUM_MENIKAH
+  CERAI_HIDUP
+  CERAI_MATI
+}
+
 enum PromptStatus {
   DRAF
   TERJADWAL
@@ -47,25 +54,27 @@ enum AssessmentPart {
 }
 
 model User {
-  id                 Int        @id @default(autoincrement())
+  id                 Int            @id @default(autoincrement())
   name               String
   /// Opsional: akun yang dibuat admin hanya punya nama dan WhatsApp.
-  email              String?    @unique
+  email              String?        @unique
   whatsapp           String
   passwordHash       String
   /// True untuk akun buatan admin yang masih memakai password default; harus diganti sebelum bisa masuk.
-  mustChangePassword Boolean    @default(false)
-  role               Role       @default(MEMBER)
-  status             UserStatus @default(PENDING)
+  mustChangePassword Boolean        @default(false)
+  role               Role           @default(MEMBER)
+  status             UserStatus     @default(PENDING)
   avatarUrl          String?
   /// Potensi & keahlian yang diisi peserta di halaman profil.
   skills             String[]
   /// Kegiatan sehari-hari / kesibukan yang diisi peserta di halaman profil.
-  activities         String     @default("")
-  joinedAt           DateTime   @default(now())
+  activities         String         @default("")
+  /// Status pernikahan yang diisi peserta di halaman profil; null = belum diisi.
+  maritalStatus      MaritalStatus?
+  joinedAt           DateTime       @default(now())
   activatedAt        DateTime?
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
