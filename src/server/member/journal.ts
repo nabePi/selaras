@@ -15,7 +15,7 @@ import { addDays, todayWib, weekdayId } from "@/lib/server/time";
 import { getPromptForDate } from "@/server/admin/prompts";
 
 const withDetail = {
-  prompt: { select: { title: true } },
+  prompt: { select: { title: true, subtitle: true } },
   answers: { include: { question: true }, orderBy: { question: { position: "asc" } } },
   attachments: true,
 } satisfies Prisma.PromptResponseInclude;
@@ -35,8 +35,10 @@ function toEntry(row: EntryRow, attachments: ResponseAttachment[]): MemberEntry 
     dateLabel: formatDateId(date),
     dayLabel: weekdayId(date),
     promptTitle: row.prompt?.title ?? null,
+    promptSubtitle: row.prompt?.subtitle || null,
     excerpt: body.length > 160 ? `${body.slice(0, 157).trimEnd()}...` : body,
     content: body,
+    note: row.content.trim(),
     feeling: mood ? parseMood(mood.value) : null,
     shared: row.shared,
     answers,

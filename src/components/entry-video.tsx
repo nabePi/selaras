@@ -14,7 +14,6 @@ export function EntryVideo({ src, poster, title, compact = false }: Props) {
         src={src}
         poster={poster || undefined}
         controls
-        muted
         playsInline
         preload="metadata"
         aria-label={title}

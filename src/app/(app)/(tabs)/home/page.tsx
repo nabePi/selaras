@@ -4,9 +4,8 @@ import { Icon } from "@/components/icon";
 import { AssessmentCard } from "@/components/assessment-card";
 import { JournalTodayCard } from "@/components/journal-today-card";
 import { ProfileReminder } from "@/components/profile-reminder";
-import { WisdomActions } from "@/components/wisdom-actions";
 import { formatDateId } from "@/data/admin-prompts";
-import { DAILY_WISDOM } from "@/data/member";
+import { quoteForDate } from "@/data/member";
 import { requireMemberPage } from "@/lib/server/session";
 import { todayWib } from "@/lib/server/time";
 import { isAssessmentVisible } from "@/server/admin/assessment";
@@ -104,36 +103,19 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* 2. Hadis harian */}
+      {/* 2. Kutipan penenang harian */}
       <section
         className="relative w-full overflow-hidden rounded-4xl bg-surface-container shadow-md"
-        aria-label="Nasihat hari ini"
+        aria-label="Kutipan hari ini"
       >
         <div
-          className="relative flex h-52 w-full flex-col justify-between bg-cover bg-center p-5"
+          className="relative flex h-52 w-full items-center justify-center bg-cover bg-center px-6 py-5"
           style={{ backgroundImage: "url('/images/wisdom-bg.jpg')" }}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/90 via-inverse-surface/60 to-inverse-surface/30" />
-          <div className="relative z-10 flex items-center justify-between">
-            <span className="t-label-sm inline-flex items-center gap-1.5 rounded-full bg-surface-bright/90 px-3 py-1 text-on-surface backdrop-blur-md">
-              <Icon name="auto_stories" size={14} filled className="text-primary" />
-              Hadis Harian
-            </span>
-            <WisdomActions shareText={DAILY_WISDOM.shareText} />
-          </div>
-          <div className="relative z-10 flex flex-col gap-1.5">
-            <p className="t-quote leading-relaxed text-surface-bright italic">
-              “{DAILY_WISDOM.quote}”
-            </p>
-            <div className="flex items-center justify-between pt-1 text-surface-container-high/90">
-              <span className="t-label-sm tracking-wide">
-                {DAILY_WISDOM.source} • Nasihat Hari Ini
-              </span>
-              <span className="text-[10px] font-semibold tracking-wider text-accent-sunray uppercase">
-                {DAILY_WISDOM.theme}
-              </span>
-            </div>
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/80 via-inverse-surface/55 to-inverse-surface/35" />
+          <p className="t-quote relative z-10 max-w-sm text-center leading-relaxed text-surface-bright italic">
+            “{quoteForDate(today)}”
+          </p>
         </div>
       </section>
 
