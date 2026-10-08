@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BlogCard } from "@/components/blog/blog-card";
 import { AuthorAvatar, AuthorBox } from "@/components/blog/author-box";
 import { BlogContent, TagList } from "@/components/blog/blog-content";
 import { CommentSection } from "@/components/blog/comment-section";
@@ -12,7 +13,7 @@ import { JsonLd } from "@/components/json-ld";
 import { formatDateId } from "@/data/admin-prompts";
 import { plainText } from "@/lib/blog-content";
 import { SITE_NAME, SITE_URL } from "@/lib/seo";
-import { getPublishedPost, likeStateFor, listComments } from "@/server/blog";
+import { getPublishedPost, likeStateFor, listComments, listRelatedPosts } from "@/server/blog";
 import { getBlogUser, resolveActor } from "@/server/blog-actor";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +39,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
   const post = await getPublishedPost(slug);
   if (!post) notFound();
   const postId = Number(post.id);
-  const [actor, user, comments] = await Promise.all([resolveActor({ create: false }), getBlogUser(), listComments(postId)]);
+  const [actor, user, comments, related] = await Promise.all([resolveActor({ create: false }), getBlogUser(), listComments(postId), listRelatedPosts(postId, post.tags)]);
   const likes = await likeStateFor(postId, actor);
 
   return (
@@ -89,6 +90,19 @@ export default async function BlogPostPage({ params }: { params: Params }) {
       <AuthorBox author={post.author} />
       <ProgramCta />
       <CommentSection slug={post.slug} initial={comments} userName={user?.name ?? null} />
+
+      {related.length > 0 && (
+        <section aria-label="Artikel lainnya" className="flex flex-col gap-3">
+          <h2 className="t-title-lg text-on-surface">Artikel lainnya</h2>
+          {related.map((p) => (
+            <BlogCard key={p.id} post={p} />
+          ))}
+          <Link href="/blog" className="t-title-sm flex w-fit items-center gap-1 self-center rounded-full bg-sage-tint px-5 py-2.5 text-primary transition-colors hover:bg-primary-fixed">
+            Lihat semua artikel
+            <Icon name="arrow_forward" size={16} />
+          </Link>
+        </section>
+      )}
     </article>
   );
 }
