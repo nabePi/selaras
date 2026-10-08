@@ -56,7 +56,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
           mainEntityOfPage: `${SITE_URL}/blog/${post.slug}`,
         }}
       />
-      <Link href="/blog" className="t-label-md flex w-fit items-center gap-1 text-primary">
+      <Link href="/blog" className="t-label-md mt-3 flex w-fit items-center gap-1 text-primary">
         <Icon name="arrow_back" size={16} />
         Semua artikel
       </Link>
