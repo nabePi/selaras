@@ -7,7 +7,7 @@ import { PosterCarousel } from "@/components/poster-carousel";
 import { SessionLocation } from "@/components/session-location";
 import { SessionJoinButton } from "@/components/session-join-button";
 import { formatDateId } from "@/data/admin-prompts";
-import { formatFileSize, hasOffline, hasOnline, meetingPlatform, sessionModeLabel } from "@/data/courses";
+import { formatFileSize, formatTimeRange, hasOffline, hasOnline, meetingPlatform, sessionModeLabel } from "@/data/courses";
 import { sessionEndsAt, sessionOpensAt, sessionStartsAt } from "@/lib/course-time";
 import { requireMemberPage } from "@/lib/server/session";
 import { todayWib } from "@/lib/server/time";
@@ -50,7 +50,7 @@ export default async function DetailKelasPage({ params }: { params: Promise<{ id
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span className="t-label-sm font-semibold tracking-wide text-primary uppercase">
                       Sesi {i + 1} · {formatDateId(s.date)}
-                      {s.time && ` · ${s.time} WIB`}
+                      {s.time && ` · ${formatTimeRange(s.time, s.endTime)}`}
                       {` · ${sessionModeLabel(s.mode)}`}
                     </span>
                     <h2 className="t-title-md text-on-surface">{s.title}</h2>
@@ -83,7 +83,7 @@ export default async function DetailKelasPage({ params }: { params: Promise<{ id
               {hasOffline(s.mode) && s.locationName && <SessionLocation name={s.locationName} mapsUrl={s.mapsUrl} />}
 
               {hasOnline(s.mode) && s.meetingUrl && platform && (
-                <SessionJoinButton url={s.meetingUrl} platform={platform} opensAt={sessionOpensAt(s.date, s.time)} startsAt={sessionStartsAt(s.date, s.time)} endsAt={sessionEndsAt(s.date, s.time)} />
+                <SessionJoinButton url={s.meetingUrl} platform={platform} opensAt={sessionOpensAt(s.date, s.time)} startsAt={sessionStartsAt(s.date, s.time)} endsAt={sessionEndsAt(s.date, s.time, s.endTime)} />
               )}
 
               {s.recording?.url && (

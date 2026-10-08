@@ -1,11 +1,14 @@
 /** Lama sesi dihitung sejak jam mulai, karena durasi belum dicatat admin. */
 const SESSION_DURATION_MS = 3 * 60 * 60 * 1000;
 
-/** Waktu sesi berakhir (epoch ms): jam mulai (WIB) + durasi, atau akhir hari bila jam kosong. */
-export function sessionEndsAt(date: string, time: string) {
-  return time
-    ? new Date(`${date}T${time}:00+07:00`).getTime() + SESSION_DURATION_MS
-    : new Date(`${date}T23:59:59+07:00`).getTime();
+/**
+ * Waktu sesi berakhir (epoch ms): jam berakhir (WIB) bila diisi, selain itu jam mulai + durasi bawaan,
+ * atau akhir hari bila jam mulai kosong.
+ */
+export function sessionEndsAt(date: string, time: string, endTime = "") {
+  if (!time) return new Date(`${date}T23:59:59+07:00`).getTime();
+  if (endTime && endTime > time) return new Date(`${date}T${endTime}:00+07:00`).getTime();
+  return new Date(`${date}T${time}:00+07:00`).getTime() + SESSION_DURATION_MS;
 }
 
 /** Tombol gabung dibuka 30 menit sebelum jam mulai. */

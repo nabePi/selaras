@@ -29,6 +29,8 @@ export type CourseSession = {
   date: string;
   /** `HH:MM` (WIB) atau kosong. */
   time: string;
+  /** `HH:MM` (WIB) atau kosong; opsional, hanya berlaku bila jam mulai diisi. */
+  endTime: string;
   mode: SessionMode;
   /** Tautan Zoom / Meet; kosong untuk sesi offline. */
   meetingUrl: string;
@@ -117,3 +119,7 @@ export function meetingPlatform(url: string): string | null {
     return null;
   }
 }
+
+/** "09:00 WIB" atau "09:00–11:00 WIB"; string kosong bila jam mulai tidak diisi. */
+export const formatTimeRange = (time: string, endTime: string) =>
+  time ? `${time}${endTime ? `–${endTime}` : ""} WIB` : "";

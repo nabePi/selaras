@@ -86,6 +86,7 @@ export type CoursePayload = {
     title: string;
     date: string;
     time: string;
+    endTime: string;
     mode: SessionMode;
     meetingUrl: string;
     locationName: string;

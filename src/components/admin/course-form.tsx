@@ -13,7 +13,7 @@ import { btnPrimary, btnSoft } from "./page-header";
 
 const INPUT = `${fieldClass} border border-outline-variant focus-visible:border-sage-medium`;
 
-type Errors = { title?: string; form?: string; sessions: Record<string, { title?: string; date?: string; meetingUrl?: string; locationName?: string; mapsUrl?: string }> };
+type Errors = { title?: string; form?: string; sessions: Record<string, { title?: string; date?: string; endTime?: string; meetingUrl?: string; locationName?: string; mapsUrl?: string }> };
 
 const slim = (f: CourseFile | null) => (f ? { key: f.key, name: f.name, size: f.size } : null);
 
@@ -41,6 +41,7 @@ export function CourseForm({ initial }: { initial?: Course }) {
     title: "",
     date: "",
     time: "",
+    endTime: "",
     mode: "ONLINE",
     meetingUrl: "",
     locationName: "",
@@ -101,6 +102,8 @@ export function CourseForm({ initial }: { initial?: Course }) {
       const err: Errors["sessions"][string] = {};
       if (s.title.trim().length < 3) err.title = "Judul sesi minimal 3 karakter.";
       if (!s.date) err.date = "Tanggal sesi wajib diisi.";
+      if (s.endTime && !s.time) err.endTime = "Isi jam mulai dulu.";
+      else if (s.endTime && s.endTime <= s.time) err.endTime = "Jam berakhir harus setelah jam mulai.";
       if (hasOnline(s.mode) && s.meetingUrl.trim() && !meetingPlatform(s.meetingUrl.trim())) err.meetingUrl = "Tautan harus diawali https://";
       if (hasOffline(s.mode)) {
         if (!s.locationName.trim()) err.locationName = "Nama lokasi wajib diisi.";
@@ -121,6 +124,7 @@ export function CourseForm({ initial }: { initial?: Course }) {
           title: s.title,
           date: s.date,
           time: s.time,
+          endTime: s.time ? s.endTime : "",
           mode: s.mode,
           meetingUrl: hasOnline(s.mode) ? s.meetingUrl : "",
           locationName: hasOffline(s.mode) ? s.locationName : "",
@@ -242,7 +246,7 @@ export function CourseForm({ initial }: { initial?: Course }) {
                   {errorText(err.title)}
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-1">
                     <FieldLabel htmlFor={`sd-${s.uid}`}>Tanggal</FieldLabel>
                     <input id={`sd-${s.uid}`} type="date" value={s.date} onChange={(e) => update(s.uid, { date: e.target.value })} className={`${INPUT} ${err.date ? "ring-2 ring-error" : ""}`} />
@@ -251,6 +255,11 @@ export function CourseForm({ initial }: { initial?: Course }) {
                   <div className="space-y-1">
                     <FieldLabel htmlFor={`sh-${s.uid}`}>Jam mulai (WIB, opsional)</FieldLabel>
                     <input id={`sh-${s.uid}`} type="time" value={s.time} onChange={(e) => update(s.uid, { time: e.target.value })} className={INPUT} />
+                  </div>
+                  <div className="space-y-1">
+                    <FieldLabel htmlFor={`se-${s.uid}`}>Jam berakhir (WIB, opsional)</FieldLabel>
+                    <input id={`se-${s.uid}`} type="time" value={s.endTime} onChange={(e) => update(s.uid, { endTime: e.target.value })} className={`${INPUT} ${err.endTime ? "ring-2 ring-error" : ""}`} />
+                    {errorText(err.endTime)}
                   </div>
                 </div>
 
