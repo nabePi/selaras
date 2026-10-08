@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0](https://github.com/nabePi/selaras/compare/v0.6.0...v0.7.0) (2026-10-08)
+
+
+### Fitur Baru
+
+* pagination dan urut tanggal tayang pada daftar prompt jurnal ([a7f1645](https://github.com/nabePi/selaras/commit/a7f16450cac8093b9314d1429de02de1da17d7bc))
+* pagination dan urut tanggal tayang pada daftar prompt jurnal ([7797ac5](https://github.com/nabePi/selaras/commit/7797ac58539ac36acbfeec7afcf2c43784e0b0d2))
+
 ## [0.6.0](https://github.com/nabePi/selaras/compare/v0.5.0...v0.6.0) (2026-10-08)
 
 
