@@ -169,3 +169,16 @@ export const BLOG_UPLOAD_RULES: Record<
   video: { accept: "video/mp4,video/webm,video/quicktime", maxBytes: 500 * MB, maxLabel: "500 MB", allows: (m) => m.startsWith("video/"), formats: "video (MP4, MOV, WebM)" },
   audio: { accept: AUDIO_TYPES.join(","), maxBytes: 100 * MB, maxLabel: "100 MB", allows: (m) => AUDIO_TYPES.includes(m) || m.startsWith("audio/"), formats: "audio (MP3, M4A, WAV, OGG)" },
 };
+
+const dateTimeWib = new Intl.DateTimeFormat("id-ID", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+  timeZone: "Asia/Jakarta",
+});
+
+/** "8 Okt 2026, 11:29 WIB" dari waktu ISO. */
+export const formatDateTimeWib = (iso: string) => `${dateTimeWib.format(new Date(iso)).replace(/\./g, ":")} WIB`;

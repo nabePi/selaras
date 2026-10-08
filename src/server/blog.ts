@@ -304,6 +304,23 @@ export async function getPublishedPost(slug: string): Promise<BlogPostFull | nul
   return row ? toFull(row) : null;
 }
 
+/** Artikel terbit lain untuk rekomendasi: yang hashtag-nya paling banyak sama dulu, lalu yang terbaru. */
+export async function listRelatedPosts(postId: number, tags: string[], limit = 3): Promise<BlogPostSummary[]> {
+  const rows = await db.blogPost.findMany({
+    where: { ...published, id: { not: postId } },
+    select: summarySelect,
+    orderBy: { publishedAt: "desc" },
+    take: 30,
+  });
+  const shared = (t: string[]) => t.filter((x) => tags.includes(x)).length;
+  const picked = rows
+    .map((r, i) => ({ r, i, n: shared(r.tags) }))
+    .sort((a, b) => b.n - a.n || a.i - b.i)
+    .slice(0, limit)
+    .map((x) => x.r);
+  return Promise.all(picked.map(toSummary));
+}
+
 export async function listPublishedSlugs() {
   return db.blogPost.findMany({ where: published, select: { slug: true, updatedAt: true }, orderBy: { publishedAt: "desc" } });
 }
