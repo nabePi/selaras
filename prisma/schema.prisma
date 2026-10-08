@@ -307,6 +307,8 @@ model CourseSession {
   date       DateTime @db.Date
   /// Jam mulai (WIB) format HH:MM; kosong bila belum ditentukan.
   time       String   @default("")
+  /// Jam berakhir (WIB) format HH:MM; opsional, kosong bila tidak ditentukan.
+  endTime    String   @default("")
   mode       SessionMode @default(ONLINE)
   /// Tautan Zoom / Google Meet sesi ini (sesi online dan hybrid).
   meetingUrl String   @default("")

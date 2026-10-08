@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatDateId } from "@/data/admin-prompts";
-import { hasOffline, hasOnline, meetingPlatform, sessionModeLabel, type Course } from "@/data/courses";
+import { formatTimeRange, hasOffline, hasOnline, meetingPlatform, sessionModeLabel, type Course } from "@/data/courses";
 import { Icon } from "../icon";
 import { CourseParticipantsButton } from "./course-participants-button";
 import { DeleteCourseButton } from "./delete-course-button";
@@ -64,7 +64,7 @@ export function CourseList({ courses }: { courses: Course[] }) {
                     </p>
                     <p className="t-label-sm text-text-muted">
                       {formatDateId(s.date)}
-                      {s.time && ` · ${s.time} WIB`}
+                      {s.time && ` · ${formatTimeRange(s.time, s.endTime)}`}
                       {` · ${sessionModeLabel(s.mode)}`}
                       {hasOnline(s.mode) && s.meetingUrl && ` · ${meetingPlatform(s.meetingUrl)}`}
                       {hasOffline(s.mode) && s.locationName && ` · ${s.locationName}`}

@@ -63,6 +63,7 @@ export const courseSchema = z.object({
           .regex(/^\d{4}-\d{2}-\d{2}$/, "Tanggal sesi wajib diisi.")
           .refine((v) => !Number.isNaN(Date.parse(`${v}T00:00:00Z`)), "Tanggal tidak valid."),
         time: z.string().trim().regex(/^(\d{2}:\d{2})?$/, "Jam tidak valid.").default(""),
+        endTime: z.string().trim().regex(/^(\d{2}:\d{2})?$/, "Jam berakhir tidak valid.").default(""),
         mode: z.enum(["ONLINE", "OFFLINE", "HYBRID"]).default("ONLINE"),
         meetingUrl: optionalUrl.default(""),
         locationName: z.string().trim().max(200).default(""),
@@ -73,6 +74,8 @@ export const courseSchema = z.object({
         recording: fileSchema.nullable().default(null),
         documents: z.array(fileSchema).max(20).default([]),
       }).superRefine((s, ctx) => {
+        if (s.endTime && !s.time) ctx.addIssue({ code: "custom", path: ["endTime"], message: "Isi jam mulai dulu sebelum jam berakhir." });
+        else if (s.endTime && s.endTime <= s.time) ctx.addIssue({ code: "custom", path: ["endTime"], message: "Jam berakhir harus setelah jam mulai." });
         if (!hasOffline(s.mode)) return;
         if (!s.locationName) ctx.addIssue({ code: "custom", path: ["locationName"], message: "Nama lokasi wajib diisi untuk sesi offline atau hybrid." });
         if (s.mapsUrl && !isMapsUrl(s.mapsUrl)) ctx.addIssue({ code: "custom", path: ["mapsUrl"], message: "Gunakan tautan Google Maps." });
@@ -107,6 +110,7 @@ export async function toCourse(row: CourseRow): Promise<Course> {
         title: s.title,
         date: isoDate(s.date),
         time: s.time,
+        endTime: s.endTime,
         mode: s.mode,
         meetingUrl: s.meetingUrl,
         locationName: s.locationName,
@@ -191,6 +195,7 @@ async function sessionData(input: CourseInput, known: Set<string>) {
         title: s.title,
         date: new Date(`${s.date}T00:00:00Z`),
         time: s.time,
+        endTime: s.endTime,
         mode: s.mode,
         // Kolom yang tidak berlaku untuk mode sesi dikosongkan agar tidak tersisa data lama.
         meetingUrl: hasOnline(s.mode) ? s.meetingUrl : "",
