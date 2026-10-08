@@ -6,7 +6,15 @@ import { api } from "@/lib/api-client";
 import { Icon } from "../icon";
 import { useToast } from "../toast-provider";
 
-const dateFmt = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" });
+const dateFmt = new Intl.DateTimeFormat("id-ID", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+  timeZone: "Asia/Jakarta",
+});
 
 /** Daftar komentar dan formulirnya. Pengunjung belum masuk berkomentar "Anonim" dengan captcha hitung. */
 export function CommentSection({ slug, initial, userName }: { slug: string; initial: BlogCommentView[]; userName: string | null }) {
@@ -71,7 +79,7 @@ export function CommentSection({ slug, initial, userName }: { slug: string; init
             <li key={c.id} className="flex flex-col gap-1 rounded-2xl bg-surface-container-low px-4 py-3">
               <p className="t-label-md flex flex-wrap items-center gap-x-2 text-on-surface">
                 <span className="font-semibold">{c.authorName}</span>
-                <span className="t-label-sm font-normal text-text-muted">{dateFmt.format(new Date(c.createdAt))}</span>
+                <span className="t-label-sm font-normal text-text-muted">{dateFmt.format(new Date(c.createdAt)).replace(/\./g, ":")} WIB</span>
               </p>
               <p className="t-body-md whitespace-pre-line break-words text-on-surface">{c.body}</p>
             </li>
