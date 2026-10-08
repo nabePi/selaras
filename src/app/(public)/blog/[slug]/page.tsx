@@ -10,8 +10,7 @@ import { LikeButton } from "@/components/blog/like-button";
 import { ShareActions } from "@/components/blog/share-actions";
 import { Icon } from "@/components/icon";
 import { JsonLd } from "@/components/json-ld";
-import { formatDateId } from "@/data/admin-prompts";
-import { plainText } from "@/lib/blog-content";
+import { formatDateTimeWib, plainText } from "@/lib/blog-content";
 import { SITE_NAME, SITE_URL } from "@/lib/seo";
 import { getPublishedPost, likeStateFor, listComments, listRelatedPosts } from "@/server/blog";
 import { getBlogUser, resolveActor } from "@/server/blog-actor";
@@ -74,7 +73,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
           <AuthorAvatar author={post.author} size={36} />
           <p className="t-label-md text-on-surface-variant">
             <span className="font-semibold text-on-surface">{post.author.name}</span>
-            {post.publishedAt && <span className="block text-text-muted">{formatDateId(post.publishedAt.slice(0, 10))}</span>}
+            {post.publishedAt && <span className="block text-text-muted">{formatDateTimeWib(post.publishedAt)}</span>}
           </p>
         </div>
       </header>
