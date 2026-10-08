@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/nabePi/selaras/compare/v0.3.0...v0.3.1) (2026-10-08)
+
+
+### Perbaikan Bug
+
+* deskripsi tim di beranda mencakup seluruh peran tim selaras ([6370a2e](https://github.com/nabePi/selaras/commit/6370a2efa5666586677595e6eac1f2268a4126b0))
+* deskripsi tim di beranda sesuai seluruh peran tim ([ef49670](https://github.com/nabePi/selaras/commit/ef49670903b1078c68828ebb3543285e00c3c977))
+
 ## [0.3.0](https://github.com/nabePi/selaras/compare/v0.2.0...v0.3.0) (2026-10-07)
 
 
