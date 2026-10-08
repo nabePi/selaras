@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/nabePi/selaras/compare/v0.2.0...v0.3.0) (2026-10-07)
+
+
+### Fitur Baru
+
+* optimasi seo dengan metadata, robots, sitemap, json-ld, dan gambar og ([1661fb9](https://github.com/nabePi/selaras/commit/1661fb9b4ab21e0737ad0dfb585e2df366cc53f0))
+* SEO agar mudah ditemukan di mesin pencari ([6d579d4](https://github.com/nabePi/selaras/commit/6d579d4d9ee465778163c9cc6a297eb49d51bc2c))
+
 ## [0.2.0](https://github.com/nabePi/selaras/compare/v0.1.0...v0.2.0) (2026-10-07)
 
 
