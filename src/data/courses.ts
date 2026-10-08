@@ -9,6 +9,18 @@ export type CourseFile = {
   url?: string;
 };
 
+export type SessionMode = "ONLINE" | "OFFLINE" | "HYBRID";
+
+export const SESSION_MODES: { value: SessionMode; label: string }[] = [
+  { value: "ONLINE", label: "Online" },
+  { value: "OFFLINE", label: "Offline" },
+  { value: "HYBRID", label: "Hybrid" },
+];
+
+export const sessionModeLabel = (mode: SessionMode) => SESSION_MODES.find((m) => m.value === mode)?.label ?? "Online";
+export const hasOnline = (mode: SessionMode) => mode !== "OFFLINE";
+export const hasOffline = (mode: SessionMode) => mode !== "ONLINE";
+
 export type CourseSession = {
   /** Kunci lokal untuk daftar di form; bukan id database. */
   uid: string;
@@ -17,7 +29,13 @@ export type CourseSession = {
   date: string;
   /** `HH:MM` (WIB) atau kosong. */
   time: string;
+  mode: SessionMode;
+  /** Tautan Zoom / Meet; kosong untuk sesi offline. */
   meetingUrl: string;
+  /** Nama lokasi acara; kosong untuk sesi online. */
+  locationName: string;
+  /** Tautan Google Maps lokasi acara. */
+  mapsUrl: string;
   instructorName: string;
   instructorBio: string;
   instructorPhoto: CourseFile | null;
@@ -70,6 +88,23 @@ export const UPLOAD_RULES: Record<
 
 export const formatFileSize = (bytes: number) =>
   bytes >= 1024 * MB ? `${(bytes / 1024 / MB).toFixed(1)} GB` : `${(bytes / MB).toFixed(1)} MB`;
+
+/** Tautan Google Maps (maps.app.goo.gl, goo.gl/maps, google.com/maps, maps.google.com). */
+export function isMapsUrl(url: string): boolean {
+  try {
+    const { protocol, hostname, pathname } = new URL(url);
+    if (!["http:", "https:"].includes(protocol)) return false;
+    const h = hostname.replace(/^www\./, "");
+    return (
+      h === "maps.app.goo.gl" ||
+      h === "maps.google.com" ||
+      (h === "goo.gl" && pathname.startsWith("/maps")) ||
+      (/^google\.[a-z.]+$/.test(h) && pathname.startsWith("/maps"))
+    );
+  } catch {
+    return false;
+  }
+}
 
 /** Nama platform dari tautan rapat. */
 export function meetingPlatform(url: string): string | null {

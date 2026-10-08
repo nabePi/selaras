@@ -4,9 +4,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Icon } from "@/components/icon";
 import { PosterCarousel } from "@/components/poster-carousel";
+import { SessionLocation } from "@/components/session-location";
 import { SessionJoinButton } from "@/components/session-join-button";
 import { formatDateId } from "@/data/admin-prompts";
-import { formatFileSize, meetingPlatform } from "@/data/courses";
+import { formatFileSize, hasOffline, hasOnline, meetingPlatform, sessionModeLabel } from "@/data/courses";
 import { sessionEndsAt, sessionOpensAt, sessionStartsAt } from "@/lib/course-time";
 import { requireMemberPage } from "@/lib/server/session";
 import { todayWib } from "@/lib/server/time";
@@ -50,6 +51,7 @@ export default async function DetailKelasPage({ params }: { params: Promise<{ id
                     <span className="t-label-sm font-semibold tracking-wide text-primary uppercase">
                       Sesi {i + 1} · {formatDateId(s.date)}
                       {s.time && ` · ${s.time} WIB`}
+                      {` · ${sessionModeLabel(s.mode)}`}
                     </span>
                     <h2 className="t-title-md text-on-surface">{s.title}</h2>
                     {isNext && <span className="t-label-sm text-primary">Sesi terdekat</span>}
@@ -78,7 +80,9 @@ export default async function DetailKelasPage({ params }: { params: Promise<{ id
                 </div>
               )}
 
-              {s.meetingUrl && platform && (
+              {hasOffline(s.mode) && s.locationName && <SessionLocation name={s.locationName} mapsUrl={s.mapsUrl} />}
+
+              {hasOnline(s.mode) && s.meetingUrl && platform && (
                 <SessionJoinButton url={s.meetingUrl} platform={platform} opensAt={sessionOpensAt(s.date, s.time)} startsAt={sessionStartsAt(s.date, s.time)} endsAt={sessionEndsAt(s.date, s.time)} />
               )}
 
