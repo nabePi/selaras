@@ -3,12 +3,14 @@ import Link from "next/link";
 import { Icon } from "@/components/icon";
 import { AssessmentCard } from "@/components/assessment-card";
 import { JournalTodayCard } from "@/components/journal-today-card";
+import { HomeBlog } from "@/components/home-blog";
 import { HomeCourseInfo, type HomeCourse } from "@/components/home-course-info";
 import { ProfileReminder } from "@/components/profile-reminder";
 import { formatDateId } from "@/data/admin-prompts";
 import { quoteForDate } from "@/data/member";
 import { requireMemberPage } from "@/lib/server/session";
 import { todayWib } from "@/lib/server/time";
+import { getLatestPost } from "@/server/blog";
 import { isAssessmentVisible } from "@/server/admin/assessment";
 import { getPromptForDate } from "@/server/admin/prompts";
 import { hasCompletedAssessment } from "@/server/member/assessment";
@@ -79,7 +81,7 @@ export default async function HomePage({
   const missedDates = await getMissedDates(user.id);
   const activeDate = missedDates[0] ?? today;
   const prompt = await getPromptForDate(activeDate, user.id);
-  const [entry, week, streak, preVisible, preDone, postVisible, postDone, profile, courses] = await Promise.all([
+  const [entry, week, streak, preVisible, preDone, postVisible, postDone, profile, courses, latestPost] = await Promise.all([
     getTodayEntry(user.id, prompt, activeDate),
     getWeek(user.id, weeksBack),
     getStreak(user.id),
@@ -89,6 +91,7 @@ export default async function HomePage({
     hasCompletedAssessment(user.id, "post"),
     getProfile(user.id),
     listMyCourses(user.id),
+    getLatestPost(),
   ]);
   // Kelas yang masih punya sesi mendatang, diurutkan dari sesi yang paling dekat.
   const activeCourses: HomeCourse[] = courses
@@ -270,6 +273,9 @@ export default async function HomePage({
 
       {/* 5. Info kelas yang sedang diikuti */}
       {activeCourses.length > 0 && <HomeCourseInfo courses={activeCourses} today={today} />}
+
+      {/* 6. Artikel blog terbaru */}
+      {latestPost && <HomeBlog post={latestPost} />}
     </div>
   );
 }

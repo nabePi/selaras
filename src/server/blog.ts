@@ -299,6 +299,12 @@ export async function listPublishedPosts(opts: { tag?: string; page?: number } =
   return { posts: await Promise.all(rows.map(toSummary)), page, pageCount: Math.max(1, Math.ceil(total / PAGE_SIZE)) };
 }
 
+/** Artikel terbit terbaru, atau null bila belum ada (dipakai di beranda peserta). */
+export async function getLatestPost(): Promise<BlogPostSummary | null> {
+  const row = await db.blogPost.findFirst({ where: published, select: summarySelect, orderBy: { publishedAt: "desc" } });
+  return row ? toSummary(row) : null;
+}
+
 export async function getPublishedPost(slug: string): Promise<BlogPostFull | null> {
   const row = await db.blogPost.findFirst({ where: { slug, ...published }, select: fullSelect });
   return row ? toFull(row) : null;
