@@ -1,25 +1,19 @@
 import Link from "next/link";
 import { Icon } from "../icon";
 
-/** Ajakan di akhir artikel untuk melihat program Selaras. */
+/** Ajakan singkat di akhir artikel untuk melihat program Selaras. */
 export function ProgramCta() {
   return (
-    <section aria-label="Ajakan melihat program" className="flex flex-col items-center gap-3 rounded-3xl bg-sage-tint p-6 text-center shadow-sm">
-      <span className="flex size-12 items-center justify-center rounded-full bg-primary text-on-primary">
-        <Icon name="auto_stories" size={24} />
-      </span>
-      <div className="flex max-w-[340px] flex-col gap-1">
-        <h2 className="t-headline-sm font-semibold text-on-surface">Ingin Hidup Lebih Selaras Bersama Keluarga?</h2>
-        <p className="t-body-md leading-relaxed text-text-muted">
-          Jelajahi program Selaras: kelas dan pendampingan bersama konselor keluarga untuk pernikahan, kehamilan, menyusui, dan parenting.
-        </p>
-      </div>
+    <section aria-label="Ajakan melihat program">
       <Link
         href="/program"
-        className="t-title-sm mt-1 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-on-primary shadow-md transition-colors hover:bg-primary-container active:scale-[0.98]"
+        className="flex items-center gap-3 rounded-2xl bg-sage-tint px-4 py-3 transition-colors hover:bg-primary-fixed"
       >
-        Lihat Program Selaras
-        <Icon name="arrow_forward" size={18} />
+        <Icon name="auto_stories" size={22} className="shrink-0 text-primary" />
+        <p className="t-body-md min-w-0 flex-1 text-on-surface">
+          Mau melangkah lebih jauh? <span className="font-semibold text-primary">Kenali program Selaras</span>
+        </p>
+        <Icon name="arrow_forward" size={18} className="shrink-0 text-primary" />
       </Link>
     </section>
   );
