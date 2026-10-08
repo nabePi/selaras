@@ -5,11 +5,10 @@ import { getSessionUser, type SessionUser } from "@/lib/server/session";
 
 const VISITOR_COOKIE = "selaras_visitor";
 
-/** Akun yang sedang masuk (peserta aktif atau admin), atau null untuk pengunjung. */
+/** Peserta aktif yang sedang masuk, atau null untuk pengunjung. Sesi admin sengaja tidak dipakai di blog. */
 export async function getBlogUser(): Promise<SessionUser | null> {
   const member = await getSessionUser("member");
-  if (member?.status === "ACTIVE") return member;
-  return getSessionUser("admin");
+  return member?.status === "ACTIVE" ? member : null;
 }
 
 /** Pengenal pelaku suka: "u:<id>" untuk akun, "v:<token>" untuk pengunjung (cookie dibuat bila belum ada). */

@@ -93,9 +93,10 @@ export function CommentSection({ slug, initial, userName }: { slug: string; init
           className="t-body-md w-full rounded-2xl border border-outline-variant bg-surface px-4 py-3 text-on-surface focus-visible:border-sage-medium focus-visible:outline-none"
         />
         {!userName && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-dashed border-primary/40 bg-sage-tint px-3 py-2.5">
+            <Icon name="shield" size={18} className="text-primary" />
             <label htmlFor="comment-captcha" className="t-label-md text-on-surface">
-              Berapa hasil <span className="font-semibold tabular-nums">{captcha?.question ?? "…"}</span>
+              Berapa hasil <span className="rounded-lg bg-surface px-2 py-0.5 font-semibold tracking-wider tabular-nums select-none">{captcha?.question ?? "…"}</span>
             </label>
             <input
               id="comment-captcha"
@@ -104,7 +105,7 @@ export function CommentSection({ slug, initial, userName }: { slug: string; init
               onChange={(e) => setAnswer(e.target.value)}
               className="t-body-md w-20 rounded-xl border border-outline-variant bg-surface px-3 py-2 text-center text-on-surface focus-visible:border-sage-medium focus-visible:outline-none"
             />
-            <button type="button" onClick={() => void loadCaptcha()} aria-label="Ganti soal captcha" className="rounded-full p-1.5 text-text-muted hover:bg-surface-container">
+            <button type="button" onClick={() => void loadCaptcha()} aria-label="Ganti soal captcha" className="rounded-full p-1.5 text-primary hover:bg-primary-fixed">
               <Icon name="refresh" size={18} />
             </button>
           </div>
