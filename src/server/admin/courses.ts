@@ -2,7 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Prisma } from "@/generated/prisma/client";
-import { UPLOAD_RULES, type Course, type CourseFile, type Participant, type UploadPurpose } from "@/data/courses";
+import { hasOffline, hasOnline, isMapsUrl, UPLOAD_RULES, type Course, type CourseFile, type Participant, type UploadPurpose } from "@/data/courses";
 import { db } from "@/lib/db";
 import { ApiError, notFound } from "@/lib/server/errors";
 import { deleteObjects, headObject, presignRead, presignUpload, r2Configured } from "@/lib/server/r2";
@@ -63,12 +63,19 @@ export const courseSchema = z.object({
           .regex(/^\d{4}-\d{2}-\d{2}$/, "Tanggal sesi wajib diisi.")
           .refine((v) => !Number.isNaN(Date.parse(`${v}T00:00:00Z`)), "Tanggal tidak valid."),
         time: z.string().trim().regex(/^(\d{2}:\d{2})?$/, "Jam tidak valid.").default(""),
+        mode: z.enum(["ONLINE", "OFFLINE", "HYBRID"]).default("ONLINE"),
         meetingUrl: optionalUrl.default(""),
+        locationName: z.string().trim().max(200).default(""),
+        mapsUrl: optionalUrl.default(""),
         instructorName: z.string().trim().max(120).default(""),
         instructorBio: z.string().trim().max(1000).default(""),
         instructorPhoto: fileSchema.nullable().default(null),
         recording: fileSchema.nullable().default(null),
         documents: z.array(fileSchema).max(20).default([]),
+      }).superRefine((s, ctx) => {
+        if (!hasOffline(s.mode)) return;
+        if (!s.locationName) ctx.addIssue({ code: "custom", path: ["locationName"], message: "Nama lokasi wajib diisi untuk sesi offline atau hybrid." });
+        if (s.mapsUrl && !isMapsUrl(s.mapsUrl)) ctx.addIssue({ code: "custom", path: ["mapsUrl"], message: "Gunakan tautan Google Maps." });
       }),
     )
     .min(1, "Tambahkan minimal satu sesi.")
@@ -100,7 +107,10 @@ export async function toCourse(row: CourseRow): Promise<Course> {
         title: s.title,
         date: isoDate(s.date),
         time: s.time,
+        mode: s.mode,
         meetingUrl: s.meetingUrl,
+        locationName: s.locationName,
+        mapsUrl: s.mapsUrl,
         instructorName: s.instructorName,
         instructorBio: s.instructorBio,
         instructorPhoto: await fileOut(s.instructorPhotoKey, "Foto pengajar", 0),
@@ -181,7 +191,11 @@ async function sessionData(input: CourseInput, known: Set<string>) {
         title: s.title,
         date: new Date(`${s.date}T00:00:00Z`),
         time: s.time,
-        meetingUrl: s.meetingUrl,
+        mode: s.mode,
+        // Kolom yang tidak berlaku untuk mode sesi dikosongkan agar tidak tersisa data lama.
+        meetingUrl: hasOnline(s.mode) ? s.meetingUrl : "",
+        locationName: hasOffline(s.mode) ? s.locationName : "",
+        mapsUrl: hasOffline(s.mode) ? s.mapsUrl : "",
         instructorName: s.instructorName,
         instructorBio: s.instructorBio,
         instructorPhotoKey: photo?.key ?? null,

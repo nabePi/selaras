@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { meetingPlatform, type Course, type CourseFile, type CourseSession } from "@/data/courses";
+import { hasOffline, hasOnline, isMapsUrl, meetingPlatform, SESSION_MODES, type Course, type CourseFile, type CourseSession } from "@/data/courses";
 import { saveCourse } from "@/lib/admin-actions";
 import { fieldClass, FieldLabel } from "../dialog";
 import { Icon } from "../icon";
@@ -13,7 +13,7 @@ import { btnPrimary, btnSoft } from "./page-header";
 
 const INPUT = `${fieldClass} border border-outline-variant focus-visible:border-sage-medium`;
 
-type Errors = { title?: string; form?: string; sessions: Record<string, { title?: string; date?: string; meetingUrl?: string }> };
+type Errors = { title?: string; form?: string; sessions: Record<string, { title?: string; date?: string; meetingUrl?: string; locationName?: string; mapsUrl?: string }> };
 
 const slim = (f: CourseFile | null) => (f ? { key: f.key, name: f.name, size: f.size } : null);
 
@@ -41,7 +41,10 @@ export function CourseForm({ initial }: { initial?: Course }) {
     title: "",
     date: "",
     time: "",
+    mode: "ONLINE",
     meetingUrl: "",
+    locationName: "",
+    mapsUrl: "",
     instructorName: "",
     instructorBio: "",
     instructorPhoto: null,
@@ -98,7 +101,11 @@ export function CourseForm({ initial }: { initial?: Course }) {
       const err: Errors["sessions"][string] = {};
       if (s.title.trim().length < 3) err.title = "Judul sesi minimal 3 karakter.";
       if (!s.date) err.date = "Tanggal sesi wajib diisi.";
-      if (s.meetingUrl.trim() && !meetingPlatform(s.meetingUrl.trim())) err.meetingUrl = "Tautan harus diawali https://";
+      if (hasOnline(s.mode) && s.meetingUrl.trim() && !meetingPlatform(s.meetingUrl.trim())) err.meetingUrl = "Tautan harus diawali https://";
+      if (hasOffline(s.mode)) {
+        if (!s.locationName.trim()) err.locationName = "Nama lokasi wajib diisi.";
+        if (s.mapsUrl.trim() && !isMapsUrl(s.mapsUrl.trim())) err.mapsUrl = "Gunakan tautan Google Maps (maps.app.goo.gl atau google.com/maps).";
+      }
       if (Object.keys(err).length) next.sessions[s.uid] = err;
     }
     setErrors(next);
@@ -114,7 +121,10 @@ export function CourseForm({ initial }: { initial?: Course }) {
           title: s.title,
           date: s.date,
           time: s.time,
-          meetingUrl: s.meetingUrl,
+          mode: s.mode,
+          meetingUrl: hasOnline(s.mode) ? s.meetingUrl : "",
+          locationName: hasOffline(s.mode) ? s.locationName : "",
+          mapsUrl: hasOffline(s.mode) ? s.mapsUrl : "",
           instructorName: s.instructorName,
           instructorBio: s.instructorBio,
           instructorPhoto: slim(s.instructorPhoto),
@@ -148,7 +158,7 @@ export function CourseForm({ initial }: { initial?: Course }) {
       <header className="max-w-3xl space-y-2">
         <h1 className="t-headline-lg tracking-tight text-on-surface">{initial ? initial.title : "Buat Kelas Baru"}</h1>
         <p className="t-body-md leading-relaxed text-text-muted">
-          Isi informasi kelas, lalu tambahkan sesinya. Tiap sesi punya tautan Zoom/Google Meet, pengajar, rekaman, dan
+          Isi informasi kelas, lalu tambahkan sesinya. Tiap sesi bisa online (Zoom/Google Meet), offline (lokasi + Google Maps), atau hybrid, dan punya pengajar, rekaman, dan
           dokumen sendiri.
         </p>
       </header>
@@ -245,18 +255,71 @@ export function CourseForm({ initial }: { initial?: Course }) {
                 </div>
 
                 <div className="space-y-1">
-                  <FieldLabel htmlFor={`sl-${s.uid}`}>Tautan Zoom / Google Meet</FieldLabel>
-                  <input
-                    id={`sl-${s.uid}`}
-                    type="url"
-                    value={s.meetingUrl}
-                    onChange={(e) => update(s.uid, { meetingUrl: e.target.value })}
-                    placeholder="https://zoom.us/j/… atau https://meet.google.com/…"
-                    className={`${INPUT} ${err.meetingUrl ? "ring-2 ring-error" : ""}`}
-                  />
-                  {platform && s.meetingUrl.trim() && <p className="t-label-sm text-text-muted">Terdeteksi: {platform}</p>}
-                  {errorText(err.meetingUrl)}
+                  <GroupLabel>Format sesi</GroupLabel>
+                  <div role="radiogroup" aria-label="Format sesi" className="flex flex-wrap gap-2">
+                    {SESSION_MODES.map((m) => (
+                      <button
+                        key={m.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={s.mode === m.value}
+                        onClick={() => update(s.uid, { mode: m.value })}
+                        className={`t-label-md rounded-full border px-4 py-1.5 transition-colors ${
+                          s.mode === m.value
+                            ? "border-primary bg-primary text-on-primary"
+                            : "border-outline-variant bg-surface text-on-surface hover:bg-surface-container-low"
+                        }`}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                {hasOnline(s.mode) && (
+                  <div className="space-y-1">
+                    <FieldLabel htmlFor={`sl-${s.uid}`}>Tautan Zoom / Google Meet</FieldLabel>
+                    <input
+                      id={`sl-${s.uid}`}
+                      type="url"
+                      value={s.meetingUrl}
+                      onChange={(e) => update(s.uid, { meetingUrl: e.target.value })}
+                      placeholder="https://zoom.us/j/… atau https://meet.google.com/…"
+                      className={`${INPUT} ${err.meetingUrl ? "ring-2 ring-error" : ""}`}
+                    />
+                    {platform && s.meetingUrl.trim() && <p className="t-label-sm text-text-muted">Terdeteksi: {platform}</p>}
+                    {errorText(err.meetingUrl)}
+                  </div>
+                )}
+
+                {hasOffline(s.mode) && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <FieldLabel htmlFor={`sp-${s.uid}`}>Nama lokasi acara</FieldLabel>
+                      <input
+                        id={`sp-${s.uid}`}
+                        value={s.locationName}
+                        maxLength={200}
+                        onChange={(e) => update(s.uid, { locationName: e.target.value })}
+                        placeholder="cth: Aula Masjid Al-Falah, Jakarta"
+                        className={`${INPUT} ${err.locationName ? "ring-2 ring-error" : ""}`}
+                      />
+                      {errorText(err.locationName)}
+                    </div>
+                    <div className="space-y-1">
+                      <FieldLabel htmlFor={`sm-${s.uid}`}>Tautan Google Maps (opsional)</FieldLabel>
+                      <input
+                        id={`sm-${s.uid}`}
+                        type="url"
+                        value={s.mapsUrl}
+                        onChange={(e) => update(s.uid, { mapsUrl: e.target.value })}
+                        placeholder="https://maps.app.goo.gl/…"
+                        className={`${INPUT} ${err.mapsUrl ? "ring-2 ring-error" : ""}`}
+                      />
+                      {errorText(err.mapsUrl)}
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-4 rounded-2xl bg-surface-container-low p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">

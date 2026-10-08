@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatDateId } from "@/data/admin-prompts";
-import { meetingPlatform } from "@/data/courses";
+import { hasOffline, hasOnline, meetingPlatform, type SessionMode } from "@/data/courses";
 import { sessionEndsAt, sessionOpensAt, sessionStartsAt } from "@/lib/course-time";
 import { Icon } from "./icon";
+import { SessionLocation } from "./session-location";
 import { SessionJoinButton } from "./session-join-button";
 
 export type HomeCourse = {
@@ -13,7 +14,7 @@ export type HomeCourse = {
   sessionNumber: number;
   sessionCount: number;
   /** Sesi mendatang terdekat dari kelas ini. */
-  session: { title: string; date: string; time: string; instructorName: string; meetingUrl: string };
+  session: { title: string; date: string; time: string; instructorName: string; mode: SessionMode; meetingUrl: string; locationName: string; mapsUrl: string };
 };
 
 /** Info kelas yang sedang diikuti peserta: sesi terdekat tiap kelas beserta tombol gabung. */
@@ -58,7 +59,8 @@ export function HomeCourseInfo({ courses, today }: { courses: HomeCourse[]; toda
                   {s.instructorName && <p className="t-body-sm text-text-muted">{s.instructorName}</p>}
                 </div>
               </Link>
-              {s.meetingUrl && platform && (
+              {hasOffline(s.mode) && s.locationName && <SessionLocation name={s.locationName} mapsUrl={s.mapsUrl} />}
+              {hasOnline(s.mode) && s.meetingUrl && platform && (
                 <SessionJoinButton url={s.meetingUrl} platform={platform} opensAt={sessionOpensAt(s.date, s.time)} startsAt={sessionStartsAt(s.date, s.time)} endsAt={sessionEndsAt(s.date, s.time)} />
               )}
             </li>

@@ -289,6 +289,13 @@ model Course {
   enrollments CourseEnrollment[]
 }
 
+/// Cara sesi kelas diikuti.
+enum SessionMode {
+  ONLINE
+  OFFLINE
+  HYBRID
+}
+
 model CourseSession {
   id         Int      @id @default(autoincrement())
   courseId   Int
@@ -298,8 +305,13 @@ model CourseSession {
   date       DateTime @db.Date
   /// Jam mulai (WIB) format HH:MM; kosong bila belum ditentukan.
   time       String   @default("")
-  /// Tautan Zoom / Google Meet sesi ini.
+  mode       SessionMode @default(ONLINE)
+  /// Tautan Zoom / Google Meet sesi ini (sesi online dan hybrid).
   meetingUrl String   @default("")
+  /// Nama lokasi acara (sesi offline dan hybrid).
+  locationName String @default("")
+  /// Tautan Google Maps lokasi acara.
+  mapsUrl      String @default("")
 
   instructorName     String  @default("")
   instructorBio      String  @default("")

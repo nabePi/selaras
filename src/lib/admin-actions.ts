@@ -6,7 +6,7 @@
  * isinya saat API tersedia. UI menangani hasil `{ ok: false, error }` dan keadaan loading.
  */
 import type { AssessmentItem, AssessmentKind } from "@/data/assessment";
-import type { Course, Participant } from "@/data/courses";
+import type { Course, Participant, SessionMode } from "@/data/courses";
 import type { JournalPrompt, PromptQuestion } from "@/data/journal-prompts";
 import { api } from "@/lib/api-client";
 
@@ -85,7 +85,10 @@ export type CoursePayload = {
     title: string;
     date: string;
     time: string;
+    mode: SessionMode;
     meetingUrl: string;
+    locationName: string;
+    mapsUrl: string;
     instructorName: string;
     instructorBio: string;
     instructorPhoto: FilePayload | null;
