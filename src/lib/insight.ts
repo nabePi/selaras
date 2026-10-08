@@ -4,7 +4,7 @@ import type {
   AssessmentPart,
 } from "@/data/assessment";
 import type { AssessmentResponse } from "@/data/assessment-responses";
-import type { JournalPrompt } from "@/data/journal-prompts";
+import { scaleMaxOf, type JournalPrompt } from "@/data/journal-prompts";
 import { JOURNAL_FEELINGS } from "@/data/member";
 import { parseMood } from "@/lib/mood";
 import { richToPlain } from "@/lib/rich-text";
@@ -100,6 +100,8 @@ export function computeInsight({ participants, items, pre, post, prompts }: Insi
     promptTitle: string;
     label: string;
     avg: number;
+    /** Angka tertinggi skala pertanyaan ini (3-10). */
+    max: number;
     n: number;
   }[] = [];
   for (const ps of promptStats) {
@@ -123,6 +125,7 @@ export function computeInsight({ participants, items, pre, post, prompts }: Insi
           promptTitle: ps.title,
           label: richToPlain(q.label),
           avg: mean(answers.map((a) => Number.parseInt(a.value, 10)))!,
+          max: scaleMaxOf(q),
           n: answers.length,
         });
       }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { moodOptionsOf } from "@/lib/mood";
 import { richToPlain } from "@/lib/rich-text";
 import { RichText } from "./rich-text";
-import { SCALE_MAX, type PromptQuestion } from "@/data/journal-prompts";
+import { scaleMaxOf, type PromptQuestion } from "@/data/journal-prompts";
 import type { AnswerMap } from "@/lib/journal-types";
 
 type Answers = AnswerMap;
@@ -19,6 +19,9 @@ const choiceClass = (active: boolean) =>
  * (terkendali lewat `answers` + `onAnswer`) dan di pratinjau admin (tanpa props: state lokal,
  * tidak disimpan).
  */
+/** Kolom per baris: skala pendek satu baris, yang panjang dibagi rata agar tombol tidak terlalu sempit. */
+const scaleColumns = (max: number) => (max <= 5 ? max : max === 6 ? 3 : max <= 8 ? 4 : 5);
+
 export function PromptQuestions({
   questions,
   answers: controlled,
@@ -62,8 +65,13 @@ export function PromptQuestions({
 
           {q.type === "scale" && (
             <div>
-              <div role="radiogroup" aria-label={richToPlain(q.label)} className="grid grid-cols-5 gap-2">
-                {Array.from({ length: SCALE_MAX }, (_, n) => n + 1).map((n) => {
+              <div
+                role="radiogroup"
+                aria-label={richToPlain(q.label)}
+                className="grid gap-2"
+                style={{ gridTemplateColumns: `repeat(${scaleColumns(scaleMaxOf(q))}, minmax(0, 1fr))` }}
+              >
+                {Array.from({ length: scaleMaxOf(q) }, (_, n) => n + 1).map((n) => {
                   const active = answers[q.id] === n;
                   return (
                     <button
@@ -83,7 +91,7 @@ export function PromptQuestions({
               </div>
               <div className="t-label-sm mt-2 flex justify-between text-text-muted">
                 <span>1 = Sangat rendah</span>
-                <span>{SCALE_MAX} = Sangat tinggi</span>
+                <span>{scaleMaxOf(q)} = Sangat tinggi</span>
               </div>
             </div>
           )}

@@ -37,7 +37,7 @@ export type PromptPayload = {
   title: string;
   subtitle: string;
   date: string;
-  questions: Pick<PromptQuestion, "type" | "label" | "options" | "required" | "audience">[];
+  questions: Pick<PromptQuestion, "type" | "label" | "options" | "required" | "audience" | "scaleMax">[];
 };
 
 /** Menghapus prompt beserta semua jawaban pesertanya (tidak bisa dibatalkan). */

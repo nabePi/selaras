@@ -146,6 +146,8 @@ model PromptQuestion {
   options  String[]
   /// False: peserta boleh mengosongkan jawaban (hanya berlaku untuk tipe TEXT).
   required Boolean          @default(true)
+  /// Angka tertinggi skala 1..scaleMax (3-10); hanya dipakai tipe SCALE.
+  scaleMax Int              @default(10)
   /// Siapa yang melihat pertanyaan ini; peserta yang belum mengisi status hanya melihat SEMUA.
   audience QuestionAudience @default(SEMUA)
 

@@ -2,7 +2,7 @@ import "server-only";
 import { z } from "zod";
 import type { Prisma } from "@/generated/prisma/client";
 import { formatDateId } from "@/data/admin-prompts";
-import { SCALE_MAX, type JournalPrompt } from "@/data/journal-prompts";
+import { scaleMaxOf, type JournalPrompt } from "@/data/journal-prompts";
 import type { ResponseAttachment } from "@/data/prompt-responses";
 import { MAX_ATTACHMENTS } from "@/lib/attachments";
 import { encodeMood, moodOptionsOf, parseMood } from "@/lib/mood";
@@ -180,7 +180,7 @@ function serializeAnswers(prompt: JournalPrompt, answers: AnswerMap): { question
     let value: string | null = null;
     if (q.type === "text") value = typeof raw === "string" && raw.trim() ? raw.trim() : null;
     else if (q.type === "scale")
-      value = typeof raw === "number" && Number.isInteger(raw) && raw >= 1 && raw <= SCALE_MAX ? `${raw} / ${SCALE_MAX}` : null;
+      value = typeof raw === "number" && Number.isInteger(raw) && raw >= 1 && raw <= scaleMaxOf(q) ? `${raw} / ${scaleMaxOf(q)}` : null;
     else if (q.type === "choice") value = typeof raw === "string" && (q.options ?? []).includes(raw) ? raw : null;
     else {
       const m = moodOptionsOf(q).find((f) => f.label === raw);

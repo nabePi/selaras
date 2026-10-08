@@ -25,6 +25,7 @@ export const promptSchema = z.object({
           .refine((v) => richToPlain(v).length >= 5, "Tulis pertanyaan minimal 5 karakter.")
           .refine((v) => richToPlain(v).length <= 300, "Pertanyaan maksimal 300 karakter."),
         required: z.boolean().default(true),
+        scaleMax: z.number().int().min(3, "Skala minimal 1-3.").max(10, "Skala maksimal 1-10.").default(10),
         audience: z.enum(["semua", "menikah", "belum-menikah"]).default("semua"),
         options: z.array(z.string().trim().max(120)).max(12).optional(),
       }),
