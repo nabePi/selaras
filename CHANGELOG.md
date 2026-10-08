@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0](https://github.com/nabePi/selaras/compare/v0.5.0...v0.6.0) (2026-10-08)
+
+
+### Fitur Baru
+
+* skala pertanyaan prompt jurnal bisa diatur 1-3 sampai 1-10 ([2404a18](https://github.com/nabePi/selaras/commit/2404a18ae1cd5340ca58d7436ea37ef186bad399))
+* skala pertanyaan prompt jurnal bisa diatur 1-3 sampai 1-10 ([ca4d663](https://github.com/nabePi/selaras/commit/ca4d6639981d27f807316775563d78cb019451b6))
+
 ## [0.5.0](https://github.com/nabePi/selaras/compare/v0.4.0...v0.5.0) (2026-10-08)
 
 
