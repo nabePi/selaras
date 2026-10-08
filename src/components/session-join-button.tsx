@@ -24,8 +24,10 @@ export function SessionJoinButton({
   startsAt: number | null;
   endsAt: number;
 }) {
-  const [now, setNow] = useState(() => Date.now());
-  const counting = startsAt !== null && now < startsAt;
+  // Null sampai terpasang di peramban: Date.now() di server dan klien berbeda, sehingga memakainya
+  // sebagai nilai awal membuat hidrasi gagal.
+  const [now, setNow] = useState<number | null>(null);
+  const counting = now !== null && startsAt !== null && now < startsAt;
 
   // Tiap detik selama hitung mundur berjalan; selebihnya cukup tiap 30 detik.
   useEffect(() => {
@@ -35,6 +37,13 @@ export function SessionJoinButton({
     return () => clearInterval(id);
   }, [counting]);
 
+  if (now === null)
+    return (
+      <button type="button" disabled aria-disabled="true" className={disabledClass}>
+        <Icon name="schedule" size={18} />
+        Memeriksa jadwal…
+      </button>
+    );
   if (now > endsAt)
     return (
       <button type="button" disabled aria-disabled="true" className={disabledClass}>
