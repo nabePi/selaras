@@ -18,6 +18,8 @@ export type PromptQuestion = {
   options?: string[];
   /** Hanya berlaku untuk `text`: false = peserta boleh mengosongkan. Default true. */
   required?: boolean;
+  /** Hanya untuk `scale`: angka tertinggi (3-10); peserta memilih 1 sampai angka ini. Default 10. */
+  scaleMax?: number;
   /** Default `semua`. */
   audience?: QuestionAudience;
 };
@@ -45,12 +47,19 @@ export type JournalPrompt = {
 
 export const QUESTION_TYPES: { value: QuestionType; label: string; icon: string }[] = [
   { value: "text", label: "Teks Bebas", icon: "edit_note" },
-  { value: "scale", label: "Skala 1-10", icon: "linear_scale" },
+  { value: "scale", label: "Skala", icon: "linear_scale" },
   { value: "choice", label: "Opsi Ganda", icon: "ballot" },
   { value: "mood", label: "Mood Check", icon: "mood" },
 ];
 
+/** Batas skala yang boleh dipilih admin: angka tertingginya antara 3 dan 10 (1-3 sampai 1-10). */
+export const SCALE_MIN_MAX = 3;
 export const SCALE_MAX = 10;
+export const SCALE_CHOICES = Array.from({ length: SCALE_MAX - SCALE_MIN_MAX + 1 }, (_, i) => SCALE_MIN_MAX + i);
+
+/** Angka tertinggi skala sebuah pertanyaan (default 10 untuk data lama). */
+export const scaleMaxOf = (q: { scaleMax?: number }) =>
+  Number.isInteger(q.scaleMax) && q.scaleMax! >= SCALE_MIN_MAX && q.scaleMax! <= SCALE_MAX ? q.scaleMax! : SCALE_MAX;
 
 /** Prompt yang tampil di /journal/tulis (refleksi tertunda 27 Sep 2026). */
 export const PENDING_PROMPT_DATE = "2026-09-27";

@@ -41,6 +41,7 @@ function toPrompt(row: PromptRow): JournalPrompt {
         label: q.label,
         audience: AUDIENCE_OUT[q.audience],
         ...(q.type === "TEXT" ? { required: q.required } : {}),
+        ...(q.type === "SCALE" ? { scaleMax: q.scaleMax } : {}),
         ...(q.type === "CHOICE" || (q.type === "MOOD" && q.options.length) ? { options: q.options } : {}),
       }),
     ),
@@ -113,6 +114,7 @@ const questionData = (questions: PromptInput["questions"]) =>
     type: TYPE_IN[q.type],
     label: q.label,
     required: q.type === "text" ? q.required : true,
+    scaleMax: q.type === "scale" ? q.scaleMax : 10,
     audience: AUDIENCE_IN[q.audience],
     options: q.type === "choice" || q.type === "mood" ? (q.options ?? []).map((o) => o.trim()).filter(Boolean) : [],
   }));

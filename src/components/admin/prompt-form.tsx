@@ -6,6 +6,9 @@ import { useRef, useState } from "react";
 import {
   QUESTION_AUDIENCES,
   QUESTION_TYPES,
+  SCALE_CHOICES,
+  SCALE_MAX,
+  scaleMaxOf,
   type JournalPrompt,
   type QuestionAudience,
   type PromptQuestion,
@@ -178,6 +181,7 @@ export function PromptForm({ initial }: { initial?: JournalPrompt }) {
     type,
     label: "",
     options: type === "choice" ? ["", ""] : type === "mood" ? defaultMoodOptions() : undefined,
+    ...(type === "scale" ? { scaleMax: SCALE_MAX } : {}),
   });
 
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -200,6 +204,7 @@ export function PromptForm({ initial }: { initial?: JournalPrompt }) {
   function changeType(q: PromptQuestion, type: QuestionType) {
     update(q.id, {
       type,
+      scaleMax: type === "scale" ? (q.scaleMax ?? SCALE_MAX) : undefined,
       options:
         type === "choice"
           ? q.type === "choice"
@@ -261,7 +266,7 @@ export function PromptForm({ initial }: { initial?: JournalPrompt }) {
         title,
         subtitle,
         date,
-        questions: questions.map(({ type, label, options, required, audience }) => ({ type, label, options, required, audience })),
+        questions: questions.map(({ type, label, options, required, audience, scaleMax }) => ({ type, label, options, required, audience, scaleMax: type === "scale" ? scaleMaxOf({ scaleMax }) : undefined })),
       },
       initial?.id,
     );
@@ -535,9 +540,23 @@ export function PromptForm({ initial }: { initial?: JournalPrompt }) {
                   )}
 
                   {q.type === "scale" && (
-                    <p className="t-body-sm text-text-muted">
-                      Peserta memilih angka 1 sampai 10.
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label htmlFor={`scale-${q.id}`} className="t-body-sm text-text-muted">
+                        Peserta memilih angka 1 sampai
+                      </label>
+                      <select
+                        id={`scale-${q.id}`}
+                        value={scaleMaxOf(q)}
+                        onChange={(e) => update(q.id, { scaleMax: Number(e.target.value) })}
+                        className="t-label-md cursor-pointer rounded-full border border-outline-variant bg-surface px-3 py-1.5 text-on-surface"
+                      >
+                        {SCALE_CHOICES.map((n) => (
+                          <option key={n} value={n}>
+                            {n} (skala 1-{n})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   )}
                   {q.type === "mood" && (
                     <MoodEditor

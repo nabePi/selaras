@@ -17,7 +17,7 @@ export type ResponseType = "text" | "scale" | "choice" | "mood";
 
 export const RESPONSE_TYPES: { value: ResponseType; label: string; icon: string }[] = [
   { value: "text", label: "Teks Bebas", icon: "edit_note" },
-  { value: "scale", label: "Skala 1-10", icon: "linear_scale" },
+  { value: "scale", label: "Skala", icon: "linear_scale" },
   { value: "choice", label: "Opsi Ganda", icon: "ballot" },
   { value: "mood", label: "Mood Check", icon: "mood" },
 ];

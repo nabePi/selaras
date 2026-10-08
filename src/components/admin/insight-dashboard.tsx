@@ -361,7 +361,7 @@ export async function InsightDashboard() {
 
             <div className="space-y-4 rounded-3xl bg-canvas-ivory p-5 shadow-sm">
               <h3 className="t-title-md text-on-surface">
-                Rata-rata Skala 1–10
+                Rata-rata Skala
               </h3>
               {d.scaleRows.length === 0 ? (
                 <p className="t-body-sm text-text-muted">
@@ -373,9 +373,10 @@ export async function InsightDashboard() {
                     <li key={s.label} className="space-y-1">
                       <p className="t-body-sm text-on-surface">{s.label}</p>
                       <div className="flex items-center gap-3">
-                        <Bar value={s.avg} max={10} tone="bg-primary" />
-                        <span className="t-label-md w-10 shrink-0 text-on-surface">
+                        <Bar value={s.avg} max={s.max} tone="bg-primary" />
+                        <span className="t-label-md w-14 shrink-0 text-on-surface">
                           {fmt(s.avg)}
+                          <span className="t-label-sm font-normal text-text-muted"> / {s.max}</span>
                         </span>
                       </div>
                       <p className="t-label-sm text-text-muted">
