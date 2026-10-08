@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { AuthorAvatar, AuthorBox } from "@/components/blog/author-box";
 import { BlogContent, TagList } from "@/components/blog/blog-content";
 import { CommentSection } from "@/components/blog/comment-section";
+import { ProgramCta } from "@/components/blog/program-cta";
 import { LikeButton } from "@/components/blog/like-button";
 import { ShareActions } from "@/components/blog/share-actions";
 import { Icon } from "@/components/icon";
@@ -86,6 +87,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
       </div>
 
       <AuthorBox author={post.author} />
+      <ProgramCta />
       <CommentSection slug={post.slug} initial={comments} userName={user?.name ?? null} />
     </article>
   );
