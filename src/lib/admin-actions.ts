@@ -5,6 +5,7 @@
  * Sisanya (peserta/kelas/nudge/catatan coach) masih SIMULASI — belum ada backend-nya; ganti
  * isinya saat API tersedia. UI menangani hasil `{ ok: false, error }` dan keadaan loading.
  */
+import type { BlogNode, BlogPostFull } from "@/lib/blog-content";
 import type { AssessmentItem, AssessmentKind } from "@/data/assessment";
 import type { Course, Participant, SessionMode } from "@/data/courses";
 import type { JournalPrompt, PromptQuestion } from "@/data/journal-prompts";
@@ -112,3 +113,23 @@ export const enrollParticipant = (courseId: string, userId: number) =>
   api<Enrollments>(`/api/admin/courses/${courseId}/enrollments`, "POST", { userId });
 export const unenrollParticipant = (courseId: string, userId: number) =>
   api<Enrollments>(`/api/admin/courses/${courseId}/enrollments/${userId}`, "DELETE");
+
+export type BlogPayload = {
+  title: string;
+  excerpt: string;
+  cover: { key: string } | null;
+  content: BlogNode;
+  tags: string[];
+  status: "DRAFT" | "PUBLISHED";
+  authorMode: "account" | "manual";
+  authorName: string;
+  authorBio: string;
+  authorPhoto: { key: string } | null;
+};
+
+/** Tanpa `id` membuat artikel baru; dengan `id` memperbarui artikel. */
+export const saveBlogPost = (input: BlogPayload, id?: string) =>
+  id ? api<BlogPostFull>(`/api/admin/blog/${id}`, "PATCH", input) : api<BlogPostFull>("/api/admin/blog", "POST", input);
+
+export const deleteBlogPost = (id: string) => api<{ deletedFiles: number }>(`/api/admin/blog/${id}`, "DELETE");
+export const deleteBlogComment = (id: string) => api<{ deleted: true }>(`/api/admin/blog/comments/${id}`, "DELETE");

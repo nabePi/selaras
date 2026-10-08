@@ -89,6 +89,8 @@ model User {
   assessmentResponses AssessmentResponse[]
   notifications       Notification[]
   courseEnrollments   CourseEnrollment[]
+  blogPosts           BlogPost[]
+  blogComments        BlogComment[]
 
   @@index([role, status])
 }
@@ -346,4 +348,64 @@ model CourseEnrollment {
 
   @@unique([courseId, userId])
   @@index([userId])
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// Artikel blog yang ditulis admin. Isi disimpan sebagai dokumen Tiptap (JSON); media memakai key R2.
+model BlogPost {
+  id          Int        @id @default(autoincrement())
+  slug        String     @unique
+  title       String
+  excerpt     String     @default("")
+  /// Kunci objek R2 gambar sampul.
+  coverKey    String?
+  content     Json
+  tags        String[]
+  status      BlogStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  /// Akun penulis bila artikel ditulis atas nama akun yang login; null bila diisi manual.
+  authorUserId Int?
+  author       User?   @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+  authorName   String
+  authorBio    String  @default("")
+  /// Kunci R2 atau data URL foto penulis.
+  authorPhoto  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  likes    BlogLike[]
+  comments BlogComment[]
+
+  @@index([status, publishedAt])
+}
+
+/// Satu suka per pengunjung; `actor` = "u:<userId>" untuk akun masuk, "v:<token>" untuk pengunjung anonim.
+model BlogLike {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  actor     String
+  createdAt DateTime @default(now())
+
+  @@unique([postId, actor])
+}
+
+model BlogComment {
+  id         Int      @id @default(autoincrement())
+  postId     Int
+  post       BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  /// Null untuk komentar anonim (pengunjung belum masuk).
+  userId     Int?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  authorName String
+  body       String
+  createdAt  DateTime @default(now())
+
+  @@index([postId, createdAt])
 }
