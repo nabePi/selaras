@@ -1,5 +1,6 @@
 import { AppBottomNav } from "@/components/app-bottom-nav";
 import { AppHeader } from "@/components/app-header";
+import { BackToTop } from "@/components/back-to-top";
 import { BottomNav } from "@/components/bottom-nav";
 import { PhoneShell } from "@/components/phone-shell";
 import { SiteHeader } from "@/components/site-header";
@@ -18,6 +19,7 @@ export default async function ProgramLayout({ children }: LayoutProps<"/">) {
     <PhoneShell>
       {member ? <AppHeader /> : <SiteHeader />}
       <main className="flex w-full flex-1 flex-col px-margin pt-16 pb-28">{children}</main>
+      <BackToTop />
       {member ? <AppBottomNav /> : <BottomNav />}
     </PhoneShell>
   );
