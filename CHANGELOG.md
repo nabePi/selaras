@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/nabePi/selaras/compare/v0.3.1...v0.4.0) (2026-10-08)
+
+
+### Fitur Baru
+
+* sesi kelas bisa online, offline, atau hybrid dengan lokasi dan Google Maps ([7fd6aac](https://github.com/nabePi/selaras/commit/7fd6aac8ae51f56e1d445f451e1683f92c63ed91))
+* sesi kelas online, offline, dan hybrid ([78f4142](https://github.com/nabePi/selaras/commit/78f41429ab6ce8dd8b360230132d71a73192eaf6))
+
 ## [0.3.1](https://github.com/nabePi/selaras/compare/v0.3.0...v0.3.1) (2026-10-08)
 
 
