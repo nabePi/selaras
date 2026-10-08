@@ -3,7 +3,7 @@ import { api } from "@/lib/api-client";
 
 export type UploadResult = { ok: true; file: CourseFile } | { ok: false; error: string };
 
-function putFile(url: string, file: File, onProgress: (pct: number) => void) {
+export function putFile(url: string, file: File, onProgress: (pct: number) => void) {
   return new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("PUT", url);

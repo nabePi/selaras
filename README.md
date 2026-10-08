@@ -202,3 +202,16 @@ Foto profil disimpan di R2 (`avatars/<userId>/…`); kolom `User.avatarUrl` beri
 npm run avatars:migrate            # dry-run: hanya melaporkan
 npm run avatars:migrate -- --apply # unggah ke R2 dan perbarui database
 ```
+
+## Blog
+
+Admin menulis artikel di `/admin/blog` dengan editor WYSIWYG (Tiptap): format teks, judul, daftar, kutipan, tautan,
+dan sisipan gambar, video, atau audio. Isi disimpan sebagai dokumen JSON dan dirender sebagai elemen React (bukan HTML
+mentah); hanya node/mark dalam daftar putih di `src/lib/blog-content.ts` yang diterima server. Media diunggah langsung
+ke R2 (`blog/<jenis>/…`) dan dibaca lewat URL bertanda tangan. Berkas yang diunggah tetapi tidak jadi dipakai belum
+dibersihkan otomatis; berkas yang dilepas dari artikel yang disimpan ikut dihapus.
+
+Halaman publik: `/blog` (daftar, filter `?tag=`) dan `/blog/<slug>`. Pengunjung bisa menyukai, membagikan, dan
+berkomentar. Pengunjung yang belum masuk berkomentar sebagai "Anonim" dan harus menjawab captcha hitung; token captcha
+ditandatangani dengan `CAPTCHA_SECRET`. Pembatas laju (komentar 5/menit, suka 30/menit per alamat) disimpan di memori
+proses, jadi berlaku per instance.
