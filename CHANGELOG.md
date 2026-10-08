@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.5.0](https://github.com/nabePi/selaras/compare/v0.4.0...v0.5.0) (2026-10-08)
+
+
+### Fitur Baru
+
+* bagikan artikel blog lewat menu bagikan bawaan perangkat, hapus tombol WhatsApp ([634a5d4](https://github.com/nabePi/selaras/commit/634a5d4aff1fa7ff29aed9b986618144e837203a))
+* blog dengan editor WYSIWYG, suka, bagikan, dan komentar ([4905d51](https://github.com/nabePi/selaras/commit/4905d51d0b863141a8cad1935a2608fff3cfae17))
+* blog dengan editor WYSIWYG, suka, bagikan, dan komentar ([ea7789f](https://github.com/nabePi/selaras/commit/ea7789ff6dc37839b59fb7974118e28f6801d193))
+* jam berakhir opsional pada sesi kelas ([4fe3e46](https://github.com/nabePi/selaras/commit/4fe3e462396a3042cdbe1e326804082137a6f6e2))
+* jam berakhir opsional pada sesi kelas ([242aee0](https://github.com/nabePi/selaras/commit/242aee04eb906691248fdef435a698ba541a7ff3))
+* rekomendasi artikel lainnya di bawah komentar blog ([df96f40](https://github.com/nabePi/selaras/commit/df96f40cb0d76471ba830b0b3748632d2fc03a12))
+* section ajakan ke program Selaras di artikel blog ([4a123cb](https://github.com/nabePi/selaras/commit/4a123cb5724726e5d78817649f251d8c84aa856f))
+* section artikel Selaras di beranda peserta ([b27ccc7](https://github.com/nabePi/selaras/commit/b27ccc7ef4d121a76dc1a8035f8f09a1b9387f94))
+* section artikel Selaras di beranda peserta ([a3821e7](https://github.com/nabePi/selaras/commit/a3821e7ae003bba0d7e476566bf0246d3fd98de5))
+* section CTA program Selaras di artikel blog ([4ea7678](https://github.com/nabePi/selaras/commit/4ea76783102c1c0308e4bae57388c8c2ee7be62d))
+* tampilkan jam pada komentar blog ([113a8fd](https://github.com/nabePi/selaras/commit/113a8fdd1a7d34b96957fb8f6386b059d31a7d0e))
+* tampilkan jam terbit pada artikel blog ([79e972d](https://github.com/nabePi/selaras/commit/79e972d595c5f1b0dba9e3ea2e649bfbe74f2e6d))
+* tombol kembali ke atas di halaman publik ([5180714](https://github.com/nabePi/selaras/commit/5180714d975067f0eff004e8423e91cb89f5abc4))
+* tombol kembali ke atas di halaman publik ([4b3f146](https://github.com/nabePi/selaras/commit/4b3f1463ea2e32a439bfd79b386699d618710656))
+
+
+### Perbaikan Bug
+
+* hidrasi gagal pada hitung mundur tombol gabung sesi ([323034e](https://github.com/nabePi/selaras/commit/323034e1727d4271322fac3be5a250cf266c6345))
+* hidrasi gagal pada hitung mundur tombol gabung sesi ([1d49641](https://github.com/nabePi/selaras/commit/1d4964160d177d2c2ca27ab7d2831af8ed4b660c))
+* komentar dan suka blog hanya memakai sesi peserta, bukan sesi admin ([6eda0c8](https://github.com/nabePi/selaras/commit/6eda0c86814006293871378218047642607cec03))
+* penyempurnaan blog (sesi peserta, captcha, jarak, bagikan native) ([89ae01a](https://github.com/nabePi/selaras/commit/89ae01a1d3bd21f9136b8e81677c1a8e39b916b4))
+
 ## [0.4.0](https://github.com/nabePi/selaras/compare/v0.3.1...v0.4.0) (2026-10-08)
 
 
