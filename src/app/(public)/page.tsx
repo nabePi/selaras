@@ -293,7 +293,7 @@ export default async function HomePage() {
         <SectionHeading
           eyebrow="Tim Selaras"
           title="Orang-orang di balik Selaras"
-          description="Para konselor, edukator, dan praktisi yang siap membersamai perjalananmu."
+          description="Konselor pernikahan & keluarga, konselor menyusui, dan praktisi kehamilan, didukung tim kreatif, desain, dan operasional yang bersama-sama membersamai perjalanan keluargamu."
         />
         <ul className="mt-1 flex flex-col gap-3">
           {TEAM.map((m) => (
