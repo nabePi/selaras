@@ -159,9 +159,9 @@ export async function getWeek(userId: number, weeksBack = 0) {
 }
 
 const submitSchema = z.object({
-  content: z.string().trim().max(5000, "Catatan terlalu panjang.").default(""),
+  content: z.string().trim().default(""),
   shared: z.boolean(),
-  answers: z.record(z.string(), z.union([z.string().max(2000), z.number()])).default({}),
+  answers: z.record(z.string(), z.union([z.string(), z.number()])).default({}),
   /** `keep`: id lampiran lama yang dipertahankan; `added`: berkas baru yang sudah diunggah ke R2. */
   attachments: z
     .object({
