@@ -14,7 +14,7 @@ type Props = {
 
 export function FocusHeader({ title, backHref, centered = false, hideLogo = false }: Props) {
   return (
-    <header className="pt-safe fixed top-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 bg-surface/85 shadow-[0_1px_12px_rgba(92,75,62,0.04)] backdrop-blur-xl">
+    <header className="pt-safe print:hidden fixed top-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 bg-surface/85 shadow-[0_1px_12px_rgba(92,75,62,0.04)] backdrop-blur-xl">
       <div
         className={`h-16 items-center px-2 ${
           centered ? "grid grid-cols-[2.75rem_1fr_2.75rem] gap-1" : "flex justify-between"
