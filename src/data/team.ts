@@ -30,7 +30,7 @@ export const TEAM: TeamMember[] = [
     nickname: "Ezie",
     role: "Konselor Pernikahan & Keluarga",
     credentials:
-      "Certified marriage & family counselor, wellness coach, essence of life practitioner",
+      "Certified marriage & family counselor, wellness coach, essence of life practitioner, Maxwell Leadership Certified Team",
     photo: "/images/tim/ezie.jpg",
   },
   {

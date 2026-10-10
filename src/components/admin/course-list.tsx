@@ -73,7 +73,7 @@ export function CourseList({ courses }: { courses: Course[] }) {
                     <p className="t-label-sm mt-1 flex flex-wrap gap-x-3 text-text-muted">
                       <span className="inline-flex items-center gap-1">
                         <Icon name="movie" size={14} />
-                        {s.recording ? "Rekaman ada" : "Belum ada rekaman"}
+                        {s.recordings.length ? `${s.recordings.length} rekaman` : "Belum ada rekaman"}
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <Icon name="description" size={14} />

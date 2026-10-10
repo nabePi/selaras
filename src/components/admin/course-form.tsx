@@ -8,7 +8,7 @@ import { saveCourse } from "@/lib/admin-actions";
 import { fieldClass, FieldLabel } from "../dialog";
 import { Icon } from "../icon";
 import { useToast } from "../toast-provider";
-import { CourseDocumentsField, CourseFileField, CoursePostersField } from "./course-file-field";
+import { CourseDocumentsField, CourseFileField, CoursePostersField, CourseRecordingsField } from "./course-file-field";
 import { btnPrimary, btnSoft } from "./page-header";
 
 const INPUT = `${fieldClass} border border-outline-variant focus-visible:border-sage-medium`;
@@ -16,6 +16,7 @@ const INPUT = `${fieldClass} border border-outline-variant focus-visible:border-
 type Errors = { title?: string; form?: string; sessions: Record<string, { title?: string; date?: string; endTime?: string; meetingUrl?: string; locationName?: string; mapsUrl?: string }> };
 
 const slim = (f: CourseFile | null) => (f ? { key: f.key, name: f.name, size: f.size } : null);
+const slimRecording = (f: CourseFile) => ({ ...slim(f)!, title: (f.title ?? "").trim() });
 
 function GroupLabel({ children }: { children: React.ReactNode }) {
   return <p className="t-label-sm font-normal text-text-muted">{children}</p>;
@@ -49,7 +50,7 @@ export function CourseForm({ initial }: { initial?: Course }) {
     instructorName: "",
     instructorBio: "",
     instructorPhoto: null,
-    recording: null,
+    recordings: [],
     documents: [],
   });
 
@@ -67,7 +68,7 @@ export function CourseForm({ initial }: { initial?: Course }) {
     for (const p of initial?.posters ?? []) keys.add(p.key);
     for (const s of initial?.sessions ?? []) {
       if (s.instructorPhoto) keys.add(s.instructorPhoto.key);
-      if (s.recording) keys.add(s.recording.key);
+      for (const r of s.recordings) keys.add(r.key);
       for (const d of s.documents) keys.add(d.key);
     }
     return keys;
@@ -132,7 +133,7 @@ export function CourseForm({ initial }: { initial?: Course }) {
           instructorName: s.instructorName,
           instructorBio: s.instructorBio,
           instructorPhoto: slim(s.instructorPhoto),
-          recording: slim(s.recording),
+          recordings: s.recordings.map(slimRecording),
           documents: s.documents.map((d) => slim(d)!),
         })),
       },
@@ -365,7 +366,7 @@ export function CourseForm({ initial }: { initial?: Course }) {
 
                 <div className="space-y-1">
                   <GroupLabel>Video rekaman sesi</GroupLabel>
-                  <CourseFileField purpose="recording" label="Rekaman" emptyIcon="movie" value={s.recording} onChange={(f) => update(s.uid, { recording: f })} {...common} />
+                  <CourseRecordingsField value={s.recordings} onChange={(recordings) => update(s.uid, { recordings })} {...common} purpose="recording" />
                 </div>
 
                 <div className="space-y-1">

@@ -323,13 +323,22 @@ model CourseSession {
   instructorBio      String  @default("")
   instructorPhotoKey String?
 
-  recordingKey  String?
-  recordingName String?
-  recordingSize Int?
-
-  documents CourseDocument[]
+  recordings CourseRecording[]
+  documents  CourseDocument[]
 
   @@unique([courseId, position])
+}
+
+/// Video rekaman sebuah sesi; satu sesi boleh punya banyak rekaman.
+model CourseRecording {
+  id        Int           @id @default(autoincrement())
+  sessionId Int
+  session   CourseSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  title     String
+  name      String
+  key       String        @unique
+  /// Byte; BigInt karena rekaman bisa lebih dari 2 GB.
+  size      BigInt
 }
 
 model CourseDocument {

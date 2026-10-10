@@ -48,7 +48,7 @@ function Progress({ pct }: { pct: number }) {
   );
 }
 
-/** Satu berkas (poster, foto pengajar, atau rekaman). Gambar tampil sebagai pratinjau. */
+/** Satu berkas gambar (poster atau foto pengajar). Gambar tampil sebagai pratinjau. */
 export function CourseFileField({
   value,
   onChange,
@@ -207,6 +207,95 @@ export function CourseDocumentsField({
       )}
       <p className="t-label-sm text-text-muted">
         {rule.formats} · maks {rule.maxLabel} per berkas
+      </p>
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        accept={rule.accept}
+        hidden
+        onChange={(e) => {
+          void pick(e.target.files);
+          e.target.value = "";
+        }}
+      />
+    </div>
+  );
+}
+
+/** Daftar video rekaman sesi: unggah banyak berkas, tiap rekaman punya judul yang bisa diubah. */
+export function CourseRecordingsField({
+  value,
+  onChange,
+  ...common
+}: Common & { value: CourseFile[]; onChange: (files: CourseFile[]) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { upload, progress } = useUpload(common);
+  const rule = UPLOAD_RULES.recording;
+
+  async function pick(files: FileList | null) {
+    if (!files) return;
+    let next = value;
+    for (const file of Array.from(files)) {
+      const uploaded = await upload(file);
+      if (uploaded) {
+        next = [...next, { ...uploaded, title: file.name.replace(/\.[^.]+$/, "") }];
+        onChange(next);
+      }
+    }
+  }
+
+  function remove(file: CourseFile) {
+    if (!common.savedKeys.has(file.key)) discardCourseFile(file.key);
+    onChange(value.filter((f) => f.key !== file.key));
+  }
+
+  const rename = (key: string, title: string) => onChange(value.map((f) => (f.key === key ? { ...f, title } : f)));
+
+  return (
+    <div className="space-y-2">
+      {value.length > 0 && (
+        <ul className="space-y-2">
+          {value.map((f, i) => (
+            <li key={f.key} className="space-y-1.5 rounded-2xl bg-canvas-cream px-3 py-2.5">
+              <div className="flex items-center gap-2">
+                <Icon name="movie" size={18} className="shrink-0 text-primary" />
+                <input
+                  type="text"
+                  aria-label={`Judul rekaman ${i + 1}`}
+                  value={f.title ?? ""}
+                  maxLength={160}
+                  onChange={(e) => rename(f.key, e.target.value)}
+                  placeholder="Judul rekaman"
+                  className="t-body-sm min-w-0 flex-1 rounded-lg border border-outline-variant bg-surface px-3 py-1.5 text-on-surface focus-visible:border-sage-medium focus-visible:outline-none"
+                />
+                <button
+                  type="button"
+                  aria-label={`Hapus rekaman ${f.title || f.name}`}
+                  onClick={() => remove(f)}
+                  className="rounded-full p-1.5 text-text-muted transition-colors hover:bg-surface-container-low hover:text-error"
+                >
+                  <Icon name="delete" size={16} />
+                </button>
+              </div>
+              <p className="t-label-sm truncate pl-7 text-text-muted">
+                {f.name}
+                {f.size > 0 && ` · ${formatFileSize(f.size)}`}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+      {progress !== null ? (
+        <Progress pct={progress} />
+      ) : (
+        <button type="button" onClick={() => inputRef.current?.click()} className={dropClass}>
+          <Icon name="upload" size={16} />
+          {value.length ? "Tambah rekaman" : "Unggah rekaman"}
+        </button>
+      )}
+      <p className="t-label-sm text-text-muted">
+        {rule.formats} · maks {rule.maxLabel} per video
       </p>
       <input
         ref={inputRef}
