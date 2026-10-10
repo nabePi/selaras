@@ -65,7 +65,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="id" className={`${notoSerif.variable} ${jakarta.variable}`}>
+    <html lang="id" className={`${notoSerif.variable} ${jakarta.variable} print:bg-white`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -80,7 +80,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
         />
       </head>
-      <body className="antialiased">
+      <body className="antialiased print:bg-white">
         <JsonLd data={organizationJsonLd()} />
         <JsonLd data={websiteJsonLd()} />
         <ToastProvider>{children}</ToastProvider>

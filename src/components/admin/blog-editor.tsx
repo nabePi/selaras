@@ -5,7 +5,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
 import { EditorContent, Node, mergeAttributes, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { BLOG_UPLOAD_RULES, type BlogNode, type BlogUploadPurpose } from "@/lib/blog-content";
 import { uploadBlogFile } from "@/lib/blog-upload";
 import { Icon } from "../icon";
@@ -35,13 +35,12 @@ const mediaNode = (name: "video" | "audio") =>
     renderHTML: ({ HTMLAttributes }) => [name, mergeAttributes(HTMLAttributes, { controls: "true", preload: "metadata", class: name === "video" ? "w-full rounded-2xl bg-black" : "w-full" })],
   });
 
-const extensions = [
+const baseExtensions = [
   StarterKit.configure({ heading: { levels: [2, 3] }, link: { openOnClick: false, autolink: true, HTMLAttributes: { rel: "noopener noreferrer nofollow" } } }),
   BlogImage.configure({ HTMLAttributes: { class: "rounded-2xl" } }),
   mediaNode("video"),
   mediaNode("audio"),
   TextAlign.configure({ types: ["heading", "paragraph"] }),
-  Placeholder.configure({ placeholder: "Mulai menulis artikel…" }),
 ];
 
 function ToolButton({ label, icon, active, disabled, onClick }: { label: string; icon: string; active?: boolean; disabled?: boolean; onClick: () => void }) {
@@ -64,7 +63,7 @@ function ToolButton({ label, icon, active, disabled, onClick }: { label: string;
 
 const Divider = () => <span aria-hidden="true" className="mx-1 h-6 w-px bg-outline-variant" />;
 
-function Toolbar({ editor, onBusy }: { editor: Editor; onBusy: (d: 1 | -1) => void }) {
+function Toolbar({ editor, onBusy, media }: { editor: Editor; onBusy: (d: 1 | -1) => void; media: boolean }) {
   const { showToast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<BlogUploadPurpose>("image");
@@ -143,9 +142,13 @@ function Toolbar({ editor, onBusy }: { editor: Editor; onBusy: (d: 1 | -1) => vo
       <ToolButton label="Rata kanan" icon="format_align_right" active={s.right} onClick={() => run().setTextAlign("right").run()} />
       <Divider />
       <ToolButton label="Tautan" icon="link" active={s.link} onClick={setLink} />
-      <ToolButton label="Sisipkan gambar" icon="image" disabled={progress !== null} onClick={() => choose("image")} />
-      <ToolButton label="Sisipkan video" icon="videocam" disabled={progress !== null} onClick={() => choose("video")} />
-      <ToolButton label="Sisipkan audio" icon="mic" disabled={progress !== null} onClick={() => choose("audio")} />
+      {media && (
+        <>
+          <ToolButton label="Sisipkan gambar" icon="image" disabled={progress !== null} onClick={() => choose("image")} />
+          <ToolButton label="Sisipkan video" icon="videocam" disabled={progress !== null} onClick={() => choose("video")} />
+          <ToolButton label="Sisipkan audio" icon="mic" disabled={progress !== null} onClick={() => choose("audio")} />
+        </>
+      )}
       <Divider />
       <ToolButton label="Urungkan" icon="undo" disabled={!s.canUndo} onClick={() => run().undo().run()} />
       <ToolButton label="Ulangi" icon="redo" disabled={!s.canRedo} onClick={() => run().redo().run()} />
@@ -156,7 +159,25 @@ function Toolbar({ editor, onBusy }: { editor: Editor; onBusy: (d: 1 | -1) => vo
 }
 
 /** Editor WYSIWYG artikel (Tiptap). Isi disimpan sebagai dokumen JSON; media dirujuk lewat key R2. */
-export function BlogEditor({ initial, onChange, onBusy, invalid }: { initial: BlogNode; onChange: (doc: BlogNode) => void; onBusy: (d: 1 | -1) => void; invalid?: boolean }) {
+export function BlogEditor({
+  initial,
+  onChange,
+  onBusy,
+  invalid,
+  media = true,
+  label = "Isi artikel",
+  placeholder = "Mulai menulis artikel…",
+}: {
+  initial: BlogNode;
+  onChange: (doc: BlogNode) => void;
+  onBusy: (d: 1 | -1) => void;
+  invalid?: boolean;
+  /** False menyembunyikan tombol gambar/video/audio (mis. untuk pesan yang lampirannya terpisah). */
+  media?: boolean;
+  label?: string;
+  placeholder?: string;
+}) {
+  const extensions = useMemo(() => [...baseExtensions, Placeholder.configure({ placeholder })], [placeholder]);
   const editor = useEditor({
     extensions,
     content: initial,
@@ -165,7 +186,7 @@ export function BlogEditor({ initial, onChange, onBusy, invalid }: { initial: Bl
     onUpdate: ({ editor: e }) => onChange(e.getJSON() as BlogNode),
     editorProps: {
       attributes: {
-        "aria-label": "Isi artikel",
+        "aria-label": label,
         class: "blog-editor t-body-lg min-h-[360px] px-4 py-3 text-on-surface focus:outline-none",
       },
     },
@@ -173,7 +194,7 @@ export function BlogEditor({ initial, onChange, onBusy, invalid }: { initial: Bl
 
   return (
     <div className={`rounded-2xl border bg-surface ${invalid ? "border-error ring-2 ring-error" : "border-outline-variant"}`}>
-      {editor ? <Toolbar editor={editor} onBusy={onBusy} /> : <div className="h-12 rounded-t-2xl bg-surface-container-low" />}
+      {editor ? <Toolbar editor={editor} onBusy={onBusy} media={media} /> : <div className="h-12 rounded-t-2xl bg-surface-container-low" />}
       <EditorContent editor={editor} />
     </div>
   );

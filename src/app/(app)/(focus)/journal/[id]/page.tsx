@@ -4,13 +4,21 @@ import { notFound } from "next/navigation";
 import { EntryAttachments } from "@/components/entry-attachments";
 import { FocusHeader } from "@/components/focus-header";
 import { Icon } from "@/components/icon";
+import { PrintButton } from "@/components/print-button";
+import { PrintPage } from "@/components/print-footer";
 import { parseMood } from "@/lib/mood";
 import { requireMemberPage } from "@/lib/server/session";
 import { getEntry } from "@/server/member/journal";
 
 type Params = Promise<{ id: string }>;
 
-export const metadata: Metadata = { title: "Journal" };
+/** Judul halaman = tanggal jurnal, jadi nama berkas PDF hasil simpan ikut bermakna. */
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { id } = await params;
+  const user = await requireMemberPage();
+  const entry = await getEntry(user.id, id);
+  return { title: entry ? `Jurnal - ${entry.dateLabel}` : "Journal" };
+}
 
 export default async function JournalEntryPage({ params }: { params: Params }) {
   const { id } = await params;
@@ -26,6 +34,7 @@ export default async function JournalEntryPage({ params }: { params: Params }) {
   return (
     <>
       <FocusHeader title={entry.dayLabel} backHref="/journal" hideLogo />
+      <PrintPage>
       <div className="mt-3 flex w-full flex-col gap-4 pb-10">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -34,6 +43,7 @@ export default async function JournalEntryPage({ params }: { params: Params }) {
             </span>
             <span className="t-body-sm text-text-muted">{entry.dateLabel}</span>
           </div>
+          <PrintButton />
         </div>
 
         <div className="flex flex-col gap-1">
@@ -83,6 +93,7 @@ export default async function JournalEntryPage({ params }: { params: Params }) {
           )}
         </div>
       </div>
+      </PrintPage>
     </>
   );
 }

@@ -51,6 +51,16 @@ export async function listEntries(userId: number): Promise<MemberEntry[]> {
   return Promise.all(rows.map(async (r) => toEntry(r, await toAttachmentDtos(r.attachments))));
 }
 
+/** Entri yang dibagikan peserta ke coach (untuk admin); entri privat tidak dimuat sama sekali. */
+export async function listSharedEntries(userId: number): Promise<{ entries: MemberEntry[]; privateCount: number }> {
+  const [rows, privateCount] = await Promise.all([
+    db.promptResponse.findMany({ where: { userId, shared: true }, include: withDetail, orderBy: { date: "desc" } }),
+    db.promptResponse.count({ where: { userId, shared: false } }),
+  ]);
+  const entries = await Promise.all(rows.map(async (r) => toEntry(r, await toAttachmentDtos(r.attachments))));
+  return { entries, privateCount };
+}
+
 export async function getEntry(userId: number, id: string): Promise<MemberEntry | null> {
   const n = Number(id);
   if (!Number.isSafeInteger(n) || n <= 0) return null;

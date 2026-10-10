@@ -4,6 +4,7 @@ import { Icon } from "@/components/icon";
 import { AssessmentCard } from "@/components/assessment-card";
 import { JournalTodayCard } from "@/components/journal-today-card";
 import { HomeBlog } from "@/components/home-blog";
+import { HomeCoacheeCare } from "@/components/home-coachee-care";
 import { HomeCourseInfo, type HomeCourse } from "@/components/home-course-info";
 import { ProfileReminder } from "@/components/profile-reminder";
 import { formatDateId } from "@/data/admin-prompts";
@@ -14,6 +15,7 @@ import { getLatestPost } from "@/server/blog";
 import { isAssessmentVisible } from "@/server/admin/assessment";
 import { getPromptForDate } from "@/server/admin/prompts";
 import { hasCompletedAssessment } from "@/server/member/assessment";
+import { listMyCare } from "@/server/member/coachee-care";
 import { listMyCourses } from "@/server/member/courses";
 import { getProfile, isProfileComplete } from "@/server/member/profile";
 import { getMissedDates, getStreak, getTodayEntry, getWeek } from "@/server/member/journal";
@@ -81,7 +83,7 @@ export default async function HomePage({
   const missedDates = await getMissedDates(user.id);
   const activeDate = missedDates[0] ?? today;
   const prompt = await getPromptForDate(activeDate, user.id);
-  const [entry, week, streak, preVisible, preDone, postVisible, postDone, profile, courses, latestPost] = await Promise.all([
+  const [entry, week, streak, preVisible, preDone, postVisible, postDone, profile, courses, latestPost, careItems] = await Promise.all([
     getTodayEntry(user.id, prompt, activeDate),
     getWeek(user.id, weeksBack),
     getStreak(user.id),
@@ -92,6 +94,7 @@ export default async function HomePage({
     getProfile(user.id),
     listMyCourses(user.id),
     getLatestPost(),
+    listMyCare(user.id),
   ]);
   // Kelas yang masih punya sesi mendatang, diurutkan dari sesi yang paling dekat.
   const activeCourses: HomeCourse[] = courses
@@ -155,6 +158,9 @@ export default async function HomePage({
           body="Isi post assessment agar jawabanmu bisa dibandingkan dengan pre assessment dan perubahanmu terlihat."
         />
       )}
+
+      {/* Coachee care dari coach (hanya bila ada) */}
+      {careItems.length > 0 && <HomeCoacheeCare items={careItems} />}
 
       {/* 3. Kalender streak jurnal */}
       <section
