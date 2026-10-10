@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.0](https://github.com/nabePi/selaras/compare/v0.10.0...v0.11.0) (2026-10-10)
+
+
+### Fitur Baru
+
+* reaksi emoji dan ajakan ngobrol dengan coach pada coachee care ([c0613e1](https://github.com/nabePi/selaras/commit/c0613e1328ac53709f17ebb390279581aa4b5cef))
+* reaksi emoji dan ajakan ngobrol dengan coach pada coachee care ([19832e9](https://github.com/nabePi/selaras/commit/19832e966fe4940b1270b239aa6303bcb3cb8209))
+
 ## [0.10.0](https://github.com/nabePi/selaras/compare/v0.9.1...v0.10.0) (2026-10-10)
 
 
