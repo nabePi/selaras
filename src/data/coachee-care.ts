@@ -28,7 +28,12 @@ export type CoacheeCare = {
   dateLabel: string;
   timeLabel: string;
   files: CareFile[];
+  /** Reaksi emoji peserta; ada berarti peserta sudah membaca. */
+  reaction: { emoji: string; dateLabel: string } | null;
 };
+
+/** Pilihan reaksi untuk peserta. */
+export const CARE_REACTIONS = ["🙏", "❤️", "😊", "💪", "😔"] as const;
 
 const DOCUMENT_TYPES = [
   "application/pdf",

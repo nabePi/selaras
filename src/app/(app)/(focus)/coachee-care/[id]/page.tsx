@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CareFiles } from "@/components/admin/care-files";
+import { CareReaction } from "@/components/care-reaction";
 import { BlogContent } from "@/components/blog/blog-content";
 import { FocusHeader } from "@/components/focus-header";
 import { Icon } from "@/components/icon";
@@ -46,6 +47,7 @@ export default async function CoacheeCareDetailPage({ params }: { params: Params
         <h1 className="t-headline-sm leading-snug text-on-surface">{care.title}</h1>
         <BlogContent doc={care.message} />
         <CareFiles files={care.files} />
+        <CareReaction care={care} />
       </article>
       </PrintPage>
     </>

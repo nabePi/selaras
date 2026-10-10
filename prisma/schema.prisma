@@ -433,6 +433,9 @@ model CoacheeCare {
   message    Json
   /// Nama admin pemberi masukan saat dibuat.
   authorName String
+  /// Reaksi emoji peserta; terisi berarti peserta sudah membaca.
+  reaction   String?
+  reactedAt  DateTime?
   createdAt  DateTime @default(now())
 
   files CoacheeCareFile[]
