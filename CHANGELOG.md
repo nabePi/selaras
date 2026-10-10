@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.0](https://github.com/nabePi/selaras/compare/v0.7.0...v0.8.0) (2026-10-10)
+
+
+### Fitur Baru
+
+* multi rekaman kelas, jurnal tanpa batas karakter, profil Ezie ([700570e](https://github.com/nabePi/selaras/commit/700570ef73777ed9cc3b433897c351aec46a5334))
+* multi rekaman per sesi kelas, batas video 4 GB dan dokumen 200 MB ([15038e1](https://github.com/nabePi/selaras/commit/15038e10605862f6763ef93f50623c8ac51421d5))
+* tambah Maxwell Leadership Certified Team pada profil Ezie ([dc6add6](https://github.com/nabePi/selaras/commit/dc6add6b633b829873ce775f9d1e39833b086b1a))
+
+
+### Perbaikan Bug
+
+* hapus batas karakter pada tulis jurnal ([08fb043](https://github.com/nabePi/selaras/commit/08fb043d488cb2144c727021e1a6f5b34c92b6a4))
+
 ## [0.7.0](https://github.com/nabePi/selaras/compare/v0.6.0...v0.7.0) (2026-10-08)
 
 
