@@ -49,7 +49,7 @@ export const MAIN_PROGRAM: MainProgram = {
   facilitators: [
     {
       name: "Ershy Rafanti, S.Psi., LCPC (Ezie)",
-      role: "Wellness coach, essence of life practitioner, certified family counselor",
+      role: "Wellness coach, essence of life practitioner, certified family counselor, Maxwell Leadership Certified Team",
       photo: "/images/tim/ezie.jpg",
     },
     {
