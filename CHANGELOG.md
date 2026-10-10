@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/nabePi/selaras/compare/v0.9.1...v0.10.0) (2026-10-10)
+
+
+### Fitur Baru
+
+* info coachee care terakhir dan kegiatan lengkap pada card users ([e767bb3](https://github.com/nabePi/selaras/commit/e767bb3ee18d910d4b569407926984c03cda46b0))
+
 ## [0.9.1](https://github.com/nabePi/selaras/compare/v0.9.0...v0.9.1) (2026-10-10)
 
 
