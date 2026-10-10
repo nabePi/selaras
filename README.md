@@ -3,36 +3,45 @@
 Ruang refleksi harian dan pendampingan pernikahan muda terpandu untuk pasutri muslim — cukup 3 menit sehari.
 Web app mobile-first (PWA) untuk **[selaras.life](https://selaras.life)**.
 
-> **Status:** frontend selesai untuk seluruh layar desain. Backend belum ada — data masih contoh
-> dan proses masuk/daftar masih simulasi (lihat [Status & batasan](#status--batasan)).
+> **Status:** aplikasi berjalan penuh dengan backend (PostgreSQL + Prisma), autentikasi, konsol admin, dan
+> penyimpanan berkas di Cloudflare R2. Lihat [Fitur](#fitur) dan [Backend admin](#backend-admin-postgresql--prisma).
 
 ## Tech stack
 
 - [Next.js](https://nextjs.org) 16 (App Router, output `standalone`) + React 19
-- TypeScript
+- TypeScript, Zod untuk validasi
+- PostgreSQL + [Prisma](https://www.prisma.io) 7, penyimpanan berkas di Cloudflare R2
+- Editor WYSIWYG [Tiptap](https://tiptap.dev) (artikel blog dan pesan Coachee Care)
 - Tailwind CSS v4 (design tokens di `src/app/globals.css`)
 - Font: Noto Serif + Plus Jakarta Sans (`next/font`), ikon Material Symbols
 - Docker + Dokploy untuk deploy
+
+## Fitur
+
+- **Peserta:** jurnal refleksi harian (prompt admin atau jurnal bebas, lampiran foto/video/audio, opsi privat),
+  streak, pre/post assessment, kelas dan sesi, notifikasi, serta **Coachee Care** dari coach.
+  Detail jurnal dan Coachee Care bisa disimpan sebagai PDF (tombol *Save PDF*, footer Selaras Life di tiap halaman).
+- **Admin:** kelola users (kartu profil, aktivasi, reset password), prompt jurnal, assessment, kelas (banyak rekaman
+  per sesi, video maks 4 GB, dokumen maks 200 MB), blog, dan insight. Admin membaca jurnal peserta di
+  `/admin/users/[id]/jurnal` (hanya yang dibagikan ke coach; jurnal privat tidak pernah dimuat) dan memberi
+  **Coachee Care** di `/admin/users/[id]/coachee-care`: pilih coach, judul, pesan WYSIWYG, dan banyak lampiran
+  (PDF, Word, Excel, PowerPoint, audio, video, gambar). Peserta otomatis mendapat notifikasi.
 
 ## Halaman
 
 | Route | Untuk | Isi |
 |---|---|---|
-| `/` | Publik | Beranda: hero, hadis harian, simulasi refleksi, cohort aktif, FAQ |
-| `/program` | Publik | Katalog program dengan filter kategori, fasilitator |
-| `/cerita` | Publik | Cerita alumni dengan filter, audio, renungan |
-| `/masuk` | Auth | Masuk (email/WhatsApp + kata sandi), lupa kata sandi |
-| `/daftar` | Auth | Buat akun, pilihan tahap, meter kekuatan sandi |
-| `/home` | Member | Sapaan, hadis harian, refleksi tertunda, pita pekan, ekosistem |
-| `/journal` | Member | Kalender bulanan, riwayat refleksi |
-| `/journal/tulis` | Member | Form refleksi harian (lampiran, privasi, draf) |
-| `/profil` | Member | Profil, kurikulum, evaluasi pre/post test, pengaturan PWA |
-| `/admin` | Admin | Ikhtisar dashboard: perlu perhatian, kelas berjalan, prompt hari ini, insight singkat |
-| `/admin/peserta` | Admin | Aktivasi & data peserta: filter, pencarian, panel audit, ekspor CSV, tambah manual |
-| `/admin/prompt` | Admin | Kelola prompt & hadis harian: editor, simulator ponsel, jadwal, pustaka hadis |
-| `/admin/kelas` | Admin | Manajemen kelas & sesi kurikulum, bank soal pre/post |
-| `/admin/insight` | Admin | Agregat insight emosional & antrean catatan coach |
-| `/admin/panduan` | Admin | Panduan & SOP pendampingan |
+| `/`, `/program`, `/cerita`, `/blog` | Publik | Beranda, katalog program, cerita alumni, artikel blog |
+| `/masuk`, `/daftar` | Auth | Masuk dan buat akun |
+| `/home` | Member | Sapaan, kutipan, streak jurnal, Coachee Care terbaru, info kelas, artikel terbaru |
+| `/journal`, `/journal/tulis`, `/journal/[id]` | Member | Kalender dan riwayat refleksi, form tulis, detail (bisa Save PDF) |
+| `/coachee-care`, `/coachee-care/[id]` | Member | Daftar dan detail Coachee Care dari coach (bisa Save PDF) |
+| `/kelas`, `/kelas/[id]` | Member | Kelas yang diikuti, sesi, rekaman, dan dokumen |
+| `/notifikasi`, `/profil` | Member | Notifikasi, profil dan pengaturan |
+| `/admin` | Admin | Dashboard ringkasan |
+| `/admin/users` | Admin | Kartu pengguna, jurnal peserta, Coachee Care |
+| `/admin/prompt`, `/admin/assessment/[kind]`, `/admin/insight` | Admin | Prompt jurnal, assessment pre/post, insight |
+| `/admin/kelas`, `/admin/blog` | Admin | Kelas dan sesi, artikel blog |
 
 Halaman member dan admin diberi `noindex`.
 
@@ -63,17 +72,19 @@ src/
 │   ├── admin/         # konsol admin & coach (sidebar + header sendiri)
 │   ├── (app)/
 │   │   ├── (tabs)/    # /home, /journal, /profil — dengan tab bawah
-│   │   └── (focus)/   # /journal/tulis — halaman fokus tanpa tab
+│   │   └── (focus)/   # /journal/tulis, /coachee-care, /notifikasi — halaman fokus tanpa tab
 │   ├── globals.css    # design tokens "Serene Harmony"
 │   ├── layout.tsx     # root layout, font, ToastProvider
 │   └── manifest.ts    # manifest PWA
 ├── components/        # komponen UI; yang interaktif ditandai "use client"
 │   ├── auth/          # field, form masuk/daftar, dialog lupa sandi
 │   └── admin/         # shell admin, pengelola peserta/prompt/kelas/insight
-├── data/              # konten statis sementara (programs, stories, member)
+├── data/              # tipe dan konten statis (programs, team, courses, coachee-care, dll.)
+├── server/            # lapisan data per fitur (admin/*, member/*) — dipakai halaman dan route handler
 └── lib/
-    ├── auth.ts        # SIMULASI signIn/register/reset — ganti dengan API
-    ├── admin-actions.ts # SIMULASI aksi admin (aktivasi, nudge, publikasi, dll.) — ganti dengan API
+    ├── api-client.ts  # klien tipis untuk /api/admin/*
+    ├── admin-actions.ts # aksi admin dari komponen client
+    ├── server/        # sesi, route helper, R2, waktu (server-only)
     ├── validation.ts  # validasi email, WhatsApp, kekuatan sandi
     └── stored-value.ts# localStorage sebagai external store (draf, pengingat)
 public/
@@ -91,20 +102,6 @@ Token warna, spacing, dan tipografi mengikuti desain **Serene Harmony** dan dide
   `t-body-md`, `t-label-sm`. Kelas ini ada di layer `components`, jadi utilitas seperti `font-semibold`
   tetap bisa menimpanya.
 - Layout mobile-first: konten dibatasi lebar maksimal 480px di tengah layar.
-
-## Status & batasan
-
-Belum tersambung ke backend:
-
-- **Autentikasi:** `src/lib/auth.ts` hanya menunggu sebentar lalu selalu sukses. Siapa pun bisa "masuk";
-  halaman member **belum diproteksi**. Ganti `signIn`, `registerAccount`, dan `requestPasswordReset`
-  dengan panggilan API, form sudah menangani hasil gagal dan keadaan loading.
-- **Data member:** `src/data/member.ts` berisi data contoh (tanggal, streak, riwayat, dll.).
-- **Konsol admin:** semua aksi (aktivasi, nudge WhatsApp, publikasi prompt, simpan kurikulum, dll.) lewat `src/lib/admin-actions.ts` dan hanya mengubah state di memori halaman; belum ada yang tersimpan atau terkirim. Data contoh ada di `src/data/admin-*.ts`. `/admin` **belum diproteksi** (tidak ada cek peran).
-- **Kirim jurnal:** "Simpan & Kirim Jurnal" belum mengirim ke server. Draf teks tersimpan di
-  `localStorage`.
-- **Belum ada fiturnya:** Magic Link WhatsApp, masuk dengan Google, notifikasi, export PDF, tautan Zoom,
-  dan pemutar audio menampilkan toast "akan hadir pada fase berikutnya".
 
 ## Deploy (Docker + Dokploy)
 
@@ -131,11 +128,9 @@ jadi perlu ditambahkan sebagai `build.args`.
 
 ## Rencana berikutnya
 
-- [ ] Backend: autentikasi, sesi, dan proteksi route untuk halaman member
-- [ ] API jurnal, cohort, dan kurikulum (ganti `src/data/*`)
 - [ ] Halaman Ketentuan Layanan dan Kebijakan Privasi
 - [ ] Service worker / dukungan offline untuk PWA
-- [ ] Notifikasi pengingat refleksi harian
+- [ ] Penanda sudah dibaca untuk Coachee Care
 
 ## Backend admin (PostgreSQL + Prisma)
 
@@ -151,8 +146,9 @@ npm run dev          # masuk di /admin/masuk
 
 - Skema & migrasi: `prisma/schema.prisma`, `prisma/migrations`. Produksi: `npm run db:deploy`.
 - Lapisan data per fitur: `src/server/admin/*` (dipakai halaman server dan route handler).
-- API: `/api/auth/*` dan `/api/admin/*` (users, prompts, assessment, insight, dashboard).
-- Auth admin: email + password (scrypt), sesi di database, cookie `selaras_session` (httpOnly).
+- API: `/api/auth/*` dan `/api/admin/*` (users, prompts, assessment, insight, dashboard, courses, blog, coachee-care).
+- Auth: email/WhatsApp + password (scrypt), sesi di database, cookie httpOnly terpisah untuk admin dan member.
+- Setelah mengubah `prisma/schema.prisma`, jalankan `npm run db:migrate`, lalu restart `npm run dev` agar Prisma client baru terbaca.
 
 ## Lampiran jurnal (Cloudflare R2)
 
