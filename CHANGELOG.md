@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/nabePi/selaras/compare/v0.9.0...v0.9.1) (2026-10-10)
+
+
+### Dokumentasi
+
+* perbarui README sesuai fitur dan backend terbaru ([29e7ccb](https://github.com/nabePi/selaras/commit/29e7ccb1775c8d2672ea490bb423f2a0ce76bbd5))
+* perbarui README sesuai fitur dan backend terbaru ([b8c5f53](https://github.com/nabePi/selaras/commit/b8c5f5311bd424df8ed1a25998f2e8b0d03f76ce))
+
 ## [0.9.0](https://github.com/nabePi/selaras/compare/v0.8.0...v0.9.0) (2026-10-10)
 
 
