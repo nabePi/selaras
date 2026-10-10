@@ -203,6 +203,16 @@ function UserCard({
             <dt className="sr-only">Status pernikahan</dt>
             <dd className="text-on-surface">{u.maritalStatus ?? <Empty />}</dd>
           </div>
+          {u.lastCare && (
+            <div className="flex items-start gap-2.5">
+              <Icon name="volunteer_activism" size={16} className="mt-0.5 shrink-0 text-primary" />
+              <dt className="sr-only">Coachee care terakhir</dt>
+              <dd className="text-on-surface">
+                Coachee care terakhir dari <span className="font-semibold">{u.lastCare.coach}</span>
+                <span className="text-text-muted"> · {formatDateId(u.lastCare.date)}</span>
+              </dd>
+            </div>
+          )}
         </dl>
 
         <div className="space-y-1.5">
@@ -225,7 +235,7 @@ function UserCard({
         <div className="space-y-1.5">
           <p className="t-label-sm tracking-wider text-text-muted uppercase">Kegiatan Sehari-hari</p>
           {u.activities ? (
-            <p title={u.activities} className="t-body-sm line-clamp-3 whitespace-pre-line text-on-surface">
+            <p className="t-body-sm break-words whitespace-pre-line text-on-surface">
               {u.activities}
             </p>
           ) : (

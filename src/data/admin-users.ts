@@ -17,6 +17,8 @@ export type AdminUser = {
   /** Status pernikahan dari profil peserta; belum diisi bila kosong. */
   maritalStatus?: string;
   joined: string;
+  /** Coachee care terakhir yang diberikan untuk peserta ini; kosong bila belum pernah. */
+  lastCare?: { coach: string; date: string };
   status: "active" | "pending";
 };
 
