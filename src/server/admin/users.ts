@@ -10,6 +10,7 @@ import { normalizeWhatsApp } from "@/lib/validation";
 import { hashPassword } from "@/lib/server/password";
 import { sendPasswordResetEmail } from "@/server/mailer";
 import { avatarSrc } from "@/server/avatar";
+import { listSharedEntries } from "@/server/member/journal";
 import { findMemberByIdentifier } from "@/server/member/credentials";
 import type { z } from "zod";
 import type { createUserSchema } from "./schemas";
@@ -33,6 +34,13 @@ export const listUsers = cache(async (): Promise<AdminUser[]> => {
     status: u.status === "ACTIVE" ? ("active" as const) : ("pending" as const),
   })));
 });
+
+/** Jurnal peserta yang boleh dibaca admin: hanya yang dibagikan ke coach. */
+export async function listUserJournals(code: string) {
+  const user = await findMember(code).catch(() => null);
+  if (!user) return null;
+  return { user: { id: userCode.format(user.id), name: user.name }, ...(await listSharedEntries(user.id)) };
+}
 
 async function findMember(code: string) {
   const id = userCode.parse(code);

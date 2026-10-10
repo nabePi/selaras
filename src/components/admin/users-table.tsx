@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { activateUser, resetUserPassword } from "@/lib/admin-actions";
@@ -87,44 +88,17 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
         }
       />
 
-      <div className="overflow-hidden rounded-3xl bg-canvas-ivory shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left">
-            <caption className="sr-only">Daftar pengguna</caption>
-            <thead>
-              <tr className="t-label-sm bg-surface-container-low tracking-wider text-text-muted uppercase">
-                <th scope="col" className="py-4 pr-4 pl-6">Pengguna</th>
-                <th scope="col" className="px-4 py-4">WhatsApp</th>
-                <th scope="col" className="px-4 py-4">Email</th>
-                <th scope="col" className="px-4 py-4">Status Pernikahan</th>
-                <th scope="col" className="px-4 py-4">Potensi &amp; Keahlian</th>
-                <th scope="col" className="px-4 py-4">Kegiatan Sehari-hari</th>
-                <th scope="col" className="px-4 py-4">Bergabung</th>
-                <th scope="col" className="px-4 py-4">Status</th>
-                <th scope="col" className="py-4 pr-6 pl-4 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="t-body-md divide-y divide-surface-container">
-              {rows.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-text-muted">
-                    Tidak ada pengguna yang cocok dengan “{query}”.
-                  </td>
-                </tr>
-              )}
-              {rows.map((u) => (
-                <UserRow
-                  key={u.id}
-                  user={u}
-                  busy={busy === u.id}
-                  onActivate={() => activate(u)}
-                  onReset={() => setResetTarget(u)}
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {rows.length === 0 ? (
+        <p className="t-body-md rounded-3xl bg-canvas-ivory px-6 py-12 text-center text-text-muted shadow-sm">
+          Tidak ada pengguna yang cocok dengan “{query}”.
+        </p>
+      ) : (
+        <ul className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {rows.map((u) => (
+            <UserCard key={u.id} user={u} busy={busy === u.id} onActivate={() => activate(u)} onReset={() => setResetTarget(u)} />
+          ))}
+        </ul>
+      )}
 
       <AddUserDialog open={addOpen} onClose={() => setAddOpen(false)} onCreated={() => router.refresh()} />
 
@@ -158,7 +132,11 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
   );
 }
 
-function UserRow({
+function Empty() {
+  return <span className="text-text-muted">Belum diisi</span>;
+}
+
+function UserCard({
   user: u,
   busy,
   onActivate,
@@ -178,61 +156,86 @@ function UserRow({
     .toUpperCase();
 
   return (
-    <tr className="align-top">
-      <td className="py-4 pr-4 pl-6">
-        <div className="flex items-center gap-3">
+    <li className="flex flex-col overflow-hidden rounded-3xl bg-canvas-ivory shadow-sm transition-shadow hover:shadow-md">
+      <div className="h-1.5 bg-gradient-to-r from-sage-medium to-primary" aria-hidden />
+      <div className="flex flex-1 flex-col gap-4 p-5">
+        <div className="flex items-start gap-3">
           {u.avatar ? (
             <Image
               unoptimized={!u.avatar.startsWith("/")}
               src={u.avatar}
               alt=""
-              width={40}
-              height={40}
-              className="size-10 shrink-0 rounded-full object-cover"
+              width={56}
+              height={56}
+              className="size-14 shrink-0 rounded-full object-cover ring-2 ring-sage-tint"
             />
           ) : (
-            <span className="t-label-md flex size-10 shrink-0 items-center justify-center rounded-full bg-sage-tint text-primary">
+            <span className="t-title-sm flex size-14 shrink-0 items-center justify-center rounded-full bg-sage-tint text-primary ring-2 ring-canvas-cream">
               {initials}
             </span>
           )}
-          <div className="min-w-0">
-            <p className="t-title-sm text-on-surface">{u.name}</p>
+          <div className="min-w-0 flex-1">
+            <p className="t-title-md truncate text-on-surface" title={u.name}>
+              {u.name}
+            </p>
+            <p className="t-label-sm text-text-muted">
+              {u.id} · Bergabung {formatDateId(u.joined)}
+            </p>
           </div>
+          <span className={`t-label-sm shrink-0 rounded-full px-3 py-1 font-semibold ${status.tone}`}>{status.label}</span>
         </div>
-      </td>
-      <td className="t-body-sm px-4 py-4 whitespace-nowrap text-on-surface">{u.whatsapp}</td>
-      <td className="t-body-sm px-4 py-4 text-on-surface">{u.email ?? <span className="text-text-muted">—</span>}</td>
-      <td className="t-body-sm px-4 py-4 whitespace-nowrap text-on-surface">
-        {u.maritalStatus ?? <span className="text-text-muted">Belum diisi</span>}
-      </td>
-      <td className="px-4 py-4">
-        {u.skills.length === 0 ? (
-          <span className="t-body-sm text-text-muted">Belum diisi</span>
-        ) : (
-          <ul className="flex max-w-xs flex-wrap gap-1.5">
-            {u.skills.map((s) => (
-              <li key={s} className="t-label-sm rounded-full bg-sage-tint px-2.5 py-1 text-primary">
-                {s}
-              </li>
-            ))}
-          </ul>
-        )}
-      </td>
-      <td className="px-4 py-4">
-        {u.activities ? (
-          <p title={u.activities} className="t-body-sm line-clamp-3 max-w-xs whitespace-pre-line text-on-surface">
-            {u.activities}
-          </p>
-        ) : (
-          <span className="t-body-sm text-text-muted">Belum diisi</span>
-        )}
-      </td>
-      <td className="t-body-sm px-4 py-4 whitespace-nowrap text-text-muted">{formatDateId(u.joined)}</td>
-      <td className="px-4 py-4">
-        <span className={`t-label-sm rounded-full px-3 py-1 font-semibold ${status.tone}`}>{status.label}</span>
-      </td>
-      <td className="py-4 pr-6 pl-4">
-        <div className="flex items-center justify-end gap-2">
+
+        <dl className="t-body-sm space-y-2 rounded-2xl bg-canvas-cream p-3.5">
+          <div className="flex items-center gap-2.5">
+            <Icon name="call" size={16} className="shrink-0 text-primary" />
+            <dt className="sr-only">WhatsApp</dt>
+            <dd className="text-on-surface">{u.whatsapp}</dd>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Icon name="mail" size={16} className="shrink-0 text-primary" />
+            <dt className="sr-only">Email</dt>
+            <dd className="min-w-0 truncate text-on-surface" title={u.email ?? undefined}>
+              {u.email ?? <span className="text-text-muted">—</span>}
+            </dd>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Icon name="favorite" size={16} className="shrink-0 text-primary" />
+            <dt className="sr-only">Status pernikahan</dt>
+            <dd className="text-on-surface">{u.maritalStatus ?? <Empty />}</dd>
+          </div>
+        </dl>
+
+        <div className="space-y-1.5">
+          <p className="t-label-sm tracking-wider text-text-muted uppercase">Potensi &amp; Keahlian</p>
+          {u.skills.length === 0 ? (
+            <p className="t-body-sm">
+              <Empty />
+            </p>
+          ) : (
+            <ul className="flex flex-wrap gap-1.5">
+              {u.skills.map((s) => (
+                <li key={s} className="t-label-sm rounded-full bg-sage-tint px-2.5 py-1 text-primary">
+                  {s}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <p className="t-label-sm tracking-wider text-text-muted uppercase">Kegiatan Sehari-hari</p>
+          {u.activities ? (
+            <p title={u.activities} className="t-body-sm line-clamp-3 whitespace-pre-line text-on-surface">
+              {u.activities}
+            </p>
+          ) : (
+            <p className="t-body-sm">
+              <Empty />
+            </p>
+          )}
+        </div>
+
+        <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-surface-container pt-4">
           {u.status === "pending" && (
             <button
               type="button"
@@ -244,6 +247,13 @@ function UserRow({
               {busy ? "Memproses..." : "Aktivasi"}
             </button>
           )}
+          <Link
+            href={`/admin/users/${u.id}/jurnal`}
+            className="t-label-md flex items-center gap-1.5 rounded-full bg-sage-tint px-4 py-2 whitespace-nowrap text-primary transition-colors hover:bg-sage-medium/40"
+          >
+            <Icon name="menu_book" size={16} />
+            Jurnal
+          </Link>
           <button
             type="button"
             disabled={busy}
@@ -254,7 +264,7 @@ function UserRow({
             Reset Password
           </button>
         </div>
-      </td>
-    </tr>
+      </div>
+    </li>
   );
 }
