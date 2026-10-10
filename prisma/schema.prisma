@@ -91,6 +91,7 @@ model User {
   courseEnrollments   CourseEnrollment[]
   blogPosts           BlogPost[]
   blogComments        BlogComment[]
+  coacheeCares        CoacheeCare[]
 
   @@index([role, status])
 }
@@ -421,4 +422,31 @@ model BlogComment {
   createdAt  DateTime @default(now())
 
   @@index([postId, createdAt])
+}
+
+/// Masukan (coachee care) dari admin untuk satu peserta; `message` adalah dokumen Tiptap (lib/blog-content), tanpa media.
+model CoacheeCare {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  message    Json
+  /// Nama admin pemberi masukan saat dibuat.
+  authorName String
+  createdAt  DateTime @default(now())
+
+  files CoacheeCareFile[]
+
+  @@index([userId, createdAt])
+}
+
+model CoacheeCareFile {
+  id     Int         @id @default(autoincrement())
+  careId Int
+  care   CoacheeCare @relation(fields: [careId], references: [id], onDelete: Cascade)
+  name   String
+  key    String      @unique
+  mime   String
+  /// Byte; BigInt karena video bisa lebih dari 2 GB.
+  size   BigInt
 }

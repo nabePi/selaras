@@ -4,6 +4,7 @@ import Link from "next/link";
 import { EntryAudio } from "@/components/entry-audio";
 import { EntryVideo } from "@/components/entry-video";
 import { Icon } from "@/components/icon";
+import { JournalCoacheeCare } from "@/components/journal-coachee-care";
 import { JournalTodayCard } from "@/components/journal-today-card";
 import { MonthCalendar } from "@/components/month-calendar";
 import { formatDateId } from "@/data/admin-prompts";
@@ -11,6 +12,7 @@ import type { MemberEntry } from "@/lib/journal-types";
 import { requireMemberPage } from "@/lib/server/session";
 import { todayWib } from "@/lib/server/time";
 import { getPromptForDate } from "@/server/admin/prompts";
+import { listMyCare } from "@/server/member/coachee-care";
 import { getMissedDates, listEntries } from "@/server/member/journal";
 
 export const metadata: Metadata = { title: "Journal" };
@@ -20,7 +22,7 @@ export default async function JournalPage() {
   const today = todayWib();
   const missedDates = await getMissedDates(user.id);
   const activeDate = missedDates[0] ?? today;
-  const [prompt, entries] = await Promise.all([getPromptForDate(activeDate, user.id), listEntries(user.id)]);
+  const [prompt, entries, careItems] = await Promise.all([getPromptForDate(activeDate, user.id), listEntries(user.id), listMyCare(user.id)]);
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -36,6 +38,7 @@ export default async function JournalPage() {
         missedCount={missedDates.length}
       />
       <MonthCalendar entries={entries} today={today} missedDates={missedDates} />
+      {careItems.length > 0 && <JournalCoacheeCare items={careItems} />}
       <Feed entries={entries} />
     </div>
   );
