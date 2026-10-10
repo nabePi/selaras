@@ -90,6 +90,13 @@ export function CoacheeCareView({ user, items }: { user: { id: string; name: str
                       <span className="t-label-sm flex items-center gap-1 text-text-muted">
                         <Icon name="event" size={14} />
                         {i.dateLabel}
+                        {i.reaction ? (
+                          <span className="ml-1" title={`Dibaca, bereaksi ${i.reaction.emoji}`}>
+                            {i.reaction.emoji}
+                          </span>
+                        ) : (
+                          <span className="ml-1 text-text-muted">· Belum dibaca</span>
+                        )}
                         {i.files.length > 0 && (
                           <>
                             <Icon name="attach_file" size={14} className="ml-1" />
@@ -122,6 +129,15 @@ export function CoacheeCareView({ user, items }: { user: { id: string; name: str
                 <Icon name="delete" size={20} />
               </button>
             </header>
+            <p
+              className={`t-label-md inline-flex items-center gap-2 rounded-full px-3 py-1.5 ${
+                selected.reaction ? "bg-sage-tint text-primary" : "bg-secondary-container text-secondary"
+              }`}
+            >
+              {selected.reaction
+                ? `Sudah dibaca · bereaksi ${selected.reaction.emoji} pada ${selected.reaction.dateLabel}`
+                : "Belum dibaca peserta"}
+            </p>
             <BlogContent doc={selected.message} />
             <CareFiles files={selected.files} />
           </article>

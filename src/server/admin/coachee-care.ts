@@ -76,6 +76,7 @@ export async function toCare(row: Row): Promise<CoacheeCare> {
     dateLabel: formatDateId(date),
     timeLabel: timeWib(row.createdAt),
     files,
+    reaction: row.reaction && row.reactedAt ? { emoji: row.reaction, dateLabel: formatDateId(isoDateWib(row.reactedAt)) } : null,
   };
 }
 
