@@ -5,6 +5,8 @@ export type CourseFile = {
   key: string;
   name: string;
   size: number;
+  /** Judul tampilan; hanya dipakai untuk rekaman sesi. */
+  title?: string;
   /** URL baca bertanda tangan (hanya terisi saat dibaca dari server). */
   url?: string;
 };
@@ -41,7 +43,7 @@ export type CourseSession = {
   instructorName: string;
   instructorBio: string;
   instructorPhoto: CourseFile | null;
-  recording: CourseFile | null;
+  recordings: CourseFile[];
   documents: CourseFile[];
 };
 
@@ -78,11 +80,11 @@ export const UPLOAD_RULES: Record<
 > = {
   poster: { accept: IMAGE_TYPES.join(","), maxBytes: 5 * MB, maxLabel: "5 MB", allows: (m) => IMAGE_TYPES.includes(m), formats: "JPG, PNG, atau WebP" },
   instructor: { accept: IMAGE_TYPES.join(","), maxBytes: 5 * MB, maxLabel: "5 MB", allows: (m) => IMAGE_TYPES.includes(m), formats: "JPG, PNG, atau WebP" },
-  recording: { accept: "video/*", maxBytes: 2048 * MB, maxLabel: "2 GB", allows: (m) => m.startsWith("video/"), formats: "video (MP4, MOV, WebM)" },
+  recording: { accept: "video/*", maxBytes: 4096 * MB, maxLabel: "4 GB", allows: (m) => m.startsWith("video/"), formats: "video (MP4, MOV, WebM)" },
   document: {
     accept: `${DOCUMENT_TYPES.join(",")},.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx`,
-    maxBytes: 50 * MB,
-    maxLabel: "50 MB",
+    maxBytes: 200 * MB,
+    maxLabel: "200 MB",
     allows: (m) => DOCUMENT_TYPES.includes(m),
     formats: "PDF, Word, PowerPoint, atau Excel",
   },

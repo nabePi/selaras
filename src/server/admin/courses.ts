@@ -37,6 +37,8 @@ const fileSchema = z.object({
   size: z.number().int().nonnegative(),
 });
 
+const recordingSchema = fileSchema.extend({ title: z.string().trim().max(160).default("") });
+
 const optionalUrl = z
   .string()
   .trim()
@@ -71,7 +73,7 @@ export const courseSchema = z.object({
         instructorName: z.string().trim().max(120).default(""),
         instructorBio: z.string().trim().max(1000).default(""),
         instructorPhoto: fileSchema.nullable().default(null),
-        recording: fileSchema.nullable().default(null),
+        recordings: z.array(recordingSchema).max(20, "Maksimal 20 rekaman per sesi.").default([]),
         documents: z.array(fileSchema).max(20).default([]),
       }).superRefine((s, ctx) => {
         if (s.endTime && !s.time) ctx.addIssue({ code: "custom", path: ["endTime"], message: "Isi jam mulai dulu sebelum jam berakhir." });
@@ -88,7 +90,10 @@ export type CourseInput = z.output<typeof courseSchema>;
 
 export const withSessions = {
   _count: { select: { enrollments: true } },
-  sessions: { orderBy: { position: "asc" }, include: { documents: { orderBy: { id: "asc" } } } },
+  sessions: {
+    orderBy: { position: "asc" },
+    include: { recordings: { orderBy: { id: "asc" } }, documents: { orderBy: { id: "asc" } } },
+  },
 } satisfies Prisma.CourseInclude;
 type CourseRow = Prisma.CourseGetPayload<{ include: typeof withSessions }>;
 
@@ -118,7 +123,14 @@ export async function toCourse(row: CourseRow): Promise<Course> {
         instructorName: s.instructorName,
         instructorBio: s.instructorBio,
         instructorPhoto: await fileOut(s.instructorPhotoKey, "Foto pengajar", 0),
-        recording: await fileOut(s.recordingKey, s.recordingName ?? "Rekaman", s.recordingSize ?? 0),
+        recordings: (
+          await Promise.all(
+            s.recordings.map(async (r) => {
+              const f = await fileOut(r.key, r.name, Number(r.size));
+              return f ? ({ ...f, title: r.title } satisfies CourseFile) : null;
+            }),
+          )
+        ).filter((r) => r !== null),
         documents: (await Promise.all(s.documents.map((d) => fileOut(d.key, d.name, d.size)))).filter(
           (d): d is CourseFile => d !== null,
         ),
@@ -148,11 +160,11 @@ export async function getCourse(id: string): Promise<Course | null> {
 /** Semua kunci R2 yang dipakai sebuah kelas (poster, foto pengajar, rekaman, dokumen). */
 function keysOf(c: {
   posterKeys: string[];
-  sessions: { instructorPhotoKey: string | null; recordingKey: string | null; documents: { key: string }[] }[];
+  sessions: { instructorPhotoKey: string | null; recordings: { key: string }[]; documents: { key: string }[] }[];
 }) {
   return [
     ...c.posterKeys,
-    ...c.sessions.flatMap((s) => [s.instructorPhotoKey, s.recordingKey, ...s.documents.map((d) => d.key)]),
+    ...c.sessions.flatMap((s) => [s.instructorPhotoKey, ...s.recordings.map((r) => r.key), ...s.documents.map((d) => d.key)]),
   ].filter((k): k is string => !!k);
 }
 
@@ -188,7 +200,7 @@ async function sessionData(input: CourseInput, known: Set<string>) {
   return Promise.all(
     input.sessions.map(async (s, position) => {
       const photo = await verifyFile(s.instructorPhoto, "instructor", known);
-      const recording = await verifyFile(s.recording, "recording", known);
+      const recordings = await Promise.all(s.recordings.map((r) => verifyFile(r, "recording", known)));
       const documents = await Promise.all(s.documents.map((d) => verifyFile(d, "document", known)));
       return {
         position,
@@ -204,9 +216,11 @@ async function sessionData(input: CourseInput, known: Set<string>) {
         instructorName: s.instructorName,
         instructorBio: s.instructorBio,
         instructorPhotoKey: photo?.key ?? null,
-        recordingKey: recording?.key ?? null,
-        recordingName: recording?.name ?? null,
-        recordingSize: recording?.size ?? null,
+        recordings: {
+          create: recordings.flatMap((r, i) =>
+            r ? [{ key: r.key, name: r.name, size: r.size, title: s.recordings[i].title || r.name }] : [],
+          ),
+        },
         documents: { create: documents.flatMap((d) => (d ? [{ key: d.key, name: d.name, size: d.size }] : [])) },
       };
     }),
@@ -216,7 +230,7 @@ async function sessionData(input: CourseInput, known: Set<string>) {
 /** Rekaman dan dokumen milik satu sesi; foto pengajar boleh dipakai bersama antar sesi. */
 function assertUniqueKeys(input: CourseInput) {
   const keys = input.sessions
-    .flatMap((s) => [s.recording?.key, ...s.documents.map((d) => d.key)])
+    .flatMap((s) => [...s.recordings.map((r) => r.key), ...s.documents.map((d) => d.key)])
     .filter((k): k is string => !!k);
   if (new Set(keys).size !== keys.length) throw new ApiError(400, "Satu rekaman atau dokumen tidak boleh dipakai di lebih dari satu sesi.");
 }
@@ -285,9 +299,10 @@ export async function discardCourseUpload(body: unknown) {
   const used =
     (await db.course.findFirst({ where: { posterKeys: { has: key } }, select: { id: true } })) ??
     (await db.courseSession.findFirst({
-      where: { OR: [{ instructorPhotoKey: key }, { recordingKey: key }] },
+      where: { instructorPhotoKey: key },
       select: { id: true },
     })) ??
+    (await db.courseRecording.findUnique({ where: { key }, select: { id: true } })) ??
     (await db.courseDocument.findUnique({ where: { key }, select: { id: true } }));
   if (used) throw new ApiError(409, "Berkas sedang dipakai kelas.");
   await deleteObjects([key]);

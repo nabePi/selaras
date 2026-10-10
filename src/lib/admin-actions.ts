@@ -76,7 +76,7 @@ export const rescheduleSession = (sessionId: string, input: object) => (void ses
 export const finalizeCoachNote = (coupleId: string, note: string) => (void coupleId, void note, simulate(500));
 export const saveAllCoachNotes = (count: number) => (void count, simulate(1000));
 
-type FilePayload = { key: string; name: string; size: number };
+type FilePayload = { key: string; name: string; size: number; title?: string };
 
 export type CoursePayload = {
   title: string;
@@ -94,7 +94,7 @@ export type CoursePayload = {
     instructorName: string;
     instructorBio: string;
     instructorPhoto: FilePayload | null;
-    recording: FilePayload | null;
+    recordings: FilePayload[];
     documents: FilePayload[];
   }[];
 };

@@ -86,11 +86,14 @@ export default async function DetailKelasPage({ params }: { params: Promise<{ id
                 <SessionJoinButton url={s.meetingUrl} platform={platform} opensAt={sessionOpensAt(s.date, s.time)} startsAt={sessionStartsAt(s.date, s.time)} endsAt={sessionEndsAt(s.date, s.time, s.endTime)} />
               )}
 
-              {s.recording?.url && (
-                <div className="flex flex-col gap-1.5">
-                  <span className="t-label-md text-on-surface">Rekaman sesi</span>
-                  <video controls preload="metadata" src={s.recording.url} className="w-full rounded-2xl bg-black" />
-                </div>
+              {s.recordings.map(
+                (r) =>
+                  r.url && (
+                    <div key={r.key} className="flex flex-col gap-1.5">
+                      <span className="t-label-md text-on-surface">{r.title || "Rekaman sesi"}</span>
+                      <video controls preload="metadata" src={r.url} className="w-full rounded-2xl bg-black" />
+                    </div>
+                  ),
               )}
 
               {s.documents.length > 0 && (
