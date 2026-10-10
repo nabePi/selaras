@@ -20,7 +20,16 @@ import { maritalLabel } from "@/data/marital-status";
 const RESET_TTL_MS = 60 * 60 * 1000;
 
 export const listUsers = cache(async (): Promise<AdminUser[]> => {
-  const rows = await db.user.findMany({ where: { role: "MEMBER" }, orderBy: { id: "asc" } });
+  const [rows, cares] = await Promise.all([
+    db.user.findMany({ where: { role: "MEMBER" }, orderBy: { id: "asc" } }),
+    // Coachee care terbaru per peserta.
+    db.coacheeCare.findMany({
+      distinct: ["userId"],
+      orderBy: { createdAt: "desc" },
+      select: { userId: true, authorName: true, createdAt: true },
+    }),
+  ]);
+  const lastCare = new Map(cares.map((c) => [c.userId, { coach: c.authorName, date: isoDateWib(c.createdAt) }]));
   return Promise.all(rows.map(async (u) => ({
     id: userCode.format(u.id),
     name: u.name,
@@ -31,6 +40,7 @@ export const listUsers = cache(async (): Promise<AdminUser[]> => {
     activities: u.activities,
     maritalStatus: u.maritalStatus ? (maritalLabel(u.maritalStatus.toLowerCase().replace("_", "-")) ?? undefined) : undefined,
     joined: isoDateWib(u.joinedAt),
+    lastCare: lastCare.get(u.id),
     status: u.status === "ACTIVE" ? ("active" as const) : ("pending" as const),
   })));
 });
