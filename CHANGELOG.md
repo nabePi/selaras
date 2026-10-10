@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0](https://github.com/nabePi/selaras/compare/v0.8.0...v0.9.0) (2026-10-10)
+
+
+### Fitur Baru
+
+* card users dan halaman jurnal peserta untuk admin ([e9a322a](https://github.com/nabePi/selaras/commit/e9a322a740039df81712fde9060b724b3d3dc3ff))
+* coachee care dari coach untuk peserta ([7647042](https://github.com/nabePi/selaras/commit/764704271f1eb59fb75cb72e1d8d548aab6d6bcd))
+* coachee care, jurnal peserta untuk admin, simpan PDF, dan load more dashboard ([409fb65](https://github.com/nabePi/selaras/commit/409fb655aab0cb404d563042c90201da7cf919c4))
+* load more pada daftar dashboard admin ([528fa19](https://github.com/nabePi/selaras/commit/528fa197826d794b4a5b80d5922d03f975f6e44f))
+* simpan PDF pada detail jurnal dengan footer Selaras Life ([cf576d1](https://github.com/nabePi/selaras/commit/cf576d11cfb69b09a44e4f9db4d9241000de8078))
+
 ## [0.8.0](https://github.com/nabePi/selaras/compare/v0.7.0...v0.8.0) (2026-10-10)
 
 
