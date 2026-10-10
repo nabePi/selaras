@@ -3,6 +3,7 @@ import { formatDateId } from "@/data/admin-prompts";
 import { ASSESSMENT_PARTS } from "@/data/assessment";
 import { getDashboard } from "@/server/admin/dashboard";
 import { Icon } from "../icon";
+import { LoadMoreList } from "./load-more-list";
 import { PageHeader } from "./page-header";
 
 const fmt = (v: number | null) => (v === null ? "-" : v.toFixed(1));
@@ -173,7 +174,7 @@ export async function DashboardOverview() {
                 Belum ada prompt terjadwal.
               </p>
             ) : (
-              <ul className="space-y-2">
+              <LoadMoreList>
                 {upcoming.map((p) => (
                   <li key={p.id}>
                     <Link
@@ -190,7 +191,7 @@ export async function DashboardOverview() {
                     </Link>
                   </li>
                 ))}
-              </ul>
+              </LoadMoreList>
             )}
           </div>
         </Panel>
@@ -201,7 +202,7 @@ export async function DashboardOverview() {
               Semua beres. Tidak ada yang perlu ditindaklanjuti.
             </p>
           ) : (
-            <ul className="space-y-2">
+            <LoadMoreList>
               {pendingUsers.map((u) => (
                 <li
                   key={u.id}
@@ -231,7 +232,7 @@ export async function DashboardOverview() {
                   </span>
                 </li>
               ))}
-            </ul>
+            </LoadMoreList>
           )}
         </Panel>
 
