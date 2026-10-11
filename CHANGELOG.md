@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.0](https://github.com/nabePi/selaras/compare/v0.11.0...v0.12.0) (2026-10-11)
+
+
+### Fitur Baru
+
+* reset password admin mengembalikan ke password default yang bisa disalin ([743de92](https://github.com/nabePi/selaras/commit/743de92364e89a82682174ebe4af665c6abb5753))
+* reset password admin mengembalikan ke password default yang bisa disalin ([53bb85a](https://github.com/nabePi/selaras/commit/53bb85aad0ec9156fd27fab6991d3b03dcd2e095))
+
 ## [0.11.0](https://github.com/nabePi/selaras/compare/v0.10.0...v0.11.0) (2026-10-10)
 
 
