@@ -1,4 +1,5 @@
 import "server-only";
+import { trackMemberActivity } from "@/server/member/activity";
 import { createHash, randomBytes } from "node:crypto";
 import { cache } from "react";
 import { cookies } from "next/headers";
@@ -79,6 +80,7 @@ export async function requireAdminPage(): Promise<SessionUser> {
 export async function requireMemberPage(): Promise<SessionUser> {
   const user = await getSessionUser("member");
   if (!user || user.status !== "ACTIVE") redirect("/masuk");
+  trackMemberActivity(user.id);
   return user;
 }
 

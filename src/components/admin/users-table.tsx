@@ -220,6 +220,20 @@ function UserCard({
             <dt className="sr-only">Status pernikahan</dt>
             <dd className="text-on-surface">{u.maritalStatus ?? <Empty />}</dd>
           </div>
+          <div className="flex items-start gap-2.5">
+            <Icon name="schedule" size={16} className="mt-0.5 shrink-0 text-primary" />
+            <dt className="sr-only">Terakhir mengakses</dt>
+            <dd className="text-on-surface">
+              {u.lastSeen ? (
+                <>
+                  Terakhir akses <span className="font-semibold">{u.lastSeen.ago}</span>
+                  <span className="text-text-muted"> · {u.lastSeen.label}</span>
+                </>
+              ) : (
+                <span className="text-text-muted">Belum pernah mengakses</span>
+              )}
+            </dd>
+          </div>
           {u.lastCare && (
             <div className="flex items-start gap-2.5">
               <Icon name="volunteer_activism" size={16} className="mt-0.5 shrink-0 text-primary" />
@@ -280,6 +294,13 @@ function UserCard({
           >
             <Icon name="menu_book" size={16} />
             Jurnal
+          </Link>
+          <Link
+            href={`/admin/users/${u.id}/aktivitas`}
+            className="t-label-md flex items-center gap-1.5 rounded-full bg-surface-container-low px-4 py-2 whitespace-nowrap text-on-surface transition-colors hover:bg-surface-container"
+          >
+            <Icon name="history" size={16} />
+            Aktivitas
           </Link>
           <button
             type="button"
