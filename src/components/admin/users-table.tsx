@@ -4,13 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { activateUser, resetUserPassword } from "@/lib/admin-actions";
+import { activateUser, resetUserPassword, type CreatedUser } from "@/lib/admin-actions";
 import type { AdminUser } from "@/data/admin-users";
 import { formatDateId } from "@/data/admin-prompts";
 import { Dialog, DialogActions } from "../dialog";
 import { Icon } from "../icon";
 import { useToast } from "../toast-provider";
 import { AddUserDialog } from "./add-user-dialog";
+import { DefaultPasswordResult } from "./default-password-result";
 import { btnPrimary, PageHeader } from "./page-header";
 
 const STATUS = {
@@ -24,6 +25,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [resetTarget, setResetTarget] = useState<AdminUser | null>(null);
+  const [resetDone, setResetDone] = useState<CreatedUser | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
   async function activate(u: AdminUser) {
@@ -41,8 +43,8 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
     const result = await resetUserPassword(resetTarget.id);
     setBusy(null);
     if (!result.ok) return showToast(result.error);
-    showToast(`Tautan reset password dikirim ke ${resetTarget.email ?? resetTarget.name}.`, { tone: "success" });
     setResetTarget(null);
+    setResetDone(result.data);
   }
 
   const q = query.trim().toLowerCase();
@@ -117,16 +119,31 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
           className="space-y-4"
         >
           <p className="t-body-md text-text-muted">
-            Tautan untuk membuat password baru akan dikirim ke{" "}
-            <span className="font-semibold text-on-surface">{resetTarget?.email ?? "(belum ada email)"}</span>. Password lama
-            tidak berlaku lagi setelah {resetTarget?.name} membuat yang baru.
+            Password <span className="font-semibold text-on-surface">{resetTarget?.name}</span> akan dikembalikan ke password
+            default (4 huruf pertama nama + 4 digit terakhir WhatsApp), sama seperti saat akun dibuat. Password lama tidak
+            berlaku lagi, semua sesi masuknya diakhiri, dan peserta diminta membuat password baru saat masuk berikutnya.
           </p>
           <DialogActions
             onCancel={() => setResetTarget(null)}
-            submitLabel="Kirim Tautan Reset"
+            submitLabel="Reset ke Password Default"
             submitting={busy !== null && busy === resetTarget?.id}
           />
         </form>
+      </Dialog>
+
+      <Dialog open={resetDone !== null} onClose={() => setResetDone(null)} eyebrow="Keamanan Akun" title="Password Direset" size="sm">
+        {resetDone && (
+          <DefaultPasswordResult
+            intro={
+              <>
+                Password <span className="font-semibold text-on-surface">{resetDone.name}</span> sudah dikembalikan ke default.
+              </>
+            }
+            whatsapp={resetDone.whatsapp}
+            password={resetDone.defaultPassword}
+            onClose={() => setResetDone(null)}
+          />
+        )}
       </Dialog>
     </div>
   );

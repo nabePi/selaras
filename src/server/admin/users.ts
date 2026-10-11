@@ -1,6 +1,5 @@
 import "server-only";
 import { cache } from "react";
-import { createHash, randomBytes } from "node:crypto";
 import type { AdminUser } from "@/data/admin-users";
 import { db } from "@/lib/db";
 import { userCode } from "@/lib/codes";
@@ -8,7 +7,6 @@ import { ApiError, notFound } from "@/lib/server/errors";
 import { isoDateWib } from "@/lib/server/time";
 import { normalizeWhatsApp } from "@/lib/validation";
 import { hashPassword } from "@/lib/server/password";
-import { sendPasswordResetEmail } from "@/server/mailer";
 import { avatarSrc } from "@/server/avatar";
 import { listSharedEntries } from "@/server/member/journal";
 import { findMemberByIdentifier } from "@/server/member/credentials";
@@ -16,8 +14,6 @@ import type { z } from "zod";
 import type { createUserSchema } from "./schemas";
 
 import { maritalLabel } from "@/data/marital-status";
-
-const RESET_TTL_MS = 60 * 60 * 1000;
 
 export const listUsers = cache(async (): Promise<AdminUser[]> => {
   const [rows, cares] = await Promise.all([
@@ -104,21 +100,20 @@ export async function activateUser(code: string) {
   });
 }
 
-/** Membuat token reset sekali pakai (berlaku 1 jam) dan mengirim tautannya ke email pengguna. */
-export async function requestPasswordReset(code: string, origin: string) {
+/**
+ * Mengembalikan password peserta ke password default (sama seperti saat akun dibuat admin). Semua sesi
+ * dan tautan reset lama dicabut; peserta wajib membuat password baru saat masuk berikutnya. Password
+ * default dikembalikan sekali agar admin bisa menyampaikannya lewat WhatsApp.
+ */
+export async function resetToDefaultPassword(code: string) {
   const user = await findMember(code);
-  if (!user.email)
-    throw new ApiError(400, `${user.name} tidak punya email. Sampaikan password baru lewat WhatsApp.`);
-  const token = randomBytes(32).toString("base64url");
+  const national = normalizeWhatsApp(user.whatsapp);
+  if (!national) throw new ApiError(400, `Nomor WhatsApp ${user.name} tidak valid, password default tidak bisa dibuat.`);
+  const defaultPassword = defaultPasswordFor(user.name, national);
   await db.$transaction([
-    db.passwordResetToken.deleteMany({ where: { userId: user.id, usedAt: null } }),
-    db.passwordResetToken.create({
-      data: {
-        userId: user.id,
-        tokenHash: createHash("sha256").update(token).digest("hex"),
-        expiresAt: new Date(Date.now() + RESET_TTL_MS),
-      },
-    }),
+    db.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(defaultPassword), mustChangePassword: true } }),
+    db.session.deleteMany({ where: { userId: user.id } }),
+    db.passwordResetToken.deleteMany({ where: { userId: user.id } }),
   ]);
-  await sendPasswordResetEmail(user.email, `${origin}/atur-ulang-password?token=${token}`);
+  return { id: userCode.format(user.id), name: user.name, whatsapp: user.whatsapp, defaultPassword };
 }
