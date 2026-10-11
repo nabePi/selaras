@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.0](https://github.com/nabePi/selaras/compare/v0.12.0...v0.13.0) (2026-10-11)
+
+
+### Fitur Baru
+
+* lacak akses peserta dan tampilkan terakhir akses serta riwayat kunjungan di admin ([72b9b04](https://github.com/nabePi/selaras/commit/72b9b04e43b794c878f877ee99ef41f9d67b8769))
+* terakhir akses dan riwayat kunjungan peserta di admin ([1f4fd6e](https://github.com/nabePi/selaras/commit/1f4fd6e52626256ae155f2d1965f0ef58c922ce1))
+
 ## [0.12.0](https://github.com/nabePi/selaras/compare/v0.11.0...v0.12.0) (2026-10-11)
 
 
