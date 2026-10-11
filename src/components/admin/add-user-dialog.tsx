@@ -4,8 +4,7 @@ import { useState } from "react";
 import { createUser, type CreatedUser } from "@/lib/admin-actions";
 import { normalizeWhatsApp } from "@/lib/validation";
 import { Dialog, DialogActions, FieldLabel, fieldClass } from "../dialog";
-import { Icon } from "../icon";
-import { useToast } from "../toast-provider";
+import { DefaultPasswordResult } from "./default-password-result";
 
 type Errors = Partial<Record<"name" | "whatsapp" | "form", string>>;
 
@@ -20,7 +19,6 @@ export function AddUserDialog({ open, onClose, onCreated }: { open: boolean; onC
 }
 
 function AddUserForm({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const { showToast } = useToast();
   const [name, setName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [errors, setErrors] = useState<Errors>({});
@@ -46,47 +44,20 @@ function AddUserForm({ onClose, onCreated }: { onClose: () => void; onCreated: (
     onCreated();
   }
 
-  async function copy(text: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast("Password default disalin.", { tone: "success" });
-    } catch {
-      showToast("Tidak bisa menyalin otomatis. Salin manual dari kotak di atas.");
-    }
-  }
-
   const clear = (k: keyof Errors) => setErrors((x) => ({ ...x, [k]: undefined, form: undefined }));
 
   if (created) {
     return (
-      <div className="space-y-4">
-        <p className="t-body-md text-text-muted">
-          Akun <span className="font-semibold text-on-surface">{created.name}</span> sudah dibuat dan langsung aktif.
-          Sampaikan password default ini lewat WhatsApp ke {created.whatsapp}. Password ini hanya ditampilkan sekali.
-        </p>
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-outline-variant bg-canvas-ivory px-4 py-3">
-          <code className="t-title-md tracking-wider text-on-surface select-all">{created.defaultPassword}</code>
-          <button
-            type="button"
-            onClick={() => void copy(created.defaultPassword)}
-            className="t-label-md flex items-center gap-1.5 rounded-full bg-surface-container-low px-3 py-1.5 text-on-surface transition-colors hover:bg-surface-container"
-          >
-            <Icon name="content_copy" size={15} />
-            Salin
-          </button>
-        </div>
-        <div className="flex items-start gap-2.5 rounded-2xl bg-sage-tint p-3.5">
-          <Icon name="info" size={18} className="mt-0.5 shrink-0 text-primary" />
-          <p className="t-body-sm leading-snug text-primary">
-            Saat masuk dengan nomor WhatsApp dan password ini, peserta diminta membuat password baru lalu masuk kembali.
-          </p>
-        </div>
-        <div className="flex justify-end pt-2">
-          <button type="button" onClick={onClose} className="t-title-sm rounded-full bg-primary px-6 py-2.5 text-on-primary shadow-md hover:bg-primary-container">
-            Selesai
-          </button>
-        </div>
-      </div>
+      <DefaultPasswordResult
+        intro={
+          <>
+            Akun <span className="font-semibold text-on-surface">{created.name}</span> sudah dibuat dan langsung aktif.
+          </>
+        }
+        whatsapp={created.whatsapp}
+        password={created.defaultPassword}
+        onClose={onClose}
+      />
     );
   }
 
