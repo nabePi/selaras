@@ -18,6 +18,8 @@ export type AdminUser = {
   maritalStatus?: string;
   joined: string;
   /** Coachee care terakhir yang diberikan untuk peserta ini; kosong bila belum pernah. */
+  /** Terakhir peserta mengakses aplikasi; kosong bila belum pernah. */
+  lastSeen?: { label: string; ago: string };
   lastCare?: { coach: string; date: string };
   status: "active" | "pending";
 };

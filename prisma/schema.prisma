@@ -79,6 +79,8 @@ model User {
   /// Status pernikahan yang diisi peserta di halaman profil; null = belum diisi.
   maritalStatus      MaritalStatus?
   joinedAt           DateTime       @default(now())
+  /// Terakhir peserta membuka aplikasi (diperbarui paling sering tiap 5 menit).
+  lastSeenAt         DateTime?
   activatedAt        DateTime?
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
@@ -92,6 +94,7 @@ model User {
   blogPosts           BlogPost[]
   blogComments        BlogComment[]
   coacheeCares        CoacheeCare[]
+  visits              UserVisit[]
 
   @@index([role, status])
 }
@@ -452,4 +455,14 @@ model CoacheeCareFile {
   mime   String
   /// Byte; BigInt karena video bisa lebih dari 2 GB.
   size   BigInt
+}
+
+/// Satu kunjungan peserta ke aplikasi; kunjungan baru tercatat bila sudah 30 menit sejak aktivitas terakhir.
+model UserVisit {
+  id     Int      @id @default(autoincrement())
+  userId Int
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  at     DateTime @default(now())
+
+  @@index([userId, at])
 }

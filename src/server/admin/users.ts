@@ -4,7 +4,8 @@ import type { AdminUser } from "@/data/admin-users";
 import { db } from "@/lib/db";
 import { userCode } from "@/lib/codes";
 import { ApiError, notFound } from "@/lib/server/errors";
-import { isoDateWib } from "@/lib/server/time";
+import { formatDateId } from "@/data/admin-prompts";
+import { isoDateWib, timeAgoId, timeWib, weekdayId } from "@/lib/server/time";
 import { normalizeWhatsApp } from "@/lib/validation";
 import { hashPassword } from "@/lib/server/password";
 import { avatarSrc } from "@/server/avatar";
@@ -37,6 +38,7 @@ export const listUsers = cache(async (): Promise<AdminUser[]> => {
     maritalStatus: u.maritalStatus ? (maritalLabel(u.maritalStatus.toLowerCase().replace("_", "-")) ?? undefined) : undefined,
     joined: isoDateWib(u.joinedAt),
     lastCare: lastCare.get(u.id),
+    lastSeen: u.lastSeenAt ? { label: `${formatDateId(isoDateWib(u.lastSeenAt))}, ${timeWib(u.lastSeenAt)}`, ago: timeAgoId(u.lastSeenAt) } : undefined,
     status: u.status === "ACTIVE" ? ("active" as const) : ("pending" as const),
   })));
 });
@@ -116,4 +118,30 @@ export async function resetToDefaultPassword(code: string) {
     db.passwordResetToken.deleteMany({ where: { userId: user.id } }),
   ]);
   return { id: userCode.format(user.id), name: user.name, whatsapp: user.whatsapp, defaultPassword };
+}
+
+/** Riwayat kunjungan peserta (terbaru dulu), dikelompokkan per tanggal WIB; null bila peserta tidak ada. */
+export async function listUserActivity(code: string) {
+  const user = await findMember(code).catch(() => null);
+  if (!user) return null;
+  const [visits, total] = await Promise.all([
+    db.userVisit.findMany({ where: { userId: user.id }, orderBy: { at: "desc" }, take: 500, select: { at: true } }),
+    db.userVisit.count({ where: { userId: user.id } }),
+  ]);
+  const days: { date: string; label: string; times: string[] }[] = [];
+  for (const v of visits) {
+    const date = isoDateWib(v.at);
+    let day = days[days.length - 1];
+    if (day?.date !== date) days.push((day = { date, label: `${weekdayId(date)}, ${formatDateId(date)}`, times: [] }));
+    day.times.push(timeWib(v.at));
+  }
+  return {
+    user: { id: userCode.format(user.id), name: user.name },
+    total,
+    shown: visits.length,
+    lastSeen: user.lastSeenAt ? { label: `${formatDateId(isoDateWib(user.lastSeenAt))}, ${timeWib(user.lastSeenAt)}`, ago: timeAgoId(user.lastSeenAt) } : null,
+    firstVisit: visits.length ? `${formatDateId(isoDateWib(visits[visits.length - 1].at))}` : null,
+    activeDays: days.length,
+    days,
+  };
 }
