@@ -72,11 +72,14 @@ function fromExisting(a: ResponseAttachment): Attachment {
 export function ReflectionForm({
   questions = [],
   initial,
+  targetDate,
 }: {
   /** Pertanyaan prompt hari ini; kosong = jurnal bebas. */
   questions?: PromptQuestion[];
   /** Entri hari ini yang sudah tersimpan (untuk menyunting). */
   initial?: Initial | null;
+  /** Tanggal entri yang sedang disunting; kosong berarti tanggal aktif biasa. */
+  targetDate?: string;
 }) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -154,7 +157,7 @@ export function ReflectionForm({
         errors.push(`Maksimal ${MAX_ATTACHMENTS} lampiran.`);
         break;
       } else if (file.size > maxBytesFor(kind)) {
-        errors.push(kind === "image" ? `${file.name}: foto melebihi batas 5 MB.` : `${file.name}: melebihi batas 100 MB.`);
+        errors.push(kind === "image" ? `${file.name}: foto melebihi batas 20 MB.` : `${file.name}: melebihi batas 500 MB.`);
       } else {
         count += 1;
         accepted.push({
@@ -199,7 +202,10 @@ export function ReflectionForm({
     const missing: Record<string, string> = {};
     for (const q of questions) {
       const v = answers[q.id];
-      if (v === undefined || (typeof v === "string" && !v.trim())) missing[q.id] = "Pertanyaan ini belum dijawab.";
+      const optionalText = q.type === "text" && q.required === false;
+      if (!optionalText && (v === undefined || (typeof v === "string" && !v.trim()))) {
+        missing[q.id] = "Pertanyaan ini belum dijawab.";
+      }
     }
     setAnswerErrors(missing);
     if (Object.keys(missing).length) {
@@ -222,6 +228,7 @@ export function ReflectionForm({
     }
     setSubmitting(true);
     const result = await api("/api/journal/entries", "POST", {
+      ...(targetDate ? { date: targetDate } : {}),
       // Dengan prompt, catatan lama (bila ada) dipertahankan agar tidak terhapus saat menyunting.
       content: hasPrompt ? (initial?.content ?? "") : text,
       shared,
@@ -304,7 +311,7 @@ export function ReflectionForm({
         <div className="flex items-center justify-between px-1">
           <span className="t-title-sm text-on-surface">Lampiran Kenangan (Opsional)</span>
           <span className="t-label-sm font-normal text-text-muted">
-            {attachments.length}/{MAX_ATTACHMENTS} · Foto 5MB · Video/Suara 100MB
+            {attachments.length}/{MAX_ATTACHMENTS} · Foto 20MB · Video/Suara 500MB
           </span>
         </div>
         <div className="flex flex-col gap-2 rounded-2xl bg-surface-container-low p-3.5">

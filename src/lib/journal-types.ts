@@ -13,7 +13,7 @@ export type MemberEntry = {
   /** Subjudul prompt (bila ada); null untuk jurnal bebas atau prompt tanpa subjudul. */
   promptSubtitle: string | null;
   excerpt: string;
-  /** Teks untuk ringkasan/kartu: Catatan Rasa, atau jawaban pertama bila catatan kosong. */
+  /** Teks untuk ringkasan/kartu: Catatan Rasa, atau jawaban teks terakhir bila catatan kosong. */
   content: string;
   /** Catatan Rasa yang benar-benar ditulis peserta (kosong untuk entri berprompt tanpa catatan). */
   note: string;

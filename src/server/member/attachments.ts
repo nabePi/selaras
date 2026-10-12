@@ -22,7 +22,7 @@ export async function createUploadUrl(userId: number, body: unknown) {
   const kind = attachmentKind(type);
   if (!kind) throw new ApiError(400, `${name}: format tidak didukung.`);
   if (size > maxBytesFor(kind))
-    throw new ApiError(400, kind === "image" ? `${name}: foto melebihi batas 5 MB.` : `${name}: melebihi batas 100 MB.`);
+    throw new ApiError(400, kind === "image" ? `${name}: foto melebihi batas 20 MB.` : `${name}: melebihi batas 500 MB.`);
 
   const safe = name.replace(/[^\w.-]+/g, "_").slice(-80);
   const key = `${prefixFor(userId)}${todayWib()}/${randomUUID()}-${safe}`;

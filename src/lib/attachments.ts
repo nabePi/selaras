@@ -1,6 +1,6 @@
 export const MB = 1024 * 1024;
-export const MAX_IMAGE_BYTES = 5 * MB;
-export const MAX_MEDIA_BYTES = 100 * MB;
+export const MAX_IMAGE_BYTES = 20 * MB;
+export const MAX_MEDIA_BYTES = 500 * MB;
 export const MAX_ATTACHMENTS = 10;
 
 export type AttachmentKind = "image" | "video" | "audio";
