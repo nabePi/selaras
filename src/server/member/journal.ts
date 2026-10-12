@@ -27,8 +27,8 @@ function toEntry(row: EntryRow, attachments: ResponseAttachment[]): MemberEntry 
   const date = isoOf(row.date);
   const answers = row.answers.map((a) => ({ label: a.question.label, type: a.question.type.toLowerCase(), value: a.value }));
   const mood = answers.find((a) => a.type === "mood");
-  const firstText = (answers.find((a) => a.type === "text") ?? answers[0])?.value ?? "";
-  const body = row.content.trim() || firstText;
+  const lastText = [...answers].reverse().find((a) => a.type === "text")?.value ?? answers[0]?.value ?? "";
+  const body = row.content.trim() || lastText;
   return {
     id: String(row.id),
     date,
@@ -169,6 +169,7 @@ export async function getWeek(userId: number, weeksBack = 0) {
 }
 
 const submitSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Tanggal jurnal tidak valid.").optional(),
   content: z.string().trim().default(""),
   shared: z.boolean(),
   answers: z.record(z.string(), z.union([z.string(), z.number()])).default({}),
@@ -211,13 +212,23 @@ function serializeAnswers(prompt: JournalPrompt, answers: AnswerMap): { question
  */
 export async function submitEntry(userId: number, body: unknown): Promise<{ id: string }> {
   const input = submitSchema.parse(body);
-  const activeDate = await getActiveDate(userId);
+  const activeDate = input.date ?? (await getActiveDate(userId));
+  const parsedDate = new Date(`${activeDate}T00:00:00Z`);
+  if (Number.isNaN(parsedDate.getTime()) || isoOf(parsedDate) !== activeDate)
+    throw new ApiError(400, "Tanggal jurnal tidak valid.");
+  if (input.date) {
+    const existing = await db.promptResponse.findUnique({
+      where: { userId_date: { userId, date: parsedDate } },
+      select: { id: true },
+    });
+    if (!existing) throw new ApiError(404, "Jurnal yang ingin diedit tidak ditemukan.");
+  }
   const prompt = await getPromptForDate(activeDate, userId);
   // Jurnal bebas butuh Catatan Rasa; dengan prompt admin, jawaban pertanyaan sudah cukup.
   if (!prompt && !input.content)
     throw new ApiError(400, "Catatan Rasa wajib diisi.", { content: "Catatan Rasa wajib diisi." });
   const answers = prompt ? serializeAnswers(prompt, input.answers) : [];
-  const date = new Date(`${activeDate}T00:00:00Z`);
+  const date = parsedDate;
   const added: NewAttachment[] = input.attachments.added;
   if (input.attachments.keep.length + added.length > MAX_ATTACHMENTS)
     throw new ApiError(400, `Maksimal ${MAX_ATTACHMENTS} lampiran.`);
@@ -253,6 +264,7 @@ export async function submitEntry(userId: number, body: unknown): Promise<{ id: 
         data: newRows.map((r) => ({
           kind: r.kind,
           title: r.title,
+          description: r.description,
           key: r.key ?? null,
           size: r.size ?? null,
           meta: r.meta ?? null,

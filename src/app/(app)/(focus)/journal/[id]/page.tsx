@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { RichText } from "@/components/rich-text";
 import { notFound } from "next/navigation";
 import { EntryAttachments } from "@/components/entry-attachments";
@@ -43,7 +44,16 @@ export default async function JournalEntryPage({ params }: { params: Params }) {
             </span>
             <span className="t-body-sm text-text-muted">{entry.dateLabel}</span>
           </div>
-          <PrintButton />
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/journal/tulis?edit=${entry.id}`}
+              className="t-title-sm inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-2 text-on-primary transition-colors hover:bg-primary-container"
+            >
+              <Icon name="edit" size={16} />
+              <span>Edit Jurnal</span>
+            </Link>
+            <PrintButton />
+          </div>
         </div>
 
         <div className="flex flex-col gap-1">

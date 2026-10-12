@@ -6,15 +6,20 @@ import { formatDateId } from "@/data/admin-prompts";
 import { requireMemberPage } from "@/lib/server/session";
 import { weekdayId } from "@/lib/server/time";
 import { getPromptForDate } from "@/server/admin/prompts";
-import { getActiveDate, getTodayEntry } from "@/server/member/journal";
+import { getActiveDate, getEntry, getTodayEntry } from "@/server/member/journal";
 
 export const metadata: Metadata = { title: "Tulis Jurnal" };
 
-export default async function TulisJurnalPage() {
+type SearchParams = Promise<{ edit?: string | string[] }>;
+
+export default async function TulisJurnalPage({ searchParams }: { searchParams: SearchParams }) {
   const user = await requireMemberPage();
+  const { edit } = await searchParams;
+  const editId = Array.isArray(edit) ? edit[0] : edit;
+  const editEntry = editId ? await getEntry(user.id, editId) : null;
   // Prompt tertinggal (pekan ini) diisi lebih dulu; bila tidak ada, prompt hari ini (WIB).
   // Tanpa prompt, peserta menulis jurnal bebas.
-  const activeDate = await getActiveDate(user.id);
+  const activeDate = editEntry?.date ?? (await getActiveDate(user.id));
   const prompt = await getPromptForDate(activeDate, user.id);
   const entry = await getTodayEntry(user.id, prompt, activeDate);
 
@@ -55,6 +60,7 @@ export default async function TulisJurnalPage() {
           key={`${activeDate}-${entry ? "edit" : "baru"}`}
           questions={prompt?.questions}
           initial={entry}
+          targetDate={editEntry?.date}
         />
       </div>
     </>
