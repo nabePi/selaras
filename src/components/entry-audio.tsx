@@ -6,7 +6,7 @@ import { Icon } from "./icon";
 const BARS = ["h-3 bg-primary/60", "h-5 bg-primary", "h-2 bg-primary/40", "h-6 bg-primary", "h-4 bg-primary/80", "h-2.5 bg-primary/50"];
 
 /** Pemutar audio; dengan `src` memutar berkas sungguhan, tanpa `src` hanya tampilan contoh. */
-export function EntryAudio({ title, meta, src }: { title: string; meta: string; src?: string }) {
+export function EntryAudio({ title, description, meta, src }: { title: string; description?: string; meta: string; src?: string }) {
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -30,6 +30,7 @@ export function EntryAudio({ title, meta, src }: { title: string; meta: string; 
         </button>
         <div className="flex min-w-0 flex-col">
           <span className="t-title-sm truncate text-on-surface">{title}</span>
+          {description && <span className="t-body-sm text-text-muted">{description}</span>}
           <span className="t-label-sm font-normal text-text-muted">{meta}</span>
         </div>
       </div>

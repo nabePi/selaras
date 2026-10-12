@@ -4,10 +4,11 @@ type Props = {
   src: string;
   poster?: string;
   title: string;
+  description?: string;
   compact?: boolean;
 };
 
-export function EntryVideo({ src, poster, title, compact = false }: Props) {
+export function EntryVideo({ src, poster, title, description, compact = false }: Props) {
   return (
     <div className="relative overflow-hidden rounded-xl bg-inverse-surface shadow-inner">
       <video
@@ -27,6 +28,7 @@ export function EntryVideo({ src, poster, title, compact = false }: Props) {
         <Icon name="videocam" size={14} />
         {title}
       </span>
+      {description && <span className="t-body-sm absolute right-2 bottom-2 left-2 rounded-lg bg-inverse-surface/75 px-2 py-1 text-inverse-on-surface backdrop-blur-sm">{description}</span>}
     </div>
   );
 }

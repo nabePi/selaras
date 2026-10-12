@@ -27,6 +27,7 @@ type Attachment = {
   /** kunci objek R2 setelah unggahan selesai */
   key?: string;
   name: string;
+  description: string;
   size: number;
   kind: AttachmentKind;
   previewUrl: string;
@@ -59,6 +60,7 @@ function fromExisting(a: ResponseAttachment): Attachment {
     id: `existing-${a.id}`,
     existingId: a.id,
     name: a.title,
+    description: a.description ?? "",
     size: 0,
     kind: a.kind,
     previewUrl: a.kind === "audio" ? "" : a.src,
@@ -160,6 +162,7 @@ export function ReflectionForm({
           item: {
             id: crypto.randomUUID(),
             name: file.name,
+            description: "",
             size: file.size,
             kind,
             previewUrl: URL.createObjectURL(file),
@@ -224,8 +227,8 @@ export function ReflectionForm({
       shared,
       answers,
       attachments: {
-        keep: attachments.flatMap((a) => (a.existingId !== undefined ? [a.existingId] : [])),
-        added: attachments.flatMap((a) => (a.existingId === undefined && a.key ? [{ key: a.key, name: a.name }] : [])),
+        keep: attachments.flatMap((a) => (a.existingId !== undefined ? [{ id: a.existingId, description: a.description.trim() }] : [])),
+        added: attachments.flatMap((a) => (a.existingId === undefined && a.key ? [{ key: a.key, name: a.name, description: a.description.trim() }] : [])),
       },
     });
     if (!result.ok) {
@@ -332,8 +335,17 @@ export function ReflectionForm({
                     <Icon name="graphic_eq" size={26} className="text-primary" />
                   )}
                 </div>
-                <div className="flex min-w-0 flex-col">
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="t-title-sm truncate text-on-surface">{attachment.name}</span>
+                  <input
+                    type="text"
+                    value={attachment.description}
+                    onChange={(e) => patch(attachment.id, { description: e.target.value })}
+                    maxLength={500}
+                    placeholder="Tambahkan keterangan momen (opsional)"
+                    aria-label={`Keterangan untuk ${attachment.name}`}
+                    className="t-body-sm w-full rounded-lg border border-outline-variant/60 bg-transparent px-2 py-1 text-on-surface outline-none placeholder:text-text-muted/70 focus:border-primary"
+                  />
                   {attachment.status === "uploading" ? (
                     <div className="flex items-center gap-2">
                       <div

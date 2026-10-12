@@ -52,6 +52,7 @@ export function EntryAttachments({ attachments }: { attachments: ResponseAttachm
                   <Icon name="zoom_in" size={16} />
                 </span>
               </button>
+              {img.description && <p className="t-body-sm mt-1 px-1 text-on-surface-variant">{img.description}</p>}
             </li>
           ))}
         </ul>
@@ -59,9 +60,9 @@ export function EntryAttachments({ attachments }: { attachments: ResponseAttachm
 
       {others.map((a, i) =>
         a.kind === "video" ? (
-          <EntryVideo key={a.id ?? `${i}-${a.title}`} src={a.src} poster={a.poster} title={a.title} />
+          <EntryVideo key={a.id ?? `${i}-${a.title}`} src={a.src} poster={a.poster} title={a.title} description={a.description} />
         ) : a.kind === "audio" ? (
-          <EntryAudio key={a.id ?? `${i}-${a.title}`} title={a.title} meta={a.meta} src={a.src} />
+          <EntryAudio key={a.id ?? `${i}-${a.title}`} title={a.title} description={a.description} meta={a.meta} src={a.src} />
         ) : null,
       )}
 
@@ -95,8 +96,9 @@ function ImageViewer({ image, onClose }: { image: ImageAttachment | null; onClos
       {image && (
         <figure className="flex max-h-full w-full max-w-lg flex-col gap-2">
           <div className="flex items-center justify-between gap-3">
-            <figcaption id={titleId} className="t-label-md min-w-0 truncate text-inverse-on-surface">
-              {image.title}
+            <figcaption id={titleId} className="flex min-w-0 flex-col text-inverse-on-surface">
+              <span className="t-label-md truncate">{image.title}</span>
+              {image.description && <span className="t-body-sm text-inverse-on-surface/80">{image.description}</span>}
             </figcaption>
             <button
               type="button"

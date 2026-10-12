@@ -16,7 +16,7 @@ export type ResponseAnswer = {
 };
 
 /** Lampiran yang diunggah peserta di jurnal. Static: video memakai berkas contoh. */
-export type ResponseAttachment = { id?: number } & (
+export type ResponseAttachment = { id?: number; description?: string } & (
   | { kind: "image"; title: string; src: string }
   | { kind: "audio"; title: string; meta: string; src?: string }
   | { kind: "video"; title: string; src: string; poster: string }
