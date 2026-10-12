@@ -32,5 +32,5 @@ export type SubmitEntryInput = {
   content: string;
   shared: boolean;
   answers: AnswerMap;
-  attachments: { keep: number[]; added: { key: string; name: string }[] };
+  attachments: { keep: { id: number; description: string }[]; added: { key: string; name: string; description: string }[] };
 };

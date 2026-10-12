@@ -202,6 +202,8 @@ model PromptAttachment {
   response   PromptResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
   kind       AttachmentKind
   title      String
+  /// Keterangan yang ditulis peserta untuk menjelaskan momen pada berkas.
+  description String   @default("")
   /// URL statis (data contoh di /public); berkas unggahan peserta memakai `key`.
   src        String?
   poster     String?

@@ -38,7 +38,7 @@ export async function discardUpload(userId: number, body: unknown) {
   await deleteObjects([key]);
 }
 
-export type NewAttachment = { key: string; name: string };
+export type NewAttachment = { key: string; name: string; description: string };
 
 /** Memeriksa bahwa objek benar-benar ada di R2, milik peserta, dan sesuai batas ukuran. */
 export async function verifyNewAttachments(
@@ -47,7 +47,7 @@ export async function verifyNewAttachments(
 ): Promise<Prisma.PromptAttachmentCreateWithoutResponseInput[]> {
   if (added.length && !r2Configured()) throw new ApiError(503, "Penyimpanan lampiran belum dikonfigurasi.");
   return Promise.all(
-    added.map(async ({ key, name }) => {
+    added.map(async ({ key, name, description }) => {
       if (!key.startsWith(prefixFor(userId))) throw new ApiError(403, "Akses ditolak.");
       const head = await headObject(key);
       const kind = head && attachmentKind(head.contentType);
@@ -59,6 +59,7 @@ export async function verifyNewAttachments(
       return {
         kind: kind === "image" ? "IMAGE" : kind === "video" ? "VIDEO" : "AUDIO",
         title: name.slice(0, 200),
+        description: description.trim().slice(0, 500),
         key,
         size: head.size,
         meta: `${formatSize(head.size)}`,
@@ -71,6 +72,7 @@ type AttachmentRow = {
   id: number;
   kind: "IMAGE" | "AUDIO" | "VIDEO";
   title: string;
+  description: string;
   src: string | null;
   poster: string | null;
   meta: string | null;
@@ -84,9 +86,9 @@ export async function toAttachmentDto(a: AttachmentRow): Promise<ResponseAttachm
     if (!r2Configured()) return null;
     src = await presignRead(a.key);
   }
-  if (a.kind === "IMAGE") return { id: a.id, kind: "image", title: a.title, src };
-  if (a.kind === "AUDIO") return { id: a.id, kind: "audio", title: a.title, meta: a.meta ?? "", src: src || undefined };
-  return { id: a.id, kind: "video", title: a.title, src, poster: a.poster ?? "" };
+  if (a.kind === "IMAGE") return { id: a.id, kind: "image", title: a.title, description: a.description, src };
+  if (a.kind === "AUDIO") return { id: a.id, kind: "audio", title: a.title, description: a.description, meta: a.meta ?? "", src: src || undefined };
+  return { id: a.id, kind: "video", title: a.title, description: a.description, src, poster: a.poster ?? "" };
 }
 
 export async function toAttachmentDtos(rows: AttachmentRow[]): Promise<ResponseAttachment[]> {

@@ -172,11 +172,11 @@ const submitSchema = z.object({
   content: z.string().trim().default(""),
   shared: z.boolean(),
   answers: z.record(z.string(), z.union([z.string(), z.number()])).default({}),
-  /** `keep`: id lampiran lama yang dipertahankan; `added`: berkas baru yang sudah diunggah ke R2. */
+  /** `keep`: lampiran lama yang dipertahankan beserta keterangannya; `added`: berkas baru yang sudah diunggah ke R2. */
   attachments: z
     .object({
-      keep: z.array(z.number().int()).default([]),
-      added: z.array(z.object({ key: z.string().min(1).max(500), name: z.string().trim().min(1).max(200) })).default([]),
+      keep: z.array(z.object({ id: z.number().int(), description: z.string().trim().max(500).default("") })).default([]),
+      added: z.array(z.object({ key: z.string().min(1).max(500), name: z.string().trim().min(1).max(200), description: z.string().trim().max(500).default("") })).default([]),
     })
     .default({ keep: [], added: [] }),
 });
@@ -237,10 +237,16 @@ export async function submitEntry(userId: number, body: unknown): Promise<{ id: 
 
     // Lampiran: buang yang tidak dipertahankan, lalu tambahkan berkas baru.
     const current = await tx.promptAttachment.findMany({ where: { responseId: saved.id } });
-    const gone = current.filter((a) => !input.attachments.keep.includes(a.id));
+    const keepIds = input.attachments.keep.map((a) => a.id);
+    const gone = current.filter((a) => !keepIds.includes(a.id));
     if (gone.length) {
       await tx.promptAttachment.deleteMany({ where: { id: { in: gone.map((a) => a.id) } } });
       removedKeys.push(...gone.flatMap((a) => (a.key ? [a.key] : [])));
+    }
+    for (const kept of input.attachments.keep) {
+      if (current.some((a) => a.id === kept.id)) {
+        await tx.promptAttachment.update({ where: { id: kept.id }, data: { description: kept.description } });
+      }
     }
     if (newRows.length)
       await tx.promptAttachment.createMany({
