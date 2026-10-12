@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.14.0](https://github.com/nabePi/selaras/compare/v0.13.0...v0.14.0) (2026-10-12)
+
+
+### Fitur Baru
+
+* add descriptions to journal attachments ([4208bdf](https://github.com/nabePi/selaras/commit/4208bdfd128dd9eb0484b76fa02b36513e5cc04b))
+* improve journal editing and attachments ([8a032d0](https://github.com/nabePi/selaras/commit/8a032d03494e7d72ed5c6a7f21cf1ea87d85ca12))
+* improve journal editing and attachments ([16742e9](https://github.com/nabePi/selaras/commit/16742e9f511728031795045aca51f83586092549))
+* tambahkan keterangan pada lampiran jurnal ([21f2e12](https://github.com/nabePi/selaras/commit/21f2e1215cac88c3a4d6ec8cb522f3a59701b0ef))
+
 ## [0.13.0](https://github.com/nabePi/selaras/compare/v0.12.0...v0.13.0) (2026-10-11)
 
 
