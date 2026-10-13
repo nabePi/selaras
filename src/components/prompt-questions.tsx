@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { moodOptionsOf } from "@/lib/mood";
 import { richToPlain } from "@/lib/rich-text";
 import { RichText } from "./rich-text";
@@ -35,6 +35,19 @@ export function PromptQuestions({
 }) {
   const [local, setLocal] = useState<Answers>({});
   const answers = controlled ?? local;
+  const textareasRef = useRef<Record<string, HTMLTextAreaElement | null>>({});
+  const resizeTextarea = (textarea: HTMLTextAreaElement | null) => {
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  };
+
+  useEffect(() => {
+    questions.forEach((q) => {
+      if (q.type === "text") resizeTextarea(textareasRef.current[q.id]);
+    });
+  }, [answers, questions]);
+
   const set = (id: string, value: string | number) =>
     onAnswer ? onAnswer(id, value) : setLocal((a) => ({ ...a, [id]: value }));
 
@@ -54,12 +67,16 @@ export function PromptQuestions({
 
           {q.type === "text" && (
             <textarea
+              ref={(textarea) => {
+                textareasRef.current[q.id] = textarea;
+                resizeTextarea(textarea);
+              }}
               rows={3}
               value={(answers[q.id] as string) ?? ""}
               onChange={(e) => set(q.id, e.target.value)}
               aria-label={richToPlain(q.label)}
               placeholder={q.required === false ? "Boleh dikosongkan…" : "Tulis jawabanmu di sini…"}
-              className="t-body-md w-full resize-none rounded-2xl bg-surface-container-lowest p-3.5 text-on-surface shadow-xs outline-none placeholder:text-text-muted focus-visible:ring-2 focus-visible:ring-primary"
+              className="t-body-md w-full resize-none overflow-hidden rounded-2xl bg-surface-container-lowest p-3.5 text-on-surface shadow-xs outline-none placeholder:text-text-muted focus-visible:ring-2 focus-visible:ring-primary"
             />
           )}
 
