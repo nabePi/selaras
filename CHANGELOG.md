@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.1](https://github.com/nabePi/selaras/compare/v0.14.0...v0.14.1) (2026-10-13)
+
+
+### Perbaikan Bug
+
+* auto-size journal textareas ([719be05](https://github.com/nabePi/selaras/commit/719be0543aa6c0fd642961f4a2a8961bae7a5a59))
+* auto-size journal textareas ([45ee91b](https://github.com/nabePi/selaras/commit/45ee91b9243cc2e2107acf4d9b36e29b624a9269))
+
 ## [0.14.0](https://github.com/nabePi/selaras/compare/v0.13.0...v0.14.0) (2026-10-12)
 
 
