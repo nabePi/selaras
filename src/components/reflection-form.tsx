@@ -106,6 +106,13 @@ export function ReflectionForm({
     };
   }, []);
 
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [text]);
+
   const hasPrompt = questions.length > 0;
   const words = countWords(text);
   const counter =
@@ -297,7 +304,7 @@ export function ReflectionForm({
                 if (textError) setTextError(false);
               }}
               placeholder="Mulai ceritakan di sini... (teks jawaban wajib)"
-              className="t-body-lg w-full resize-none border-0 bg-transparent leading-relaxed text-on-surface outline-none placeholder:text-text-muted/60"
+              className="t-body-lg w-full resize-none overflow-hidden border-0 bg-transparent leading-relaxed text-on-surface outline-none placeholder:text-text-muted/60"
             />
             <div className="flex justify-end pt-2">
               <Icon name="edit_note" size={18} className="text-surface-container-highest" />
