@@ -21,6 +21,7 @@ export type AdminUser = {
   /** Terakhir peserta mengakses aplikasi; kosong bila belum pernah. */
   lastSeen?: { label: string; ago: string };
   lastCare?: { coach: string; date: string };
+  companion?: "anggit" | "ezie";
   status: "active" | "pending";
 };
 

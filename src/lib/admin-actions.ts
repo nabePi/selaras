@@ -32,6 +32,8 @@ export const activateUser = (id: string) => api<{ id: string }>(`/api/admin/user
 export type CreatedUser = { id: string; name: string; whatsapp: string; defaultPassword: string };
 export const createUser = (input: { name: string; whatsapp: string }) => api<CreatedUser>("/api/admin/users", "POST", input);
 export const resetUserPassword = (id: string) => api<CreatedUser>(`/api/admin/users/${id}/reset-password`, "POST");
+export const setUserCompanion = (id: string, companion: "anggit" | "ezie" | null) =>
+  api<{ id: string; companion: "anggit" | "ezie" | null }>(`/api/admin/users/${id}/companion`, "PATCH", { companion });
 
 export type PromptPayload = {
   title: string;
