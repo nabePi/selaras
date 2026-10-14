@@ -4,8 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { activateUser, resetUserPassword, type CreatedUser } from "@/lib/admin-actions";
+import { activateUser, resetUserPassword, setUserCompanion, type CreatedUser } from "@/lib/admin-actions";
 import type { AdminUser } from "@/data/admin-users";
+import { CARE_COACHES, type CareCoachSlug } from "@/data/coachee-care";
 import { formatDateId } from "@/data/admin-prompts";
 import { Dialog, DialogActions } from "../dialog";
 import { Icon } from "../icon";
@@ -23,6 +24,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
   const router = useRouter();
   const { showToast } = useToast();
   const [query, setQuery] = useState("");
+  const [companionFilter, setCompanionFilter] = useState<CareCoachSlug[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [resetTarget, setResetTarget] = useState<AdminUser | null>(null);
   const [resetDone, setResetDone] = useState<CreatedUser | null>(null);
@@ -47,46 +49,88 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
     setResetDone(result.data);
   }
 
+  async function changeCompanion(u: AdminUser, companion: CareCoachSlug | null) {
+    setBusy(`companion:${u.id}`);
+    const result = await setUserCompanion(u.id, companion);
+    setBusy(null);
+    if (!result.ok) {
+      showToast(result.error);
+      return false;
+    }
+    router.refresh();
+    showToast(`Pendamping ${u.name} berhasil diperbarui.`, { tone: "success" });
+    return true;
+  }
+
+  function toggleCompanionFilter(slug: CareCoachSlug) {
+    setCompanionFilter((selected) => (selected.includes(slug) ? selected.filter((item) => item !== slug) : [...selected, slug]));
+  }
+
   const q = query.trim().toLowerCase();
-  const rows = q
-    ? users.filter((u) =>
-        [u.name, u.email ?? "", u.whatsapp, u.id, u.activities ?? "", u.maritalStatus ?? "", ...u.skills].some((v) => v.toLowerCase().includes(q)),
-      )
-    : users;
+  const rows = users.filter((u) => {
+    const matchesQuery = !q || [u.name, u.email ?? "", u.whatsapp, u.id, u.activities ?? "", u.maritalStatus ?? "", ...u.skills].some((v) => v.toLowerCase().includes(q));
+    const matchesCompanion = companionFilter.length === 0 || (u.companion ? companionFilter.includes(u.companion) : false);
+    return matchesQuery && matchesCompanion;
+  });
 
   return (
     <div className="mx-auto w-full max-w-[1720px] space-y-8 px-4 py-8 sm:px-8 lg:p-10">
       <PageHeader
         pill="Data Pengguna"
         pulse={false}
-        meta={`${users.length} pengguna terdaftar`}
+        meta={`${rows.length} pengguna ditampilkan`}
         title="Users"
         description="Data akun pengguna beserta profil dan potensi/keahlian yang mereka isi di halaman profil."
         actions={
-          <>
-            <div className="relative">
-              <Icon
-                name="search"
-                size={18}
-                className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-text-muted"
-              />
-              <label htmlFor="users-search" className="sr-only">
-                Cari pengguna
-              </label>
-              <input
-                id="users-search"
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Cari nama, email, keahlian, kegiatan..."
-                className="t-body-sm w-72 max-w-full rounded-full bg-canvas-ivory py-2.5 pr-4 pl-9 text-on-surface shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-sage-medium"
-              />
+          <div className="flex w-full flex-col gap-3 xl:min-w-[720px]">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="relative min-w-0 flex-1">
+                <Icon
+                  name="search"
+                  size={18}
+                  className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-text-muted"
+                />
+                <label htmlFor="users-search" className="sr-only">
+                  Cari pengguna
+                </label>
+                <input
+                  id="users-search"
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Cari nama, email, keahlian, kegiatan..."
+                  className="t-body-sm w-full rounded-full bg-canvas-ivory py-2.5 pr-4 pl-9 text-on-surface shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-sage-medium"
+                />
+              </div>
+              <button type="button" onClick={() => setAddOpen(true)} className={`${btnPrimary} shrink-0 justify-center`}>
+                <Icon name="person_add" size={18} />
+                Tambah User
+              </button>
             </div>
-            <button type="button" onClick={() => setAddOpen(true)} className={btnPrimary}>
-              <Icon name="person_add" size={18} />
-              Tambah User
-            </button>
-          </>
+            <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-canvas-ivory p-2.5" aria-label="Filter pendamping">
+              <span className="t-label-sm shrink-0 px-1 text-text-muted">Pendamping:</span>
+              {CARE_COACHES.map((coach) => {
+                const selected = companionFilter.includes(coach.slug);
+                return (
+                  <button
+                    key={coach.slug}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => toggleCompanionFilter(coach.slug)}
+                    title={coach.name}
+                    className={`t-label-sm max-w-full rounded-full px-3 py-2 text-left transition-colors ${selected ? "bg-primary text-on-primary" : "bg-canvas-cream text-on-surface hover:bg-surface-container-low"}`}
+                  >
+                    {coach.name}
+                  </button>
+                );
+              })}
+              {companionFilter.length > 0 && (
+                <button type="button" onClick={() => setCompanionFilter([])} className="t-label-sm px-1 text-primary hover:underline">
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
         }
       />
 
@@ -97,7 +141,15 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
       ) : (
         <ul className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {rows.map((u) => (
-            <UserCard key={u.id} user={u} busy={busy === u.id} onActivate={() => activate(u)} onReset={() => setResetTarget(u)} />
+            <UserCard
+              key={u.id}
+              user={u}
+              busy={busy === u.id}
+              companionBusy={busy === `companion:${u.id}`}
+              onActivate={() => activate(u)}
+              onReset={() => setResetTarget(u)}
+              onCompanionChange={(companion) => changeCompanion(u, companion)}
+            />
           ))}
         </ul>
       )}
@@ -158,12 +210,17 @@ function UserCard({
   busy,
   onActivate,
   onReset,
+  companionBusy,
+  onCompanionChange,
 }: {
   user: AdminUser;
   busy: boolean;
   onActivate: () => void;
   onReset: () => void;
+  companionBusy: boolean;
+  onCompanionChange: (companion: CareCoachSlug | null) => Promise<boolean>;
 }) {
+  const [companion, setCompanion] = useState<CareCoachSlug | "">(u.companion ?? "");
   const status = STATUS[u.status];
   const initials = u.name
     .split(" ")
@@ -233,6 +290,33 @@ function UserCard({
                 <span className="text-text-muted">Belum pernah mengakses</span>
               )}
             </dd>
+          </div>
+          <div className="flex items-start gap-2.5">
+            <Icon name="support_agent" size={16} className="mt-0.5 shrink-0 text-primary" />
+            <div className="min-w-0 flex-1">
+              <label htmlFor={`companion-${u.id}`} className="t-label-sm text-text-muted">
+                Pendamping
+              </label>
+              <select
+                id={`companion-${u.id}`}
+                value={companion}
+                disabled={companionBusy}
+                onChange={async (e) => {
+                  const next = e.target.value as CareCoachSlug | "";
+                  const previous = companion;
+                  setCompanion(next);
+                  if (!(await onCompanionChange(next || null))) setCompanion(previous);
+                }}
+                className="t-body-sm mt-1 w-full rounded-xl border border-outline-variant bg-canvas-ivory px-3 py-2 text-on-surface outline-none focus:border-primary disabled:opacity-60"
+              >
+                <option value="">Belum ditentukan</option>
+                {CARE_COACHES.map((coach) => (
+                  <option key={coach.slug} value={coach.slug}>
+                    {coach.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           {u.lastCare && (
             <div className="flex items-start gap-2.5">

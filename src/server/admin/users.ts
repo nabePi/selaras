@@ -11,10 +11,14 @@ import { hashPassword } from "@/lib/server/password";
 import { avatarSrc } from "@/server/avatar";
 import { listSharedEntries } from "@/server/member/journal";
 import { findMemberByIdentifier } from "@/server/member/credentials";
-import type { z } from "zod";
+import { z } from "zod";
 import type { createUserSchema } from "./schemas";
 
 import { maritalLabel } from "@/data/marital-status";
+import { CARE_COACHES, type CareCoachSlug } from "@/data/coachee-care";
+
+export const companionSchema = z.object({ companion: z.enum(["anggit", "ezie"]).nullable() });
+const companionDbValue = { anggit: "ANGGIT", ezie: "EZIE" } as const;
 
 export const listUsers = cache(async (): Promise<AdminUser[]> => {
   const [rows, cares] = await Promise.all([
@@ -36,12 +40,20 @@ export const listUsers = cache(async (): Promise<AdminUser[]> => {
     skills: u.skills,
     activities: u.activities,
     maritalStatus: u.maritalStatus ? (maritalLabel(u.maritalStatus.toLowerCase().replace("_", "-")) ?? undefined) : undefined,
+    companion: u.companion ? (u.companion.toLowerCase() as CareCoachSlug) : undefined,
     joined: isoDateWib(u.joinedAt),
     lastCare: lastCare.get(u.id),
     lastSeen: u.lastSeenAt ? { label: `${formatDateId(isoDateWib(u.lastSeenAt))}, ${timeWib(u.lastSeenAt)}`, ago: timeAgoId(u.lastSeenAt) } : undefined,
     status: u.status === "ACTIVE" ? ("active" as const) : ("pending" as const),
   })));
 });
+
+export async function setUserCompanion(code: string, companion: CareCoachSlug | null) {
+  const user = await findMember(code);
+  if (companion && !CARE_COACHES.some((coach) => coach.slug === companion)) throw new ApiError(400, "Pendamping tidak valid.");
+  await db.user.update({ where: { id: user.id }, data: { companion: companion ? companionDbValue[companion] : null } });
+  return { id: code, companion };
+}
 
 /** Jurnal peserta yang boleh dibaca admin: hanya yang dibagikan ke coach. */
 export async function listUserJournals(code: string) {

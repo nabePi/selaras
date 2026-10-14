@@ -60,6 +60,11 @@ enum AssessmentPart {
   HABIT
 }
 
+enum UserCompanion {
+  ANGGIT
+  EZIE
+}
+
 model User {
   id                 Int            @id @default(autoincrement())
   name               String
@@ -82,6 +87,7 @@ model User {
   /// Terakhir peserta membuka aplikasi (diperbarui paling sering tiap 5 menit).
   lastSeenAt         DateTime?
   activatedAt        DateTime?
+  companion          UserCompanion?
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
 
