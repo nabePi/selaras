@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.0](https://github.com/nabePi/selaras/compare/v0.14.1...v0.15.0) (2026-10-14)
+
+
+### Fitur Baru
+
+* assign companions to admin users ([c288dca](https://github.com/nabePi/selaras/commit/c288dca66123808efe778cf521b3e9f81e0e366d))
+* atur pendamping pada pengguna admin ([8df2c16](https://github.com/nabePi/selaras/commit/8df2c1644de636edf7673ac4e6296c1fd8ea104c))
+
 ## [0.14.1](https://github.com/nabePi/selaras/compare/v0.14.0...v0.14.1) (2026-10-13)
 
 
