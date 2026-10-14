@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { MemberEntry } from "@/lib/journal-types";
 import { EntryAttachments } from "../entry-attachments";
 import { Icon } from "../icon";
+import { RichText } from "../rich-text";
 import { btnPrimary } from "./page-header";
 
 /**
@@ -136,7 +137,9 @@ function EntryDetail({ entry: e }: { entry: MemberEntry }) {
         <dl className="space-y-4">
           {e.answers.map((a, i) => (
             <div key={`${i}-${a.label}`} className="rounded-2xl bg-canvas-cream p-4">
-              <dt className="t-label-md text-text-muted">{a.label}</dt>
+              <dt className="t-label-md text-text-muted">
+                <RichText value={a.label} />
+              </dt>
               <dd className="t-body-md mt-1 whitespace-pre-line text-on-surface">{a.value}</dd>
             </div>
           ))}
