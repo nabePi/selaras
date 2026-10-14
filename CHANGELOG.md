@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.1](https://github.com/nabePi/selaras/compare/v0.15.0...v0.15.1) (2026-10-14)
+
+
+### Perbaikan Bug
+
+* rapikan tampilan prompt jurnal admin ([6cf7291](https://github.com/nabePi/selaras/commit/6cf7291fe921c5240fa893d7ce5c367fa814916c))
+* render formatted prompts in admin journals ([6f35fda](https://github.com/nabePi/selaras/commit/6f35fdae3111a08819cdc08324ee4e08800ccd1b))
+
 ## [0.15.0](https://github.com/nabePi/selaras/compare/v0.14.1...v0.15.0) (2026-10-14)
 
 
