@@ -15,6 +15,6 @@ export function quoteStoryImage({ quote, background, logo }: { quote: string; ba
         <div style={{ display: "flex", fontSize: 30, letterSpacing: 3, color: "#ffede2" }}>selaras.life</div>
       </div>
     </div>,
-    { width: 1080, height: 1920, headers: { "Cache-Control": "public, max-age=86400" } },
+    { width: 1080, height: 1920, headers: { "Cache-Control": "no-store" } },
   );
 }

@@ -52,7 +52,11 @@ function StoryComposer({ path, imagePath, kind }: { path: string; imagePath: str
     let preview: string | undefined;
     async function prepare() {
       try {
-        const response = await fetch(imagePath, { signal: controller.signal });
+        const response = await fetch(imagePath, {
+          signal: controller.signal,
+          // Ignore images cached before the daily background was updated.
+          cache: kind === "quote" ? "no-store" : "default",
+        });
         if (!response.ok || !response.headers.get("content-type")?.startsWith("image/png")) throw new Error("Gambar Story belum bisa disiapkan. Coba lagi.");
         const blob = await response.blob();
         if (controller.signal.aborted) return;
@@ -65,7 +69,7 @@ function StoryComposer({ path, imagePath, kind }: { path: string; imagePath: str
     }
     void prepare();
     return () => { controller.abort(); if (preview) URL.revokeObjectURL(preview); };
-  }, [imagePath, attempt]);
+  }, [imagePath, kind, attempt]);
 
   async function share() {
     if (!asset || sharing) return;
