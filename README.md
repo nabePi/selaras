@@ -132,6 +132,68 @@ jadi perlu ditambahkan sebagai `build.args`.
 - [ ] Service worker / dukungan offline untuk PWA
 - [ ] Penanda sudah dibaca untuk Coachee Care
 
+## Gift personal untuk peserta
+
+Menu **Gift** di `/admin/gift` mengaktifkan atau menonaktifkan fitur untuk semua peserta.
+Default-nya nonaktif. Ketika nonaktif, kartu tidak tampil di Home dan endpoint Gift menolak
+pembuatan hadiah, pembacaan, serta penilaian. Tidak ada pembacaan profil/jurnal atau panggilan
+AI untuk membuat Gift ketika fitur nonaktif.
+
+Ketika aktif, kartu di `/home` membuka `/gift`. Hadiah baru disiapkan **saat halaman Gift
+dibuka**, lalu disimpan dan dipakai ulang selama periode yang sama. Siklusnya tiga tanggal
+kalender WIB sejak tanggal aktivasi; misalnya aktivasi 16 Oktober memberi periode
+16–18 Oktober, lalu berganti pada 19 Oktober pukul 00.00 WIB. Mengaktifkan ulang fitur
+memulai periode baru. Refresh atau jurnal baru tidak mengganti hadiah di tengah periode.
+
+AI memakai kegiatan, keahlian, dan status pernikahan dari profil, serta maksimal lima jurnal
+terbaru dengan tanggal tidak melewati hari ini, termasuk jawaban prompt. Jika jurnal kurang
+dari tiga, gunakan yang tersedia; jika kosong, jangan mengarang pengalaman peserta. Nama,
+email, WhatsApp, foto, dan lampiran tidak ditambahkan ke konteks. Teks tiap jurnal dibatasi
+sekitar 4.000 karakter dengan mempertahankan awal dan akhir tulisan.
+
+Ada empat jenis hadiah: doa, kisah, ayat Al-Qur’an, atau hadis. AI hanya memilih ID dari
+12 bacaan dalam `src/data/gifts.ts` dan menulis pengantar personal. Teks Arab, latin,
+terjemahan makna, kisah, dan rujukan diambil dari koleksi tetap. Koleksi merujuk
+[Quran.com](https://quran.com) dan [Sunnah.com](https://sunnah.com), dengan penggalan teks
+serta refleksi editorial diberi label. AI juga boleh menyusun doa pribadi untuk jenis doa;
+doa itu ditampilkan terpisah dengan label **bukan kutipan Al-Qur’an atau hadis**.
+
+Konfigurasi server (jangan gunakan `NEXT_PUBLIC_`):
+
+```dotenv
+GIFT_AI_PROVIDER=deepseek
+DEEPSEEK_API_KEY=isi-di-server
+GIFT_DEEPSEEK_MODEL=deepseek-flash
+
+# Alternatif, hanya untuk Gift:
+OPENAI_API_KEY=isi-di-server
+GIFT_OPENAI_MODEL=gpt-4.1-mini
+```
+
+Untuk pindah provider Gift, ubah `GIFT_AI_PROVIDER=openai` dan deploy ulang. Kutipan personal
+Home tetap memakai DeepSeek. Implementasi OpenAI mengikuti
+[Responses API / Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses),
+dengan `store:false`. Tidak ada perpindahan provider otomatis saat gagal. Tanpa API key atau
+bila keluaran AI gagal/invalid, hadiah bersumber dengan pengantar umum tetap tersedia dan
+disimpan sampai periode berakhir. Jika ingin memulai lagi setelah mengubah konfigurasi,
+nonaktifkan lalu aktifkan Gift melalui admin.
+
+Terapkan migrasi `20261016100000_member_gifts` dengan `npm run db:deploy`, kemudian
+`npm run db:generate` untuk pengembangan lokal. Compose sudah meneruskan semua variabel
+Gift ke service `web`. Pembuatan AI dibatasi enam kali per akun per jam per proses, timeout
+25 detik. Permintaan bersamaan digabung dalam satu proses dan kunci unik database menjaga
+satu hasil tersimpan per peserta/periode. Penonaktifan yang terjadi saat AI sedang memproses
+mencegah hasilnya disimpan.
+
+Thumbs up/down adalah satu penilaian yang dapat diganti atau dihapus per pemilik hadiah.
+Admin melihat jumlah agregat tanpa membuka jurnal atau pengantar personal. Berbagi memakai
+menu perangkat (atau salin teks bila tidak didukung), dengan isi hadiah dan referensi;
+pengantar pribadi dan tautan halaman peserta tidak ikut dibagikan. Ini bukan publikasi
+otomatis ke Instagram Story.
+
+Jalankan `npm run test:gifts` untuk pengujian server/provider dengan database dan AI mock,
+tanpa mengirim jurnal sungguhan atau mengubah database.
+
 ## Kutipan personal dari jurnal (DeepSeek)
 
 Kartu kutipan di `/home` memakai jurnal yang terakhir disimpan atau disunting oleh peserta,

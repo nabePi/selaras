@@ -6,5 +6,6 @@ export const ADMIN_NAV = [
   { href: "/admin/prompt", label: "Kelola Prompt Jurnal", icon: "menu_book" },
   { href: "/admin/kelas", label: "Kelas", icon: "school" },
   { href: "/admin/blog", label: "Blog", icon: "edit_note" },
+  { href: "/admin/gift", label: "Gift", icon: "redeem" },
   { href: "/admin/insight", label: "Insight", icon: "sentiment_calm" },
 ] as const;

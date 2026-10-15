@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:quotes": "node --test tests/personalized-quotes.test.cjs",
+    "test:gifts": "node --test tests/gifts.test.cjs",
     "postinstall": "prisma generate",
     "db:up": "sh scripts/db.sh up",
     "db:down": "sh scripts/db.sh down",

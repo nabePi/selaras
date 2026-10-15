@@ -102,8 +102,39 @@ model User {
   coacheeCares        CoacheeCare[]
   visits              UserVisit[]
   dailyQuotes         DailyQuote[]
+  gifts               MemberGift[]
 
   @@index([role, status])
+}
+
+/// Global feature switch. Each activation starts a fresh three-day gift cycle.
+model GiftSetting {
+  id        Int       @id @default(1)
+  enabled   Boolean   @default(false)
+  enabledAt DateTime?
+  version   Int       @default(0)
+  updatedAt DateTime  @updatedAt
+}
+
+model MemberGift {
+  id             String   @id @default(uuid())
+  userId         Int
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  settingVersion Int
+  periodStart    DateTime @db.Date
+  expiresAt      DateTime
+  contentId      String
+  intro          String   @db.VarChar(700)
+  prayerArabic   String?
+  prayerLatin    String?
+  prayerMeaning  String?
+  /// LIKE, DISLIKE or null. One changeable vote per owner and gift.
+  feedback       String?
+  aiProvider     String?
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, settingVersion, periodStart])
+  @@index([userId, createdAt])
 }
 
 model Session {

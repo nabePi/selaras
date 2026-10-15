@@ -37,6 +37,11 @@ services:
       # Kutipan personal dari jurnal terakhir (opsional, hanya dibaca server).
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-flash}
+      # Provider alternatif hanya untuk Gift, tidak mengubah kutipan Home.
+      GIFT_AI_PROVIDER: ${GIFT_AI_PROVIDER:-deepseek}
+      GIFT_DEEPSEEK_MODEL: ${GIFT_DEEPSEEK_MODEL:-deepseek-flash}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GIFT_OPENAI_MODEL: ${GIFT_OPENAI_MODEL:-gpt-4.1-mini}
     networks:
       - dokploy-network
 
