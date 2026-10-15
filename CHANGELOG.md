@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.1](https://github.com/nabePi/selaras/compare/v0.19.0...v0.19.1) (2026-10-15)
+
+
+### Perbaikan Bug
+
+* **home:** hindari cache background Story kutipan lama ([1834fa4](https://github.com/nabePi/selaras/commit/1834fa40d18762fb5a4254aa319bb3f98c97ccc4))
+* **home:** hindari cache background Story kutipan lama ([6916bdc](https://github.com/nabePi/selaras/commit/6916bdcf4732279a976fa61722f97e6da58447a0))
+
 ## [0.19.0](https://github.com/nabePi/selaras/compare/v0.18.0...v0.19.0) (2026-10-15)
 
 
