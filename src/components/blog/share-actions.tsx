@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Icon } from "../icon";
+import { StoryShare } from "./story-share";
 
 /**
  * Bagikan artikel lewat menu bagikan bawaan perangkat (Android/iOS: pilih aplikasi atau salin tautan).
@@ -23,13 +24,16 @@ export function ShareActions({ title, path }: { title: string; path: string }) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => void share()}
-      className="t-title-sm inline-flex items-center gap-1.5 rounded-full bg-surface px-4 py-2 text-on-surface shadow-sm transition-all hover:bg-surface-bright active:scale-95"
-    >
-      <Icon name={copied ? "check" : "share"} size={18} />
-      <span aria-live="polite">{copied ? "Tautan tersalin" : "Bagikan"}</span>
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={() => void share()}
+        className="t-title-sm inline-flex items-center gap-1.5 rounded-full bg-surface px-4 py-2 text-on-surface shadow-sm transition-all hover:bg-surface-bright active:scale-95"
+      >
+        <Icon name={copied ? "check" : "share"} size={18} />
+        <span aria-live="polite">{copied ? "Tautan tersalin" : "Bagikan"}</span>
+      </button>
+      <StoryShare path={path} />
+    </>
   );
 }
