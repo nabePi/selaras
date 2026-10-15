@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.0](https://github.com/nabePi/selaras/compare/v0.18.0...v0.19.0) (2026-10-15)
+
+
+### Fitur Baru
+
+* **home:** rotasi 10 background kutipan harian ([a849b0c](https://github.com/nabePi/selaras/commit/a849b0ccdfcf6374ef43b5eb0bf11644f3895bb7))
+* **home:** rotasi 10 background kutipan harian ([6fdce51](https://github.com/nabePi/selaras/commit/6fdce51f9f0c849a60f3ad7ba870dc69d2141014))
+
 ## [0.18.0](https://github.com/nabePi/selaras/compare/v0.17.0...v0.18.0) (2026-10-15)
 
 
