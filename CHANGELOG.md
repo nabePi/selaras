@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.0](https://github.com/nabePi/selaras/compare/v0.20.0...v0.21.0) (2026-10-15)
+
+
+### Fitur Baru
+
+* **gift:** hadiah Islami personal setiap tiga hari ([7867600](https://github.com/nabePi/selaras/commit/7867600270b433292383b6d51c1235cbaa07d3e1))
+* **gift:** tambah hadiah Islami personal dengan kontrol admin ([03111cf](https://github.com/nabePi/selaras/commit/03111cf71a150398c3f55687e9a03b51ea848dcb))
+
 ## [0.20.0](https://github.com/nabePi/selaras/compare/v0.19.1...v0.20.0) (2026-10-15)
 
 
