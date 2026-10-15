@@ -7,6 +7,7 @@ import { requireMemberPage } from "@/lib/server/session";
 import { weekdayId } from "@/lib/server/time";
 import { getPromptForDate } from "@/server/admin/prompts";
 import { getActiveDate, getEntry, getTodayEntry } from "@/server/member/journal";
+import { journalDraftKey } from "@/lib/journal-draft";
 
 export const metadata: Metadata = { title: "Tulis Jurnal" };
 
@@ -57,7 +58,8 @@ export default async function TulisJurnalPage({ searchParams }: { searchParams: 
         </section>
 
         <ReflectionForm
-          key={`${activeDate}-${entry ? "edit" : "baru"}`}
+          key={`${journalDraftKey(user.id, activeDate, prompt?.id ?? null)}-${entry ? "edit" : "baru"}`}
+          draftKey={journalDraftKey(user.id, activeDate, prompt?.id ?? null)}
           questions={prompt?.questions}
           initial={entry}
           targetDate={editEntry?.date}

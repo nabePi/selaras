@@ -17,6 +17,7 @@ import {
 import type { AnswerMap } from "@/lib/journal-types";
 import { PromptQuestions } from "./prompt-questions";
 import { useToast } from "./toast-provider";
+import { useJournalDraft } from "./use-journal-draft";
 
 type Initial = { content: string; shared: boolean; answers: AnswerMap; attachments: ResponseAttachment[] };
 
@@ -73,6 +74,7 @@ export function ReflectionForm({
   questions = [],
   initial,
   targetDate,
+  draftKey,
 }: {
   /** Pertanyaan prompt hari ini; kosong = jurnal bebas. */
   questions?: PromptQuestion[];
@@ -80,14 +82,17 @@ export function ReflectionForm({
   initial?: Initial | null;
   /** Tanggal entri yang sedang disunting; kosong berarti tanggal aktif biasa. */
   targetDate?: string;
+  draftKey: string;
 }) {
   const router = useRouter();
   const { showToast } = useToast();
   const switchLabelId = useId();
 
-  const [text, setText] = useState(initial?.content ?? "");
-  const [shared, setShared] = useState(initial?.shared ?? true);
-  const [answers, setAnswers] = useState<AnswerMap>(initial?.answers ?? {});
+  const { draft: { text, shared, answers }, update: updateDraft, clear: clearDraft, status: draftStatus } = useJournalDraft(draftKey, {
+    text: initial?.content ?? "",
+    shared: initial?.shared ?? true,
+    answers: initial?.answers ?? {},
+  });
   const [answerErrors, setAnswerErrors] = useState<Record<string, string>>({});
   const [attachments, setAttachments] = useState<Attachment[]>(() => (initial?.attachments ?? []).map(fromExisting));
   const [fileError, setFileError] = useState("");
@@ -206,6 +211,7 @@ export function ReflectionForm({
   }
 
   async function submit() {
+    if (submitting || draftStatus === "loading") return;
     const missing: Record<string, string> = {};
     for (const q of questions) {
       const v = answers[q.id];
@@ -250,6 +256,7 @@ export function ReflectionForm({
       showToast(result.error);
       return;
     }
+    clearDraft();
     showToast("Jurnalmu sudah tersimpan.", {
       title: "Alhamdulillah, jurnal tersimpan!",
       tone: "success",
@@ -267,215 +274,228 @@ export function ReflectionForm({
       }}
       className="flex flex-col"
     >
-      {questions.length > 0 && (
-        <div className="mb-4">
-          <PromptQuestions
-            questions={questions}
-            answers={answers}
-            errors={answerErrors}
-            onAnswer={(id, value) => {
-              setAnswers((a) => ({ ...a, [id]: value }));
-              setAnswerErrors((e) => ({ ...e, [id]: "" }));
-            }}
-          />
-        </div>
-      )}
+      <p role="status" className={`t-body-sm mb-4 px-1 ${draftStatus === "error" ? "text-error" : "text-text-muted"}`}>
+        {draftStatus === "loading"
+          ? "Memeriksa draf tulisan…"
+          : draftStatus === "error"
+            ? "Draf belum bisa disimpan di perangkat ini. Tetap di halaman ini atau salin tulisanmu sebelum keluar."
+            : draftStatus === "restored"
+              ? "Draf tulisanmu dipulihkan. Lanjutkan ceritamu, lalu tekan Simpan Jurnal saat siap."
+              : draftStatus === "saved"
+                ? "Draf tulisan tersimpan di perangkat ini. Tekan Simpan Jurnal untuk menyimpan ke akunmu."
+                : "Tulisan otomatis disimpan sebagai draf di perangkat ini. Lampiran perlu dipilih ulang jika kamu keluar."}
+      </p>
+      <fieldset disabled={submitting || draftStatus === "loading"} className="flex min-w-0 flex-col">
+        {questions.length > 0 && (
+          <div className="mb-4">
+            <PromptQuestions
+              questions={questions}
+              answers={answers}
+              errors={answerErrors}
+              onAnswer={(id, value) => {
+                updateDraft({ answers: { ...answers, [id]: value } });
+                setAnswerErrors((e) => ({ ...e, [id]: "" }));
+              }}
+            />
+          </div>
+        )}
 
-      {/* Catatan: hanya untuk jurnal bebas (tanpa prompt admin) */}
-      {!hasPrompt && (
+        {/* Catatan: hanya untuk jurnal bebas (tanpa prompt admin) */}
+        {!hasPrompt && (
+          <div className="mb-4 flex flex-col gap-1">
+            <div className="flex items-center justify-between px-1">
+              <label htmlFor="reflectionText" className="t-title-sm flex items-center gap-1.5 text-on-surface">
+                Catatan Rasa
+                <span aria-hidden="true" className="text-accent-coral">*</span>
+              </label>
+              <span className={`t-label-sm font-normal ${counter.tone}`}>{counter.text}</span>
+            </div>
+            <div className="rounded-2xl bg-surface-container-lowest p-4 shadow-sm transition-shadow focus-within:shadow-md">
+              <textarea
+                id="reflectionText"
+                ref={textareaRef}
+                rows={7}
+                required
+                aria-invalid={textError}
+                value={text}
+                onChange={(e) => {
+                  updateDraft({ text: e.target.value });
+                  if (textError) setTextError(false);
+                }}
+                placeholder="Mulai ceritakan di sini... (teks jawaban wajib)"
+                className="t-body-lg w-full resize-none overflow-hidden border-0 bg-transparent leading-relaxed text-on-surface outline-none placeholder:text-text-muted/60"
+              />
+              <div className="flex justify-end pt-2">
+                <Icon name="edit_note" size={18} className="text-surface-container-highest" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Lampiran */}
         <div className="mb-4 flex flex-col gap-1">
           <div className="flex items-center justify-between px-1">
-            <label htmlFor="reflectionText" className="t-title-sm flex items-center gap-1.5 text-on-surface">
-              Catatan Rasa
-              <span aria-hidden="true" className="text-accent-coral">*</span>
-            </label>
-            <span className={`t-label-sm font-normal ${counter.tone}`}>{counter.text}</span>
-          </div>
-          <div className="rounded-2xl bg-surface-container-lowest p-4 shadow-sm transition-shadow focus-within:shadow-md">
-            <textarea
-              id="reflectionText"
-              ref={textareaRef}
-              rows={7}
-              required
-              aria-invalid={textError}
-              value={text}
-              onChange={(e) => {
-                setText(e.target.value);
-                if (textError) setTextError(false);
-              }}
-              placeholder="Mulai ceritakan di sini... (teks jawaban wajib)"
-              className="t-body-lg w-full resize-none overflow-hidden border-0 bg-transparent leading-relaxed text-on-surface outline-none placeholder:text-text-muted/60"
-            />
-            <div className="flex justify-end pt-2">
-              <Icon name="edit_note" size={18} className="text-surface-container-highest" />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Lampiran */}
-      <div className="mb-4 flex flex-col gap-1">
-        <div className="flex items-center justify-between px-1">
-          <span className="t-title-sm text-on-surface">Lampiran Kenangan (Opsional)</span>
-          <span className="t-label-sm font-normal text-text-muted">
-            {attachments.length}/{MAX_ATTACHMENTS} · Foto 20MB · Video/Suara 500MB
-          </span>
-        </div>
-        <div className="flex flex-col gap-2 rounded-2xl bg-surface-container-low p-3.5">
-          {attachments.map((attachment) => (
-            <div
-              key={attachment.id}
-              className="flex items-center justify-between rounded-xl bg-surface-container-lowest p-2.5 shadow-sm"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-container">
-                  {attachment.kind === "image" ? (
-                    <Image
-                      unoptimized
-                      src={attachment.previewUrl}
-                      alt="Pratinjau lampiran"
-                      width={56}
-                      height={56}
-                      className="size-full object-cover"
-                    />
-                  ) : attachment.kind === "video" && attachment.previewUrl ? (
-                    <video
-                      src={`${attachment.previewUrl}#t=0.1`}
-                      muted
-                      preload="metadata"
-                      className="size-full object-cover"
-                    />
-                  ) : (
-                    <Icon name="graphic_eq" size={26} className="text-primary" />
-                  )}
-                </div>
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="t-title-sm truncate text-on-surface">{attachment.name}</span>
-                  <input
-                    type="text"
-                    value={attachment.description}
-                    onChange={(e) => patch(attachment.id, { description: e.target.value })}
-                    maxLength={500}
-                    placeholder="Tambahkan keterangan momen (opsional)"
-                    aria-label={`Keterangan untuk ${attachment.name}`}
-                    className="t-body-sm w-full rounded-lg border border-outline-variant/60 bg-transparent px-2 py-1 text-on-surface outline-none placeholder:text-text-muted/70 focus:border-primary"
-                  />
-                  {attachment.status === "uploading" ? (
-                    <div className="flex items-center gap-2">
-                      <div
-                        role="progressbar"
-                        aria-label={`Mengunggah ${attachment.name}`}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-valuenow={attachment.progress}
-                        className="h-1.5 w-24 overflow-hidden rounded-full bg-surface-container-high"
-                      >
-                        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${attachment.progress}%` }} />
-                      </div>
-                      <span className="t-body-sm text-text-muted">{attachment.progress}%</span>
-                    </div>
-                  ) : attachment.status === "error" ? (
-                    <span role="alert" className="t-body-sm text-error">
-                      {attachment.error ?? "Gagal diunggah."}
-                    </span>
-                  ) : (
-                    <span className="t-body-sm text-text-muted">
-                      {attachment.size ? `${formatSize(attachment.size)} · ` : ""}
-                      {attachment.existingId !== undefined ? "Tersimpan" : "Siap dilampirkan"}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <button
-                type="button"
-                aria-label={`Hapus lampiran ${attachment.name}`}
-                onClick={() => removeAttachment(attachment.id)}
-                className="flex size-8 shrink-0 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-error-container/40 hover:text-error"
-              >
-                <Icon name="close" size={18} />
-              </button>
-            </div>
-          ))}
-
-          <label className="t-label-md flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-surface-container-lowest/70 px-4 py-3 font-medium text-on-surface transition-colors focus-within:outline-2 focus-within:outline-primary hover:bg-surface-container-lowest">
-            <input
-              type="file"
-              multiple
-              accept="image/*,video/*,audio/*"
-              className="sr-only"
-              onChange={(e) => {
-                addFiles(Array.from(e.target.files ?? []));
-                e.target.value = "";
-              }}
-            />
-            <Icon name="add_photo_alternate" size={20} className="text-primary" />
-            <span>Tambah foto, video, atau suara</span>
-          </label>
-
-          {fileError && (
-            <p role="alert" className="t-body-sm px-1 text-center text-error">
-              {fileError}
-            </p>
-          )}
-          <p className="t-body-sm px-1 text-center text-text-muted">
-            Tersimpan privat di cloud jurnalmu.
-          </p>
-        </div>
-      </div>
-
-      {/* Privasi */}
-      <div className="mb-6 flex flex-col gap-3 rounded-2xl bg-surface-container-low p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-full bg-sage-tint text-primary">
-              <Icon name="shield_person" size={18} filled />
+            <span className="t-title-sm text-on-surface">Lampiran Kenangan (Opsional)</span>
+            <span className="t-label-sm font-normal text-text-muted">
+              {attachments.length}/{MAX_ATTACHMENTS} · Foto 20MB · Video/Suara 500MB
             </span>
-            <div>
-              <h3 id={switchLabelId} className="t-title-sm text-on-surface">
-                Bagikan ke Coach &amp; Fasilitator
-              </h3>
-              <p className={`t-body-sm font-medium ${shared ? "text-primary" : "text-tertiary"}`}>
-                {shared ? "Aktif · Pendampingan Personal" : "Pribadi (Hanya Saya)"}
-              </p>
-            </div>
           </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={shared}
-            aria-labelledby={switchLabelId}
-            onClick={() => setShared((s) => !s)}
-            className={`relative h-7 w-12 shrink-0 rounded-full p-0.5 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
-              shared ? "bg-primary" : "bg-canvas-sand"
-            }`}
-          >
-            <span
-              className={`block size-6 rounded-full bg-surface-container-lowest shadow-sm transition-transform duration-300 ${
-                shared ? "translate-x-5" : "translate-x-0"
+          <div className="flex flex-col gap-2 rounded-2xl bg-surface-container-low p-3.5">
+            {attachments.map((attachment) => (
+              <div
+                key={attachment.id}
+                className="flex items-center justify-between rounded-xl bg-surface-container-lowest p-2.5 shadow-sm"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-container">
+                    {attachment.kind === "image" ? (
+                      <Image
+                        unoptimized
+                        src={attachment.previewUrl}
+                        alt="Pratinjau lampiran"
+                        width={56}
+                        height={56}
+                        className="size-full object-cover"
+                      />
+                    ) : attachment.kind === "video" && attachment.previewUrl ? (
+                      <video
+                        src={`${attachment.previewUrl}#t=0.1`}
+                        muted
+                        preload="metadata"
+                        className="size-full object-cover"
+                      />
+                    ) : (
+                      <Icon name="graphic_eq" size={26} className="text-primary" />
+                    )}
+                  </div>
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    <span className="t-title-sm truncate text-on-surface">{attachment.name}</span>
+                    <input
+                      type="text"
+                      value={attachment.description}
+                      onChange={(e) => patch(attachment.id, { description: e.target.value })}
+                      maxLength={500}
+                      placeholder="Tambahkan keterangan momen (opsional)"
+                      aria-label={`Keterangan untuk ${attachment.name}`}
+                      className="t-body-sm w-full rounded-lg border border-outline-variant/60 bg-transparent px-2 py-1 text-on-surface outline-none placeholder:text-text-muted/70 focus:border-primary"
+                    />
+                    {attachment.status === "uploading" ? (
+                      <div className="flex items-center gap-2">
+                        <div
+                          role="progressbar"
+                          aria-label={`Mengunggah ${attachment.name}`}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={attachment.progress}
+                          className="h-1.5 w-24 overflow-hidden rounded-full bg-surface-container-high"
+                        >
+                          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${attachment.progress}%` }} />
+                        </div>
+                        <span className="t-body-sm text-text-muted">{attachment.progress}%</span>
+                      </div>
+                    ) : attachment.status === "error" ? (
+                      <span role="alert" className="t-body-sm text-error">
+                        {attachment.error ?? "Gagal diunggah."}
+                      </span>
+                    ) : (
+                      <span className="t-body-sm text-text-muted">
+                        {attachment.size ? `${formatSize(attachment.size)} · ` : ""}
+                        {attachment.existingId !== undefined ? "Tersimpan" : "Siap dilampirkan"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  aria-label={`Hapus lampiran ${attachment.name}`}
+                  onClick={() => removeAttachment(attachment.id)}
+                  className="flex size-8 shrink-0 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-error-container/40 hover:text-error"
+                >
+                  <Icon name="close" size={18} />
+                </button>
+              </div>
+            ))}
+
+            <label className="t-label-md flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-surface-container-lowest/70 px-4 py-3 font-medium text-on-surface transition-colors focus-within:outline-2 focus-within:outline-primary hover:bg-surface-container-lowest">
+              <input
+                type="file"
+                multiple
+                accept="image/*,video/*,audio/*"
+                className="sr-only"
+                onChange={(e) => {
+                  addFiles(Array.from(e.target.files ?? []));
+                  e.target.value = "";
+                }}
+              />
+              <Icon name="add_photo_alternate" size={20} className="text-primary" />
+              <span>Tambah foto, video, atau suara</span>
+            </label>
+
+            {fileError && (
+              <p role="alert" className="t-body-sm px-1 text-center text-error">
+                {fileError}
+              </p>
+            )}
+            <p className="t-body-sm px-1 text-center text-text-muted">
+              Tersimpan privat di cloud jurnalmu.
+            </p>
+          </div>
+        </div>
+
+        {/* Privasi */}
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl bg-surface-container-low p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="flex size-8 items-center justify-center rounded-full bg-sage-tint text-primary">
+                <Icon name="shield_person" size={18} filled />
+              </span>
+              <div>
+                <h3 id={switchLabelId} className="t-title-sm text-on-surface">
+                  Bagikan ke Coach &amp; Fasilitator
+                </h3>
+                <p className={`t-body-sm font-medium ${shared ? "text-primary" : "text-tertiary"}`}>
+                  {shared ? "Aktif · Pendampingan Personal" : "Pribadi (Hanya Saya)"}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={shared}
+              aria-labelledby={switchLabelId}
+              onClick={() => updateDraft({ shared: !shared })}
+              className={`relative h-7 w-12 shrink-0 rounded-full p-0.5 transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                shared ? "bg-primary" : "bg-canvas-sand"
               }`}
-            />
+            >
+              <span
+                className={`block size-6 rounded-full bg-surface-container-lowest shadow-sm transition-transform duration-300 ${
+                  shared ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+          <div className="rounded-xl bg-surface-container-lowest/80 p-3">
+            <p className="t-body-sm leading-relaxed text-on-surface-variant">
+              {shared
+                ? "Teks refleksi hanya bisa dibaca oleh fasilitator kelasmu untuk bimbingan personal yang hangat. Jawaban skala akan dianonimkan untuk kurikulum bersama."
+                : "Teks jurnal terkunci sepenuhnya dan disimpan eksklusif pada akunmu. Coach tidak dapat membaca narasi ini."}
+            </p>
+          </div>
+        </div>
+
+        {/* Aksi */}
+        <div className="flex flex-col gap-2 pt-2">
+          <button
+            type="submit"
+            disabled={submitting || uploading}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 text-on-primary shadow-sm transition-all duration-200 hover:bg-primary-container active:scale-[0.98] disabled:opacity-80"
+          >
+            <Icon name="save" size={20} filled />
+            <span className="t-title-sm tracking-wide">{submitting ? "Menyimpan..." : uploading ? "Mengunggah lampiran..." : "Simpan Jurnal"}</span>
           </button>
         </div>
-        <div className="rounded-xl bg-surface-container-lowest/80 p-3">
-          <p className="t-body-sm leading-relaxed text-on-surface-variant">
-            {shared
-              ? "Teks refleksi hanya bisa dibaca oleh fasilitator kelasmu untuk bimbingan personal yang hangat. Jawaban skala akan dianonimkan untuk kurikulum bersama."
-              : "Teks jurnal terkunci sepenuhnya dan disimpan eksklusif pada akunmu. Coach tidak dapat membaca narasi ini."}
-          </p>
-        </div>
-      </div>
-
-      {/* Aksi */}
-      <div className="flex flex-col gap-2 pt-2">
-        <button
-          type="submit"
-          disabled={submitting || uploading}
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 text-on-primary shadow-sm transition-all duration-200 hover:bg-primary-container active:scale-[0.98] disabled:opacity-80"
-        >
-          <Icon name="save" size={20} filled />
-          <span className="t-title-sm tracking-wide">{submitting ? "Menyimpan..." : uploading ? "Mengunggah lampiran..." : "Simpan Jurnal"}</span>
-        </button>
-      </div>
+      </fieldset>
     </form>
   );
 }
