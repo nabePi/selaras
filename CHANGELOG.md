@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.1](https://github.com/nabePi/selaras/compare/v0.21.0...v0.21.1) (2026-10-15)
+
+
+### Perbaikan Bug
+
+* **gift:** hapus avatar pada header halaman gift ([1436e3f](https://github.com/nabePi/selaras/commit/1436e3fec3215b67e1b410509e2692329a204ae8))
+* **gift:** hide avatar in gift page header ([c8563cc](https://github.com/nabePi/selaras/commit/c8563ccfc2e58dbf54c9b44e9cf8d7e14887f557))
+
 ## [0.21.0](https://github.com/nabePi/selaras/compare/v0.20.0...v0.21.0) (2026-10-15)
 
 
