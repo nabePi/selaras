@@ -7,6 +7,7 @@ import { HomeBlog } from "@/components/home-blog";
 import { HomeCoacheeCare } from "@/components/home-coachee-care";
 import { HomeCourseInfo, type HomeCourse } from "@/components/home-course-info";
 import { ProfileReminder } from "@/components/profile-reminder";
+import { StoryShare } from "@/components/story-share";
 import { formatDateId } from "@/data/admin-prompts";
 import { quoteForDate } from "@/data/member";
 import { requireMemberPage } from "@/lib/server/session";
@@ -130,6 +131,7 @@ export default async function HomePage({
         className="relative w-full overflow-hidden rounded-4xl bg-surface-container shadow-md"
         aria-label="Kutipan hari ini"
       >
+        <StoryShare path="/home" imagePath={`/api/quotes/story?date=${today}`} kind="quote" />
         <div
           className="relative flex h-52 w-full items-center justify-center bg-cover bg-center px-6 py-5"
           style={{ backgroundImage: "url('/images/wisdom-bg.jpg')" }}
