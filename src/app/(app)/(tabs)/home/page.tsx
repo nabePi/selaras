@@ -9,6 +9,7 @@ import { HomeCoacheeCare } from "@/components/home-coachee-care";
 import { HomeCourseInfo, type HomeCourse } from "@/components/home-course-info";
 import { ProfileReminder } from "@/components/profile-reminder";
 import { HomeQuote, HomeQuoteCard } from "@/components/home-quote";
+import { HomeGift } from "@/components/home-gift";
 import { formatDateId } from "@/data/admin-prompts";
 import { quoteForDate } from "@/data/member";
 import { requireMemberPage } from "@/lib/server/session";
@@ -132,6 +133,8 @@ export default async function HomePage({
       <Suspense fallback={<HomeQuoteCard date={today} quote={fallbackQuote} />}>
         <HomeQuote userId={user.id} date={today} fallback={fallbackQuote} />
       </Suspense>
+
+      <Suspense fallback={null}><HomeGift userId={user.id} /></Suspense>
 
       {/* Assessment (hilang setelah diisi). Post hanya tampil bila admin menyalakannya. */}
       {preVisible && !preDone && (
