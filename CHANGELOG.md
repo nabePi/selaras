@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.16.0](https://github.com/nabePi/selaras/compare/v0.15.1...v0.16.0) (2026-10-15)
+
+
+### Fitur Baru
+
+* **journal:** simpan dan pulihkan draf tulisan otomatis ([84181d1](https://github.com/nabePi/selaras/commit/84181d10ea3f39b9ba5f8d6a87a41401f86dfea8))
+* **journal:** simpan dan pulihkan draf tulisan otomatis ([f2a2f2a](https://github.com/nabePi/selaras/commit/f2a2f2a67572a423a863f49077a24e8a07f69558))
+
 ## [0.15.1](https://github.com/nabePi/selaras/compare/v0.15.0...v0.15.1) (2026-10-14)
 
 
