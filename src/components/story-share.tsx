@@ -34,7 +34,7 @@ export function StoryShare({ path, imagePath = `/api${path}/story`, kind = "blog
         {kind === "blog" && "Story Instagram"}
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} title="Bagikan ke Story Instagram" size="sm">
-        <StoryComposer path={path} imagePath={imagePath} kind={kind} />
+        <StoryComposer key={imagePath} path={path} imagePath={imagePath} kind={kind} />
       </Dialog>
     </>
   );
