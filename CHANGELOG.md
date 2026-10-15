@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.20.0](https://github.com/nabePi/selaras/compare/v0.19.1...v0.20.0) (2026-10-15)
+
+
+### Fitur Baru
+
+* **home:** buat kutipan personal dari jurnal dengan DeepSeek ([73b58cf](https://github.com/nabePi/selaras/commit/73b58cfcfaeeaa9cddf4aebaee6af762626ea036))
+* **home:** buat kutipan personal dari jurnal dengan DeepSeek ([652a72e](https://github.com/nabePi/selaras/commit/652a72e8da3e036779257cc6c42c83f1bc673d12))
+
 ## [0.19.1](https://github.com/nabePi/selaras/compare/v0.19.0...v0.19.1) (2026-10-15)
 
 
