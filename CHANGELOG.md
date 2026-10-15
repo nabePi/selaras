@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.0](https://github.com/nabePi/selaras/compare/v0.16.0...v0.17.0) (2026-10-15)
+
+
+### Fitur Baru
+
+* **blog:** bagikan gambar Story Instagram khusus HP ([1792b99](https://github.com/nabePi/selaras/commit/1792b997e9839cae456d4d9ce6b5e8e78bc33fa2))
+* **blog:** bagikan gambar Story Instagram khusus HP ([7f40353](https://github.com/nabePi/selaras/commit/7f4035375871ee06eb8abeefe4a39f27892c50fe))
+
 ## [0.16.0](https://github.com/nabePi/selaras/compare/v0.15.1...v0.16.0) (2026-10-15)
 
 
