@@ -9,7 +9,7 @@ import { HomeCourseInfo, type HomeCourse } from "@/components/home-course-info";
 import { ProfileReminder } from "@/components/profile-reminder";
 import { StoryShare } from "@/components/story-share";
 import { formatDateId } from "@/data/admin-prompts";
-import { quoteForDate } from "@/data/member";
+import { quoteBackgroundForDate, quoteForDate } from "@/data/member";
 import { requireMemberPage } from "@/lib/server/session";
 import { todayWib } from "@/lib/server/time";
 import { getLatestPost } from "@/server/blog";
@@ -134,7 +134,7 @@ export default async function HomePage({
         <StoryShare path="/home" imagePath={`/api/quotes/story?date=${today}`} kind="quote" />
         <div
           className="relative flex h-52 w-full items-center justify-center bg-cover bg-center px-6 py-5"
-          style={{ backgroundImage: "url('/images/wisdom-bg.jpg')" }}
+          style={{ backgroundImage: `url('${quoteBackgroundForDate(today)}')` }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/80 via-inverse-surface/55 to-inverse-surface/35" />
           <p className="t-quote relative z-10 max-w-sm text-center leading-relaxed text-surface-bright italic">

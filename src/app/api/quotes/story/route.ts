@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { quoteStoryImage } from "@/components/quote-story-image";
-import { quoteForDate } from "@/data/member";
+import { quoteBackgroundForDate, quoteForDate } from "@/data/member";
 import { todayWib } from "@/lib/server/time";
 
 export async function GET(request: Request) {
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     return new Response("Tanggal kutipan tidak valid.", { status: 400 });
   }
   const [backgroundBytes, logoBytes] = await Promise.all([
-    readFile(join(process.cwd(), "public/images/wisdom-bg.jpg")),
+    readFile(join(process.cwd(), "public", quoteBackgroundForDate(date))),
     readFile(join(process.cwd(), "public/images/logo-header.png")),
   ]);
   return quoteStoryImage({

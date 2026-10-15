@@ -44,6 +44,26 @@ export function quoteForDate(iso: string): string {
   return DAILY_QUOTES[day % DAILY_QUOTES.length];
 }
 
+/** Latar kutipan Home dan Story; bergilir satu gambar per tanggal WIB, berulang tiap 10 hari. */
+export const DAILY_QUOTE_BACKGROUNDS = [
+  "/images/quotes/rain-window.jpg",
+  "/images/quotes/flower-vase.jpg",
+  "/images/quotes/journal-tea.jpg",
+  "/images/quotes/quiet-beach.jpg",
+  "/images/quotes/garden-path.jpg",
+  "/images/quotes/misty-lake.jpg",
+  "/images/quotes/cozy-room.jpg",
+  "/images/quotes/prayer-corner.jpg",
+  "/images/quotes/peaceful-porch.jpg",
+  "/images/quotes/linen-curtain.jpg",
+] as const;
+
+/** Gunakan tanggal kartu yang sama dengan quoteForDate agar Home dan hasil Story selalu sesuai. */
+export function quoteBackgroundForDate(iso: string): string {
+  const day = Math.floor(new Date(`${iso}T00:00:00Z`).getTime() / 86_400_000);
+  return DAILY_QUOTE_BACKGROUNDS[day % DAILY_QUOTE_BACKGROUNDS.length];
+}
+
 export type DayStatus = "done" | "pending" | "locked" | "upcoming";
 
 export const JOURNAL_FEELINGS = [
