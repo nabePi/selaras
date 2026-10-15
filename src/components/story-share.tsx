@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { Dialog } from "../dialog";
-import { Icon } from "../icon";
+import { Dialog } from "./dialog";
+import { Icon } from "./icon";
 
 const phoneQuery = "(max-width: 767px) and (pointer: coarse)";
 function subscribePhone(change: () => void) {
@@ -14,25 +14,33 @@ function isPhone() {
   return /iPhone|iPod|Android.*Mobile/i.test(navigator.userAgent) || window.matchMedia(phoneQuery).matches;
 }
 
-export function StoryShare({ path }: { path: string }) {
+export function StoryShare({ path, imagePath = `/api${path}/story`, kind = "blog" }: { path: string; imagePath?: string; kind?: "blog" | "quote" }) {
   const mobile = useSyncExternalStore(subscribePhone, isPhone, () => false);
   const [open, setOpen] = useState(false);
-  if (!mobile) return null;
+  if (!mobile && kind === "blog") return null;
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="t-title-sm inline-flex items-center gap-1.5 rounded-full bg-sage-tint px-4 py-2 text-primary shadow-sm transition-all hover:bg-primary-fixed active:scale-95">
-        <Icon name="photo_camera" size={18} />
-        Story Instagram
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={kind === "quote" ? "Bagikan kutipan ke Story Instagram" : undefined}
+        title={kind === "quote" ? "Bagikan kutipan" : undefined}
+        className={kind === "quote"
+          ? "absolute top-2 right-2 z-20 flex size-11 items-center justify-center rounded-full text-surface-bright/45 transition-colors hover:bg-inverse-surface/15 hover:text-surface-bright/85 focus-visible:text-surface-bright focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-surface-bright"
+          : "t-title-sm inline-flex items-center gap-1.5 rounded-full bg-sage-tint px-4 py-2 text-primary shadow-sm transition-all hover:bg-primary-fixed active:scale-95"}
+      >
+        <Icon name={kind === "quote" ? "share" : "photo_camera"} size={18} />
+        {kind === "blog" && "Story Instagram"}
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} title="Bagikan ke Story Instagram" size="sm">
-        <StoryComposer path={path} />
+        <StoryComposer path={path} imagePath={imagePath} kind={kind} />
       </Dialog>
     </>
   );
 }
 
-function StoryComposer({ path }: { path: string }) {
+function StoryComposer({ path, imagePath, kind }: { path: string; imagePath: string; kind: "blog" | "quote" }) {
   const [asset, setAsset] = useState<{ file: File; url: string; canShare: boolean } | null>(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -44,7 +52,7 @@ function StoryComposer({ path }: { path: string }) {
     let preview: string | undefined;
     async function prepare() {
       try {
-        const response = await fetch(`/api${path}/story`, { signal: controller.signal });
+        const response = await fetch(imagePath, { signal: controller.signal });
         if (!response.ok || !response.headers.get("content-type")?.startsWith("image/png")) throw new Error("Gambar Story belum bisa disiapkan. Coba lagi.");
         const blob = await response.blob();
         if (controller.signal.aborted) return;
@@ -57,7 +65,7 @@ function StoryComposer({ path }: { path: string }) {
     }
     void prepare();
     return () => { controller.abort(); if (preview) URL.revokeObjectURL(preview); };
-  }, [path, attempt]);
+  }, [imagePath, attempt]);
 
   async function share() {
     if (!asset || sharing) return;
@@ -90,15 +98,17 @@ function StoryComposer({ path }: { path: string }) {
       {asset && (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={asset.url} alt="Pratinjau gambar artikel untuk Story Instagram" className="mx-auto aspect-[9/16] w-40 rounded-xl" />
+          <img src={asset.url} alt={`Pratinjau gambar ${kind === "quote" ? "kutipan" : "artikel"} untuk Story Instagram`} className="mx-auto aspect-[9/16] w-40 rounded-xl" />
           {asset.canShare ? (
             <button type="button" disabled={sharing} onClick={() => void share()} className="t-title-sm rounded-full bg-primary px-5 py-3 text-on-primary disabled:opacity-60">{sharing ? "Membuka menu berbagi…" : "Bagikan gambar Story"}</button>
           ) : <p className="t-body-sm text-text-muted">Unduh gambar ini, lalu unggah dari galeri ke Story Instagram.</p>}
           <a href={asset.url} download="selaras-story.png" className="t-title-sm rounded-full bg-sage-tint px-5 py-3 text-center text-primary">Unduh gambar Story</a>
         </>
       )}
-      <button type="button" onClick={() => void copyLink()} className="t-title-sm self-center px-4 py-2 text-primary underline">Salin tautan artikel</button>
-      <p className="t-body-sm text-text-muted">Tambahkan stiker Link di Instagram agar temanmu bisa membuka artikel.</p>
+      {kind === "blog" && <>
+        <button type="button" onClick={() => void copyLink()} className="t-title-sm self-center px-4 py-2 text-primary underline">Salin tautan artikel</button>
+        <p className="t-body-sm text-text-muted">Tambahkan stiker Link di Instagram agar temanmu bisa membuka artikel.</p>
+      </>}
       {message && <p role="status" className="t-body-sm text-on-surface-variant">{message}</p>}
     </div>
   );

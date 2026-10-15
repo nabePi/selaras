@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Icon } from "../icon";
-import { StoryShare } from "./story-share";
+import { StoryShare } from "../story-share";
 
 /**
  * Bagikan artikel lewat menu bagikan bawaan perangkat (Android/iOS: pilih aplikasi atau salin tautan).
