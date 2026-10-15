@@ -132,6 +132,35 @@ jadi perlu ditambahkan sebagai `build.args`.
 - [ ] Service worker / dukungan offline untuk PWA
 - [ ] Penanda sudah dibaca untuk Coachee Care
 
+## Kutipan personal dari jurnal (DeepSeek)
+
+Kartu kutipan di `/home` memakai jurnal yang terakhir disimpan atau disunting oleh peserta,
+termasuk Catatan Rasa dan jawaban prompt. Kutipan dibuat dengan DeepSeek dan disimpan per
+peserta, tanggal WIB, serta revisi jurnal. Membuka ulang halaman tidak membuat permintaan AI
+baru untuk kombinasi yang sudah tersimpan. Jurnal baru/suntingan baru bisa menghasilkan
+kutipan baru pada hari yang sama. Background tetap bergilir harian.
+
+Untuk mengaktifkan:
+
+1. Terapkan migrasi dengan `npm run db:deploy`, lalu generate client untuk pengembangan dengan `npm run db:generate`.
+2. Isi `DEEPSEEK_API_KEY` di `.env` lokal atau tab Environment Dokploy. Jangan memakai awalan `NEXT_PUBLIC_`.
+3. `DEEPSEEK_MODEL` secara default adalah `deepseek-flash`; ubah bila model yang tersedia pada akun berbeda.
+4. Restart server atau deploy ulang setelah konfigurasi berubah. Variabel sudah diteruskan ke service `web` di Compose.
+
+Endpoint mengikuti [Chat Completions DeepSeek](https://api-docs.deepseek.com/api/create-chat-completion/)
+dengan keluaran JSON dan mode thinking dimatikan. Hanya teks jurnal terakhir dan konteks
+pertanyaannya yang dikirim; lampiran serta metadata identitas akun tidak ditambahkan.
+Untuk jurnal panjang, konteks dibatasi sekitar 20.000 karakter dengan mempertahankan awal dan akhirnya.
+
+Tanpa jurnal, tanpa isi yang dapat dipakai, tanpa API key, atau ketika API gagal/keluarannya
+tidak valid, kartu memakai kutipan default. Ada batas waktu 12 detik dan jeda percobaan ulang
+5 menit setelah gagal, serta maksimum 12 pembuatan kutipan per akun per jam per proses.
+Bagian Home lainnya tidak menunggu pembuatan AI; kartu default tampil sementara.
+
+Gambar Story mengambil snapshot kutipan yang tampil di kartu. Endpoint Story memerlukan
+sesi peserta aktif dan hanya dapat membaca snapshot milik akun itu sendiri. Teks jurnal
+tidak ditempatkan dalam URL maupun log, dan respons gambar tetap `no-store`.
+
 ## Backend admin (PostgreSQL + Prisma)
 
 Backend memakai Route Handlers App Router (`src/app/api`), Prisma 7, dan PostgreSQL yang dijalankan lewat Podman.

@@ -101,6 +101,7 @@ model User {
   blogComments        BlogComment[]
   coacheeCares        CoacheeCare[]
   visits              UserVisit[]
+  dailyQuotes         DailyQuote[]
 
   @@index([role, status])
 }
@@ -186,9 +187,26 @@ model PromptResponse {
 
   answers     PromptAnswer[]
   attachments PromptAttachment[]
+  dailyQuotes DailyQuote[]
 
   @@unique([promptId, userId])
   @@unique([userId, date])
+}
+
+/// Kutipan AI tersimpan per hari dan revisi jurnal; bukan salinan isi jurnal.
+model DailyQuote {
+  id         String         @id @default(uuid())
+  userId     Int
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date       DateTime       @db.Date
+  sourceId   Int
+  source     PromptResponse @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  sourceHash String
+  text       String         @db.VarChar(180)
+  createdAt  DateTime       @default(now())
+
+  @@unique([userId, date, sourceHash])
+  @@index([sourceId])
 }
 
 model PromptAnswer {

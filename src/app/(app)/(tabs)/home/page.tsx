@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Icon } from "@/components/icon";
 import { AssessmentCard } from "@/components/assessment-card";
 import { JournalTodayCard } from "@/components/journal-today-card";
@@ -7,9 +8,9 @@ import { HomeBlog } from "@/components/home-blog";
 import { HomeCoacheeCare } from "@/components/home-coachee-care";
 import { HomeCourseInfo, type HomeCourse } from "@/components/home-course-info";
 import { ProfileReminder } from "@/components/profile-reminder";
-import { StoryShare } from "@/components/story-share";
+import { HomeQuote, HomeQuoteCard } from "@/components/home-quote";
 import { formatDateId } from "@/data/admin-prompts";
-import { quoteBackgroundForDate, quoteForDate } from "@/data/member";
+import { quoteForDate } from "@/data/member";
 import { requireMemberPage } from "@/lib/server/session";
 import { todayWib } from "@/lib/server/time";
 import { getLatestPost } from "@/server/blog";
@@ -81,7 +82,7 @@ export default async function HomePage({
   const { minggu } = await searchParams;
   const weeksBack = Math.max(0, Number.parseInt(typeof minggu === "string" ? minggu : "", 10) || 0);
   const today = todayWib();
-  const quoteBackground = quoteBackgroundForDate(today);
+  const fallbackQuote = { text: quoteForDate(today) };
   const missedDates = await getMissedDates(user.id);
   const activeDate = missedDates[0] ?? today;
   const prompt = await getPromptForDate(activeDate, user.id);
@@ -128,21 +129,9 @@ export default async function HomePage({
       </section>
 
       {/* 2. Kutipan penenang harian */}
-      <section
-        className="relative w-full overflow-hidden rounded-4xl bg-surface-container shadow-md"
-        aria-label="Kutipan hari ini"
-      >
-        <StoryShare path="/home" imagePath={`/api/quotes/story?date=${today}&v=${encodeURIComponent(quoteBackground)}`} kind="quote" />
-        <div
-          className="relative flex h-52 w-full items-center justify-center bg-cover bg-center px-6 py-5"
-          style={{ backgroundImage: `url('${quoteBackground}')` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/80 via-inverse-surface/55 to-inverse-surface/35" />
-          <p className="t-quote relative z-10 max-w-sm text-center leading-relaxed text-surface-bright italic">
-            “{quoteForDate(today)}”
-          </p>
-        </div>
-      </section>
+      <Suspense fallback={<HomeQuoteCard date={today} quote={fallbackQuote} />}>
+        <HomeQuote userId={user.id} date={today} fallback={fallbackQuote} />
+      </Suspense>
 
       {/* Assessment (hilang setelah diisi). Post hanya tampil bila admin menyalakannya. */}
       {preVisible && !preDone && (

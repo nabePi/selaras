@@ -36,6 +36,13 @@ export const DAILY_QUOTES = [
   "Syukuri hal kecil hari ini; di sanalah ketenangan biasanya bersembunyi.",
   "Berhenti sejenak bukan berarti menyerah, kadang itu cara terbaik untuk melangkah.",
   "Biarkan hari ini cukup. Kamu sudah melakukan yang terbaik yang kamu bisa.",
+  "Kamu boleh beristirahat tanpa harus merasa bersalah. Dirimu juga perlu dirawat.",
+  "Langkah yang kecil tetap membawamu maju. Beri dirimu waktu untuk bertumbuh.",
+  "Tidak apa-apa jika hari ini terasa berat. Kamu tidak harus melewatinya sendirian.",
+  "Sisakan ruang untuk dirimu sendiri, di antara semua hal yang sedang kamu rawat.",
+  "Kamu tidak harus punya semua jawaban hari ini. Mulailah dari satu hal yang bisa kamu jaga.",
+  "Semoga hari ini memberi ruang untuk bernapas, menerima, dan mencoba lagi dengan lembut.",
+  "Ada hal baik yang tumbuh perlahan. Tetaplah lembut pada prosesmu sendiri.",
 ] as const;
 
 /** Kutipan untuk tanggal ISO (yyyy-mm-dd): berganti tiap hari, urut berulang. */
