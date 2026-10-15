@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.0](https://github.com/nabePi/selaras/compare/v0.17.0...v0.18.0) (2026-10-15)
+
+
+### Fitur Baru
+
+* **home:** bagikan kutipan harian ke Story Instagram ([430d7bf](https://github.com/nabePi/selaras/commit/430d7bf30d5a72925a6afc8293e67257ad786c93))
+* **home:** bagikan kutipan harian ke Story Instagram ([47f1cc3](https://github.com/nabePi/selaras/commit/47f1cc3d6fb571fe6079a601363d23292691f97a))
+
 ## [0.17.0](https://github.com/nabePi/selaras/compare/v0.16.0...v0.17.0) (2026-10-15)
 
 
