@@ -14,5 +14,5 @@ export default async function GiftPage() {
   const setting = await giftSetting();
   if (!setting?.enabled) notFound();
   const gift = await currentGift(user.id);
-  return <div className={arabic.variable}><FocusHeader title="Hadiah untukmu" backHref="/home" /><GiftReader key={gift?.id ?? "new"} initial={gift} /></div>;
+  return <div className={arabic.variable}><FocusHeader title="Hadiah untukmu" backHref="/home" hideLogo /><GiftReader key={gift?.id ?? "new"} initial={gift} /></div>;
 }
