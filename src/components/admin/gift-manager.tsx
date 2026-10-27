@@ -7,7 +7,7 @@ import { Icon } from "../icon";
 import { useToast } from "../toast-provider";
 import { PageHeader } from "./page-header";
 
-type Overview = { enabled: boolean; total: number; likes: number; dislikes: number; ai: { provider: string; model: string; configured: boolean } };
+type Overview = { enabled: boolean; total: number; likes: number; dislikes: number; themeFallbacks: number; neutralFallbacks: number; ai: { provider: string; model: string; configured: boolean } };
 
 export function GiftManager({ initial }: { initial: Overview }) {
   const [enabled, setEnabled] = useState(initial.enabled);
@@ -47,9 +47,10 @@ export function GiftManager({ initial }: { initial: Overview }) {
 
       <section className="space-y-4 border-t border-border-subtle pt-6">
         <h2 className="t-title-lg">Personalisasi dan siklus hadiah</h2>
-        <p className="t-body-md leading-7 text-on-surface-variant">{initial.ai.configured ? `Terhubung ke ${initial.ai.provider === "openai" ? "OpenAI" : "DeepSeek"} · ${initial.ai.model}.` : "API key belum dikonfigurasi. Peserta tetap mendapat hadiah dari koleksi bersumber dengan pengantar umum."}</p>
+        <p className="t-body-md leading-7 text-on-surface-variant">{initial.ai.configured ? `Terhubung ke ${initial.ai.provider === "openai" ? "OpenAI" : "DeepSeek"} · ${initial.ai.model}.` : "API key belum dikonfigurasi. Bacaan, pengantar, dan refleksi tetap dipilih berdasarkan tema dari jurnal yang tersedia."}</p>
+        <p className="t-body-sm leading-6 text-text-muted">{initial.themeFallbacks} hadiah memakai pencocokan tema saat AI tidak tersedia. {initial.neutralFallbacks} hadiah memakai pengantar netral, termasuk hadiah dari versi lama. Tanpa jurnal, aplikasi tidak mengarang kondisi peserta.</p>
         <ul className="t-body-md list-disc space-y-2 pl-5 leading-7 text-text-muted">
-          <li>AI memilih dari koleksi bersumber dan menulis pengantar sesuai profil serta maksimal lima jurnal terakhir. Teks ayat, hadis, dan kisah tidak dibuat ulang oleh AI.</li>
+          <li>AI membaca maksimal lima jurnal terakhir dan bahan sumber lengkap untuk merangkai judul, pengantar, isi hadiah, penutup, refleksi, dan satu ajakan ringan. Profil hanya pelengkap. Kutipan ayat dan hadis tetap diambil dari koleksi; penceritaan ulang kisah harus mengikuti bahan sumber.</li>
           <li>Doa pribadi boleh dirangkai, dengan label yang membedakannya dari kutipan Al-Qur’an dan hadis.</li>
           <li>Siklus tiga hari dihitung berdasarkan tanggal WIB sejak fitur diaktifkan. Menonaktifkan lalu mengaktifkan kembali memulai siklus baru.</li>
           <li>Halaman ini hanya menampilkan jumlah penilaian, tanpa membuka jurnal privat atau pengantar pribadi peserta.</li>

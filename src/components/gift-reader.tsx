@@ -46,7 +46,7 @@ export function GiftReader({ initial }: { initial: GiftDto | null }) {
 function PrayerText({ arabic, latin, meaning }: PersonalPrayer) {
   return (
     <div className="space-y-6">
-      <p lang="ar" dir="rtl" className="gift-arabic text-right text-on-surface">{arabic}</p>
+      <p lang="ar" dir="rtl" translate="no" className="gift-arabic text-right text-on-surface">{arabic}</p>
       <div className="space-y-2">
         <h3 className="t-label-sm font-semibold tracking-wider text-primary uppercase">Latin · panduan pelafalan</h3>
         <p className="t-body-lg leading-8 text-on-surface-variant italic">{latin}</p>
@@ -99,7 +99,7 @@ export function GiftBody({ gift }: { gift: GiftDto }) {
       <header className="flex flex-col items-center gap-4 pt-7 pb-8 text-center">
         <span className="flex size-16 items-center justify-center rounded-full bg-sage-tint text-primary"><Icon name={meta.icon} size={30} /></span>
         <span className="t-label-sm font-semibold tracking-[0.16em] text-primary uppercase">{meta.label}</span>
-        <h2 className="t-headline-lg max-w-sm leading-snug text-on-surface">{gift.content.title}</h2>
+        <h2 className="t-headline-lg max-w-sm leading-snug text-on-surface">{gift.personalTitle ?? gift.content.title}</h2>
         <span className="t-body-sm text-text-muted">Satu hadiah, untuk dinikmati perlahan.</span>
       </header>
 
@@ -119,15 +119,47 @@ export function GiftBody({ gift }: { gift: GiftDto }) {
       )}
 
       <section aria-label="Isi hadiah" className="space-y-6 py-8">
-        {gift.personalPrayer && <h2 className="t-headline-sm text-on-surface">Doa dari Al-Qur’an untuk menemani</h2>}
+        {gift.personalTitle && <h2 className="t-headline-sm text-on-surface">{gift.content.title}</h2>}
+        {gift.personalPrayer && <h2 className="t-headline-sm text-on-surface">Bacaan bersumber untuk menemani</h2>}
         {gift.content.arabic && gift.content.latin && gift.content.meaning && <PrayerText arabic={gift.content.arabic} latin={gift.content.latin} meaning={gift.content.meaning} />}
-        {gift.content.paragraphs?.map((p, i) => <p key={i} className="t-body-lg leading-8 text-on-surface">{p}</p>)}
+        {gift.content.paragraphs && (gift.composition ? (
+          <details className="rounded-2xl border border-border-subtle p-4"><summary className="t-title-sm cursor-pointer text-primary">Baca kisah sumber</summary><div className="mt-4 space-y-4">{gift.content.paragraphs.map((p, i) => <p key={i} className="t-body-md leading-7 text-on-surface-variant">{p}</p>)}</div></details>
+        ) : gift.content.paragraphs.map((p, i) => <p key={i} className="t-body-lg leading-8 text-on-surface">{p}</p>))}
       </section>
+
+      {gift.composition && (
+        <section aria-label="Hadiah personal" className="space-y-4 pb-8">
+          <h2 className="t-title-sm text-primary">{gift.content.kind === "story" ? "Kisah dan renungan untukmu" : "Untuk menemani perjalananmu"}</h2>
+          <p className="t-body-sm text-text-muted">{gift.content.kind === "story" ? "Dirangkai dari kisah sumber, dengan renungan untuk perjalananmu." : "Renungan pendamping yang dirangkai untukmu dari bacaan di atas."}</p>
+          {gift.composition.paragraphs.map((p, i) => <p key={i} className="t-body-lg leading-8 text-on-surface-variant">{p}</p>)}
+          {gift.composition.sources.slice(1).map((source) => (
+            <details key={source.id} className="rounded-2xl border border-border-subtle p-4">
+              <summary className="t-title-sm cursor-pointer text-primary">Bacaan pendamping · {source.title}</summary>
+              <div className="mt-5 space-y-4">
+                {source.arabic && source.latin && source.meaning && <PrayerText arabic={source.arabic} latin={source.latin} meaning={source.meaning} />}
+                {source.paragraphs?.map((p, i) => <p key={i} className="t-body-md leading-7 text-on-surface-variant">{p}</p>)}
+              </div>
+            </details>
+          ))}
+        </section>
+      )}
+
+      {(gift.reflection || gift.smallStep) && (
+        <section aria-label="Ruang refleksi" className="space-y-5 rounded-2xl bg-sage-tint p-5 mb-8">
+          {gift.reflection && <div className="space-y-2"><h2 className="t-title-sm text-primary">Untuk direnungkan perlahan</h2><p className="t-body-lg leading-8 text-on-surface">{gift.reflection}</p></div>}
+          {gift.smallStep && <div className="space-y-2"><h3 className="t-title-sm text-primary">Satu langkah kecil, jika kamu berkenan</h3><p className="t-body-md leading-7 text-on-surface-variant">{gift.smallStep}</p></div>}
+        </section>
+      )}
+
+      {gift.composition && <p className="t-body-lg pb-8 leading-8 text-on-surface italic">{gift.composition.closing}</p>}
 
       <aside aria-label="Referensi hadiah" className="space-y-2 rounded-2xl bg-surface-container-low p-4">
         <span className="t-label-sm flex items-center gap-1.5 font-semibold text-primary"><Icon name="library_books" size={16} /> Referensi bacaan</span>
-        <a href={gift.content.source.url} target="_blank" rel="noopener noreferrer" className="t-body-md inline-flex items-center gap-1.5 text-on-surface underline decoration-outline-variant underline-offset-4">{gift.content.source.label}<Icon name="open_in_new" size={14} /></a>
-        <p className="t-body-sm leading-relaxed text-text-muted">{gift.content.source.note}</p>
+        {(gift.composition?.sources ?? [gift.content]).map(({ id, source }) => <div key={id} className="space-y-2 pt-2">
+          <a href={source.url} target="_blank" rel="noopener noreferrer" className="t-body-md inline-flex items-center gap-1.5 text-on-surface underline decoration-outline-variant underline-offset-4">{source.label}<Icon name="open_in_new" size={14} /></a>
+          <p className="t-body-sm leading-relaxed text-text-muted">{source.note}</p>
+          {source.additional?.map((extra) => <a key={extra.url} href={extra.url} target="_blank" rel="noopener noreferrer" className="t-body-sm block text-primary underline underline-offset-4">{extra.label}</a>)}
+        </div>)}
       </aside>
 
       <section aria-label="Penilaian hadiah" className="mt-9 flex flex-col items-center gap-3 border-t border-border-subtle pt-7 text-center">
@@ -143,7 +175,7 @@ export function GiftBody({ gift }: { gift: GiftDto }) {
 
       <div className="mt-9 flex flex-col items-center gap-3">
         <button type="button" disabled={sharing} onClick={() => void share()} className="t-title-sm flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-on-primary transition-colors hover:bg-primary-container disabled:opacity-60"><Icon name="share" size={19} />{sharing ? "Membuka menu berbagi…" : "Bagikan kebaikan ini"}</button>
-        <p className="t-body-sm text-center text-text-muted">Pengantar pribadimu tidak ikut dibagikan.</p>
+        <p className="t-body-sm text-center text-text-muted">Pesan personal dan refleksimu tidak ikut dibagikan.</p>
         {shareMessage && <p role="status" className="t-body-sm text-center text-primary">{shareMessage}</p>}
         <p className="t-label-sm mt-3 text-text-muted">Hadiah berikutnya mulai {new Date(gift.expiresAt).toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta", day: "numeric", month: "long" })}</p>
       </div>
