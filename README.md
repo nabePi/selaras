@@ -148,14 +148,29 @@ memulai periode baru. Refresh atau jurnal baru tidak mengganti hadiah di tengah 
 AI memakai kegiatan, keahlian, dan status pernikahan dari profil, serta maksimal lima jurnal
 terbaru dengan tanggal tidak melewati hari ini, termasuk jawaban prompt. Jika jurnal kurang
 dari tiga, gunakan yang tersedia; jika kosong, jangan mengarang pengalaman peserta. Nama,
-email, WhatsApp, foto, dan lampiran tidak ditambahkan ke konteks. Teks tiap jurnal dibatasi
+email, WhatsApp, foto, dan lampiran tidak ditambahkan ke konteks. Hanya isi jawaban peserta
+yang menjadi sinyal pencocokan tema; label pertanyaan dan status pernikahan tidak dianggap
+bukti kondisi emosional. AI tetap membaca konteks pertanyaan untuk memahami jawaban. Teks tiap jurnal dibatasi
 sekitar 4.000 karakter dengan mempertahankan awal dan akhir tulisan.
 
-Ada empat jenis hadiah: doa, kisah, ayat Al-Qur’an, atau hadis. AI hanya memilih ID dari
-12 bacaan dalam `src/data/gifts.ts` dan menulis pengantar personal. Teks Arab, latin,
-terjemahan makna, kisah, dan rujukan diambil dari koleksi tetap. Koleksi merujuk
+Ada empat jenis hadiah: doa, kisah, ayat Al-Qur’an, atau hadis. AI menyusun satu hadiah
+utuh dari jurnal dan bahan sumber: judul, pengantar, 2–3 paragraf isi personal, penutup,
+pertanyaan refleksi, serta satu ajakan ringan yang opsional. Empat puluh bacaan dalam
+`src/data/gifts.ts` dan `src/data/gift-collection.ts` adalah bahan sumber, bukan 40 templat
+hadiah. AI memilih satu bacaan utama yang menentukan jenis hadiah dan maksimal dua bacaan
+pendamping. Teks Arab, latin, arti, kisah, rujukan, dan catatan konteks disertakan lengkap
+ke prompt; sistem tidak menganggap URL saja sebagai bahan yang telah dibaca. Teks Arab, latin,
+terjemahan makna, dan rujukan ditampilkan dari koleksi tetap. Untuk jenis kisah, LLM boleh
+menceritakan kembali bahan yang diberikan dan menulis renungan personal; kisah sumber
+tetap tersedia untuk dibaca. Prompt melarang tambahan tokoh, dialog, peristiwa, serta
+klaim hasil yang tidak didukung bahan sumber. Renungan editorial dibedakan dari fakta riwayat. Koleksi merujuk
 [Quran.com](https://quran.com) dan [Sunnah.com](https://sunnah.com), dengan penggalan teks
-serta refleksi editorial diberi label. AI juga boleh menyusun doa pribadi untuk jenis doa;
+serta refleksi editorial diberi label. Enam belas tambahan ayat lengkap menggunakan teks Arab
+[Tanzil Simple 1.1](https://tanzil.net/download/) tanpa perubahan, dengan atribusi dan pemberitahuan
+lisensi dalam `src/data/tanzil-gift-verses.ts`. Hadis ikhtiar (Muslim 2664) juga menyertakan
+[rujukan silang Dorar](https://dorar.net/h/Ov16uqG0). Arti Indonesia dan panduan latin adalah
+editorial, bukan klaim terjemahan resmi situs sumber. Tidak ada panggilan API sumber atau
+pencarian web saat peserta membuka hadiah; tidak diperlukan API key tambahan untuk sumber. AI juga boleh menyusun doa pribadi untuk jenis doa;
 doa itu ditampilkan terpisah dengan label **bukan kutipan Al-Qur’an atau hadis**.
 
 Konfigurasi server (jangan gunakan `NEXT_PUBLIC_`):
@@ -174,11 +189,41 @@ Untuk pindah provider Gift, ubah `GIFT_AI_PROVIDER=openai` dan deploy ulang. Kut
 Home tetap memakai DeepSeek. Implementasi OpenAI mengikuti
 [Responses API / Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses),
 dengan `store:false`. Tidak ada perpindahan provider otomatis saat gagal. Tanpa API key atau
-bila keluaran AI gagal/invalid, hadiah bersumber dengan pengantar umum tetap tersedia dan
-disimpan sampai periode berakhir. Jika ingin memulai lagi setelah mengubah konfigurasi,
-nonaktifkan lalu aktifkan Gift melalui admin.
+bila keluaran AI gagal/invalid, aplikasi tetap membaca jurnal dan memakai pencocokan tema
+untuk memilih bacaan, pengantar, judul, refleksi, dan ajakan yang sesuai. Bobot mempertimbangkan
+kebaruan dan kemunculan tema di beberapa jurnal. Pilihan acak berbasis hash hanya dipakai
+untuk memecahkan nilai relevansi yang sama. Tanpa sinyal tema yang jelas, pengantar netral
+tidak mengarang pengalaman; tanpa jurnal, tidak ada panggilan AI. Pencocokan kata kunci bukan
+pemahaman semantik penuh; AI tetap diperlukan untuk personalisasi yang lebih bernuansa.
 
-Terapkan migrasi `20261016100000_member_gifts` dengan `npm run db:deploy`, kemudian
+AI diminta mempertimbangkan pola dan perubahan kondisi dari seluruh jurnal yang tersedia,
+dan wajib mengembalikan minimal dua tanggal sumber bila tersedia dua atau lebih jurnal.
+Tanggal di luar konteks, kolom personal yang tidak valid, serta pengantar yang sama persis
+dengan tiga hadiah sebelumnya ditolak. Rujukan keluaran dibatasi pada ID koleksi;
+LLM tidak mengembalikan teks dalil pengganti. ID sumber pendamping harus berasal dari bahan yang diberikan, unik, dan diawali
+ID bacaan utama. Prosa personal menolak kutipan Arab dan atribusi langsung Allah/Nabi;
+kutipan di kartu sumber selalu memakai teks asli, bukan keluaran model. Pemeriksaan ini
+memvalidasi struktur dan asal sumber, bukan pembuktian otomatis atas seluruh klaim narasi.
+Satu sumber bisa relevan untuk beberapa peserta; keunikan global sumber tidak dipaksakan.
+
+Hasil disimpan sampai periode berakhir, termasuk fallback, agar tidak berubah ketika jurnal
+dikirim atau provider pulih. Hadiah lama tetap dibaca tanpa mengganti isinya di tengah periode.
+Metadata internal menyimpan versi generator, hash konteks, ID/tanggal jurnal, sinyal tema,
+dan mode generasi tanpa menyalin teks jurnal. Metadata tidak dikirim ke peserta atau panel admin;
+admin hanya mendapat jumlah agregat hadiah dengan fallback tema dan pengantar netral.
+Isi personal, penutup, dan salinan bahan sumber disimpan dalam `composition` agar bacaan
+yang dipakai tetap sama meskipun koleksi aplikasi diperbarui. Tautan dan catatan semua
+bahan yang dipakai ditampilkan pada gift. Bagian personal ini tidak ikut dibagikan.
+
+Migrasi baru `20261027090000_personalized_gift_reflections` menambahkan kolom nullable
+`personalTitle`, `reflection`, `smallStep`, dan `personalization` pada `MemberGift`.
+Migrasi lanjutan `20261027100000_composed_member_gifts` menambahkan kolom JSONB nullable
+`composition` untuk isi personal dan snapshot sumber.
+Tidak diperlukan INSERT atau backfill: koleksi bacaan ada di kode dan hadiah lama tetap valid.
+Terapkan migrasi sebelum menjalankan versi aplikasi ini; jangan menyalin DDL terpisah jika
+sudah menjalankan migrasi Prisma. Migrasi tidak dijalankan otomatis oleh perubahan ini.
+
+Terapkan migrasi dengan `npm run db:deploy`, kemudian
 `npm run db:generate` untuk pengembangan lokal. Compose sudah meneruskan semua variabel
 Gift ke service `web`. Pembuatan AI dibatasi enam kali per akun per jam per proses, timeout
 25 detik. Permintaan bersamaan digabung dalam satu proses dan kunci unik database menjaga
@@ -188,7 +233,7 @@ mencegah hasilnya disimpan.
 Thumbs up/down adalah satu penilaian yang dapat diganti atau dihapus per pemilik hadiah.
 Admin melihat jumlah agregat tanpa membuka jurnal atau pengantar personal. Berbagi memakai
 menu perangkat (atau salin teks bila tidak didukung), dengan isi hadiah dan referensi;
-pengantar pribadi dan tautan halaman peserta tidak ikut dibagikan. Ini bukan publikasi
+pengantar, judul personal, pertanyaan refleksi, ajakan ringan, dan tautan halaman peserta tidak ikut dibagikan. Ini bukan publikasi
 otomatis ke Instagram Story.
 
 Jalankan `npm run test:gifts` untuk pengujian server/provider dengan database dan AI mock,

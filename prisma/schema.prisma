@@ -125,6 +125,13 @@ model MemberGift {
   expiresAt      DateTime
   contentId      String
   intro          String   @db.VarChar(700)
+  personalTitle  String?  @db.VarChar(120)
+  reflection     String?  @db.VarChar(400)
+  smallStep      String?  @db.VarChar(400)
+  /// Generation version, journal IDs/hash and theme evidence; never raw journal text.
+  personalization Json?
+  /// Generated personal prose plus immutable snapshots of its vetted sources.
+  composition    Json?
   prayerArabic   String?
   prayerLatin    String?
   prayerMeaning  String?

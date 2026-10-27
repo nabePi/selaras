@@ -1,4 +1,6 @@
-/** Reviewed source texts. AI may select an ID, but cannot rewrite a verse, hadith or story. */
+import { ADDITIONAL_GIFT_CONTENT } from "./gift-collection";
+
+/** Fixed source texts for AI-authored personal gifts. Quotations are rendered from these records. */
 export type GiftKind = "dua" | "story" | "quran" | "hadith";
 export const GIFT_KINDS: Record<GiftKind, { label: string; icon: string }> = {
   dua: { label: "Doa untukmu", icon: "prayer_times" },
@@ -15,7 +17,7 @@ export type GiftContent = {
   latin?: string;
   meaning?: string;
   paragraphs?: string[];
-  source: { label: string; url: string; note: string };
+  source: { label: string; url: string; note: string; additional?: { label: string; url: string }[] };
 };
 
 export const GIFT_CONTENT: readonly GiftContent[] = [
@@ -109,12 +111,18 @@ export const GIFT_CONTENT: readonly GiftContent[] = [
     ],
     source: { label: "Diringkas dari Sahih al-Bukhari 6318", url: "https://sunnah.com/bukhari:6318", note: "Penceritaan ulang, bukan kutipan harfiah. Paragraf terakhir adalah refleksi editorial." },
   },
+  ...ADDITIONAL_GIFT_CONTENT,
 ];
 
 export type PersonalPrayer = { arabic: string; latin: string; meaning: string };
+export type GiftComposition = { paragraphs: string[]; closing: string; sources: GiftContent[] };
 export type GiftDto = {
   id: string;
   intro: string;
+  personalTitle: string | null;
+  reflection: string | null;
+  smallStep: string | null;
+  composition: GiftComposition | null;
   content: GiftContent;
   personalPrayer: PersonalPrayer | null;
   expiresAt: string;
@@ -128,6 +136,7 @@ export function giftShareText(gift: GiftDto) {
     ...(p ? ["Doa pribadi (bukan kutipan Al-Qur’an atau hadis)", p.arabic, p.latin, p.meaning, "Doa bersumber untuk menemani:"] : []),
     c.arabic, c.latin, c.meaning, ...(c.paragraphs ?? []),
     `Referensi: ${c.source.label}\n${c.source.url}`, c.source.note,
+    ...(c.source.additional ?? []).map((s) => `${s.label}\n${s.url}`),
     "selaras.life",
   ].filter(Boolean).join("\n\n");
 }
