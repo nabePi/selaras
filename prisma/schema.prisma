@@ -224,7 +224,7 @@ model PromptResponse {
   @@unique([userId, date])
 }
 
-/// Kutipan AI tersimpan per hari dan revisi jurnal; bukan salinan isi jurnal.
+/// Kutipan AI harian; snapshot revisi lama dipertahankan untuk kartu berbagi.
 model DailyQuote {
   id         String         @id @default(uuid())
   userId     Int
@@ -232,6 +232,7 @@ model DailyQuote {
   date       DateTime       @db.Date
   sourceId   Int
   source     PromptResponse @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  /// "daily-v1" untuk kutipan harian; snapshot lama berisi hash revisi jurnal.
   sourceHash String
   text       String         @db.VarChar(180)
   createdAt  DateTime       @default(now())

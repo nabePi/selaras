@@ -1,5 +1,4 @@
 import "server-only";
-import { createHash } from "node:crypto";
 import { db } from "@/lib/db";
 import { quoteForDate } from "@/data/member";
 import { generateJournalQuote } from "@/lib/server/quote-ai";
@@ -16,16 +15,45 @@ function boundedContext(text: string) {
   return text.length <= 20_000 ? text : `${text.slice(0, 10_000)}\n[…]\n${text.slice(-10_000)}`;
 }
 
-/** Latest means the most recently saved/edited entry, including a backdated journal. */
+/** Reuse the day's first quote; journal changes only inform the next day's quote. */
 export async function getHomeQuote(userId: number, date: string): Promise<HomeQuote> {
   const fallback = { text: quoteForDate(date) };
-  if (!process.env.DEEPSEEK_API_KEY?.trim()) return fallback;
   const day = new Date(`${date}T00:00:00Z`);
+  // Include legacy revision-based snapshots without deleting shared story cards.
+  const saved = await db.dailyQuote.findFirst({
+    where: { userId, date: day },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    select: { id: true, text: true },
+  });
+  if (saved) return saved;
+  if (!process.env.DEEPSEEK_API_KEY?.trim()) return fallback;
+
+  const key = `${userId}:${date}`;
+  if ((failures.get(key) ?? 0) > Date.now()) return fallback;
+  const running = pending.get(key);
+  if (running) return running;
+
+  const task = Promise.resolve().then(async () => {
+    try {
+      return await generateDailyQuote(userId, day, fallback);
+    } catch {
+      // Briefly back off on provider/validation failures; do not store a default as an AI quote.
+      if (failures.size >= 1000) failures.clear();
+      failures.set(key, Date.now() + 300_000);
+      return fallback;
+    }
+  }).finally(() => pending.delete(key));
+  pending.set(key, task);
+  return task;
+}
+
+async function generateDailyQuote(userId: number, day: Date, fallback: HomeQuote): Promise<HomeQuote> {
+  // Latest means the most recently saved/edited entry, including a backdated journal.
   const journal = await db.promptResponse.findFirst({
     where: { userId },
     orderBy: [{ answeredAt: "desc" }, { id: "desc" }],
     select: {
-      id: true, updatedAt: true, content: true,
+      id: true, content: true,
       answers: {
         where: { question: { type: { in: ["TEXT", "MOOD", "CHOICE", "SCALE"] } } },
         orderBy: { question: { position: "asc" } },
@@ -40,37 +68,18 @@ export async function getHomeQuote(userId: number, date: string): Promise<HomeQu
   ].filter(Boolean).join("\n\n");
   if (!context) return fallback;
 
-  const sourceHash = createHash("sha256").update(JSON.stringify({
-    version: 1, model: process.env.DEEPSEEK_MODEL?.trim() || "deepseek-flash",
-    id: journal.id, updatedAt: journal.updatedAt.toISOString(), context,
-  })).digest("hex");
-  const key = `${userId}:${date}:${sourceHash}`;
+  // This legacy column now holds a fixed daily key. The existing unique index
+  // makes requests from separate server instances converge on the same snapshot.
+  const sourceHash = "daily-v1";
   const unique = { userId_date_sourceHash: { userId, date: day, sourceHash } };
-  const saved = await db.dailyQuote.findUnique({ where: unique, select: { id: true, text: true } });
-  if (saved) return saved;
-  if ((failures.get(key) ?? 0) > Date.now()) return fallback;
-  const running = pending.get(key);
-  if (running) return running;
-
-  const task = Promise.resolve().then(async () => {
-    try {
-      rateLimit(`quote-ai:${userId}`, 12, 3_600_000);
-      const text = await generateJournalQuote(boundedContext(context));
-      return await db.dailyQuote.upsert({
-        where: unique,
-        create: { userId, date: day, sourceId: journal.id, sourceHash, text },
-        update: {},
-        select: { id: true, text: true },
-      });
-    } catch {
-      // Briefly back off on provider/validation failures; do not store a default as an AI quote.
-      if (failures.size >= 1000) failures.clear();
-      failures.set(key, Date.now() + 300_000);
-      return fallback;
-    }
-  }).finally(() => pending.delete(key));
-  pending.set(key, task);
-  return task;
+  rateLimit(`quote-ai:${userId}`, 12, 3_600_000);
+  const text = await generateJournalQuote(boundedContext(context));
+  return db.dailyQuote.upsert({
+    where: unique,
+    create: { userId, date: day, sourceId: journal.id, sourceHash, text },
+    update: {},
+    select: { id: true, text: true },
+  });
 }
 
 /** Look up the exact card snapshot, scoped to the authenticated owner and card date. */
