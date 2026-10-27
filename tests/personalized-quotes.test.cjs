@@ -21,10 +21,16 @@ global.__quoteTestDb = {
     findUnique: async ({ where }) => quotes.get(keyOf(where.userId_date_sourceHash)) ?? null,
     upsert: async ({ create }) => {
       const key = keyOf(create);
-      if (!quotes.has(key)) quotes.set(key, { ...create, id: randomUUID() });
-      return quotes.get(key);
+      if (!quotes.has(key)) quotes.set(key, { ...create, id: randomUUID(), createdAt: new Date() });
+      const row = quotes.get(key);
+      return { id: row.id, text: row.text };
     },
-    findFirst: async ({ where }) => [...quotes.values()].find((q) => q.id === where.id && q.userId === where.userId && q.date.getTime() === where.date.getTime()) ?? null,
+    findFirst: async ({ where }) => {
+      const row = [...quotes.values()]
+        .filter((q) => (where.id === undefined || q.id === where.id) && q.userId === where.userId && q.date.getTime() === where.date.getTime())
+        .sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id))[0];
+      return row ? { id: row.id, text: row.text } : null;
+    },
   },
 };
 
@@ -149,21 +155,57 @@ test("concurrent page requests coalesce into one AI request", async () => {
   assert.ok(results.every((r) => r.id === results[0].id));
 });
 
-test("new journal revisions, days, and users produce separate snapshots; old cards remain available", async () => {
+test("journal edits and new submissions keep the daily quote; new days and users get separate snapshots", async () => {
   let calls = 0;
   global.fetch = async () => { calls++; return success(); };
   journals.set(130, fixture(130));
   const first = await getHomeQuote(130, day);
   journals.set(130, fixture(130, { content: "Hari ini aku bersyukur dan lebih tenang.", updatedAt: new Date("2026-10-16T02:00:00Z") }));
   const edited = await getHomeQuote(130, day);
+  assert.deepEqual(edited, first);
+  journals.set(130, fixture(132, { content: "Jurnal baru setelah menyelesaikan jurnal sebelumnya." }));
+  assert.deepEqual(await getHomeQuote(130, day), first);
   const tomorrow = await getHomeQuote(130, "2026-10-17");
   journals.set(131, fixture(131));
   const other = await getHomeQuote(131, day);
-  assert.equal(new Set([first.id, edited.id, tomorrow.id, other.id]).size, 4);
-  assert.equal(calls, 4);
+  assert.equal(new Set([first.id, tomorrow.id, other.id]).size, 3);
+  assert.equal(calls, 3);
   assert.equal((await getQuoteForStory(130, day, first.id)).text, first.text);
   assert.equal(await getQuoteForStory(131, day, first.id), null);
   assert.equal(await getQuoteForStory(130, "2026-10-17", first.id), null);
+});
+
+test("legacy snapshots remain stable even when the journal or provider configuration changes", async () => {
+  const first = { userId: 135, date: new Date(`${day}T00:00:00Z`), sourceHash: "legacy-first", id: randomUUID(), text: message, createdAt: new Date("2026-10-16T01:00:00Z") };
+  const second = { ...first, sourceHash: "legacy-second", id: randomUUID(), text: "Pesan dari revisi jurnal berikutnya.", createdAt: new Date("2026-10-16T02:00:00Z") };
+  quotes.set(keyOf(second), second);
+  quotes.set(keyOf(first), first);
+  global.fetch = () => { throw new Error("Must reuse the saved quote"); };
+  delete process.env.DEEPSEEK_API_KEY;
+  assert.deepEqual(await getHomeQuote(135, day), { id: first.id, text: first.text });
+  process.env.DEEPSEEK_API_KEY = "test-key-never-sent";
+  process.env.DEEPSEEK_MODEL = "another-model";
+  journals.set(135, fixture(135));
+  assert.deepEqual(await getHomeQuote(135, day), { id: first.id, text: first.text });
+  assert.equal((await getQuoteForStory(135, day, second.id)).text, second.text);
+});
+
+test("a journal submitted while generation is pending shares the same daily snapshot", async () => {
+  journals.set(136, fixture(136));
+  let started;
+  const generating = new Promise((resolve) => { started = resolve; });
+  let finish;
+  const response = new Promise((resolve) => { finish = resolve; });
+  let calls = 0;
+  global.fetch = async () => { calls++; started(); return response; };
+  const first = getHomeQuote(136, day);
+  await generating;
+  journals.set(136, fixture(137));
+  const afterSubmit = getHomeQuote(136, day);
+  finish(success());
+  const results = await Promise.all([first, afterSubmit]);
+  assert.deepEqual(results[0], results[1]);
+  assert.equal(calls, 1);
 });
 
 test("prompt-only journals work and long journals preserve their opening and ending", async () => {
@@ -201,6 +243,8 @@ test("provider errors fall back without persisting a fake AI quote and back off"
   const before = quotes.size;
   assert.deepEqual(await getHomeQuote(150, day), { text: quoteForDate(day) });
   assert.deepEqual(await getHomeQuote(150, day), { text: quoteForDate(day) });
+  journals.set(150, fixture(152, { content: "Jurnal baru saat provider sedang gagal." }));
+  assert.deepEqual(await getHomeQuote(150, day), { text: quoteForDate(day) });
   assert.equal(calls, 1);
   assert.equal(quotes.size, before);
   assert.ok(!JSON.stringify(warnings).includes("private provider body"));
@@ -215,7 +259,7 @@ test("generation rate limit does not disable persisted results", async () => {
   let first;
   for (let i = 0; i < 13; i++) {
     journals.set(160, fixture(160, { content: `Cerita revisi ${i}` }));
-    const result = await getHomeQuote(160, day);
+    const result = await getHomeQuote(160, `2026-10-${String(16 + i).padStart(2, "0")}`);
     if (i === 0) first = result;
     assert.equal(Boolean(result.id), i < 12);
   }
