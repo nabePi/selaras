@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.22.0](https://github.com/nabePi/selaras/compare/v0.21.1...v0.22.0) (2026-10-27)
+
+
+### Fitur Baru
+
+* **gift:** compose personal gifts from journals and verified sources ([2bae1d5](https://github.com/nabePi/selaras/commit/2bae1d5fc853eb1589d1c31f30c474cc9ff3f0f3))
+* **gift:** rangkai gift personal dari jurnal dan sumber terverifikasi ([414ebdd](https://github.com/nabePi/selaras/commit/414ebdd421513e8421656872717cd85bd81e557d))
+
+
+### Perbaikan Bug
+
+* keep personalized home quote stable throughout the day ([17e21d1](https://github.com/nabePi/selaras/commit/17e21d139b3e8f118fda865675097cb03d3fa82e))
+* keep personalized home quote stable throughout the day ([d6a4bb7](https://github.com/nabePi/selaras/commit/d6a4bb7186f6bf608ace7d79ac8d645d8a5aa852))
+
 ## [0.21.1](https://github.com/nabePi/selaras/compare/v0.21.0...v0.21.1) (2026-10-15)
 
 
